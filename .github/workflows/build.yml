@@ -1,0 +1,61 @@
+name: Pact-Protobuf-Plugin Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: [ ubuntu-latest, windows-latest, macos-latest ]
+        rust: [ stable ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: clippy
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install shared mime info DB
+        if: runner.os == 'macOS'
+        run: brew install shared-mime-info
+      - name: Tests
+        run: cargo test --lib
+        env:
+          RUST_LOG: debug
+          RUST_BACKTRACE: 1
+      - name: Build Plugin
+        run: cargo build
+      - name: Clippy
+        run: cargo clippy
+
+  musl-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+         docker run --rm --user "$(id -u)":"$(id -g)" -v $(pwd):/workspace -w /workspace -t pactfoundation/rust-musl-build ./scripts/musl-build.sh
+
+  pact-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build plugin
+        run: cargo build
+      - name: Install plugin
+        run: |
+          mkdir -p ~/.pact/plugins/pact-protobuf-plugin
+          cp pact-plugin.json target/debug/pact-protobuf-plugin ~/.pact/plugins/pact-protobuf-plugin/
+      - name: Pact verification test
+        run: cargo test --test pact_verify
+        env:
+          RUST_LOG: debug
+          RUST_BACKTRACE: 1
+          PACTFLOW_TOKEN: ${{ secrets.PACTFLOW_TOKEN }}
