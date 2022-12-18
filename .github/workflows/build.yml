@@ -1,4 +1,4 @@
-name: Pact-Protobuf-Plugin Build
+name: Pact-Avro-Plugin Build
 
 on: [push, pull_request]
 
@@ -51,8 +51,8 @@ jobs:
         run: cargo build
       - name: Install plugin
         run: |
-          mkdir -p ~/.pact/plugins/pact-protobuf-plugin
-          cp pact-plugin.json target/debug/pact-protobuf-plugin ~/.pact/plugins/pact-protobuf-plugin/
+          mkdir -p ~/.pact/plugins/pact-avro-plugin
+          cp pact-plugin.json target/debug/pact-avro-plugin ~/.pact/plugins/pact-avro-plugin/
       - name: Pact verification test
         run: cargo test --test pact_verify
         env:

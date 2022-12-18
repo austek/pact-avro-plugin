@@ -3,4 +3,4 @@
 set -e
 
 cargo build
-./target/debug/pact-protobuf-plugin -v
+./target/debug/pact-avro-plugin -v
