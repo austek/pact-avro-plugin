@@ -3,11 +3,13 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
+use maplit::hashmap;
 
 use pact_matching::{BodyMatchResult, Mismatch};
 use pact_models::json_utils::json_to_string;
 use pact_plugin_driver::plugin_models::PactPluginManifest;
 use pact_plugin_driver::proto;
+use pact_plugin_driver::proto::catalogue_entry::EntryType;
 use pact_plugin_driver::proto::pact_plugin_server::PactPlugin;
 use serde_json::Value;
 use tonic::{Request, Response, Status};
@@ -115,11 +117,40 @@ impl AvroPactPlugin {
 #[tonic::async_trait]
 impl PactPlugin for AvroPactPlugin {
   async fn init_plugin(&self, request: Request<proto::InitPluginRequest>) -> Result<Response<proto::InitPluginResponse>, Status> {
-    todo!()
+    let message = request.get_ref();
+    debug!("Init request from {}/{}", message.implementation, message.version);
+
+    // Return an entry for a content matcher and content generator for Protobuf messages
+    Ok(Response::new(proto::InitPluginResponse {
+      catalogue: vec![
+        proto::CatalogueEntry {
+          r#type: EntryType::ContentMatcher as i32,
+          key: "protobuf".to_string(),
+          values: hashmap! {
+            "content-types".to_string() => "application/protobuf;application/grpc".to_string()
+          }
+        },
+        proto::CatalogueEntry {
+          r#type: EntryType::ContentGenerator as i32,
+          key: "protobuf".to_string(),
+          values: hashmap! {
+            "content-types".to_string() => "application/protobuf;application/grpc".to_string()
+          }
+        },
+        proto::CatalogueEntry {
+          r#type: EntryType::Transport as i32,
+          key: "grpc".to_string(),
+          values: hashmap! {}
+        }
+      ]
+    }))
   }
 
   async fn update_catalogue(&self, request: Request<proto::Catalogue>) -> Result<Response<()>, Status> {
-    todo!()
+    debug!("Update catalogue request");
+
+    // currently a no-op
+    Ok(Response::new(()))
   }
 
   async fn compare_contents(&self, request: Request<proto::CompareContentsRequest>) -> Result<Response<proto::CompareContentsResponse>, Status> {
@@ -131,19 +162,46 @@ impl PactPlugin for AvroPactPlugin {
   }
 
   async fn generate_content(&self, request: Request<proto::GenerateContentRequest>) -> Result<Response<proto::GenerateContentResponse>, Status> {
-    todo!()
+    debug!("Generate content request");
+    let message = request.get_ref();
+    // TODO: apply any generators here
+    Ok(Response::new(proto::GenerateContentResponse {
+      contents: message.contents.clone()
+    }))
   }
 
   async fn start_mock_server(&self, request: Request<proto::StartMockServerRequest>) -> Result<Response<proto::StartMockServerResponse>, Status> {
-    todo!()
+    debug!("Start mock server");
+    return Ok(tonic::Response::new(proto::StartMockServerResponse {
+      response: Some(proto::start_mock_server_response::Response::Error(format!("Mock server not supported"))),
+      .. proto::StartMockServerResponse::default()
+    }));
   }
 
   async fn shutdown_mock_server(&self, request: Request<proto::ShutdownMockServerRequest>) -> Result<Response<proto::ShutdownMockServerResponse>, Status> {
-    todo!()
+    debug!("Shutdown mock server");
+    return Ok(Response::new(proto::ShutdownMockServerResponse {
+      ok: false,
+      results: vec![
+        proto::MockServerResult {
+          error: format!("Did not find any mock server results for a server with ID {}", request.server_key),
+          .. proto::MockServerResult::default()
+        }
+      ]
+    }));
   }
 
   async fn get_mock_server_results(&self, request: Request<proto::MockServerRequest>) -> Result<Response<proto::MockServerResults>, Status> {
-    todo!()
+    debug!("Get mock server results");
+    Ok(Response::new(proto::MockServerResults {
+      ok: false,
+      results: vec![
+        proto::MockServerResult {
+          error: format!("Did not find any mock server results for a server with ID {}", request.server_key),
+          .. proto::MockServerResult::default()
+        }
+      ]
+    }))
   }
 
   async fn prepare_interaction_for_verification(&self, request: Request<proto::VerificationPreparationRequest>) -> Result<Response<proto::VerificationPreparationResponse>, Status> {
