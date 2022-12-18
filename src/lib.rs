@@ -1,5 +1,6 @@
 extern crate core;
 
+pub mod protoc;
 pub mod server;
 pub mod tcp;
 
