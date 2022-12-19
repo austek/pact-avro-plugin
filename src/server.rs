@@ -20,6 +20,7 @@ use pact_plugin_driver::utils::{proto_struct_to_json, proto_struct_to_map, proto
 use serde_json::Value;
 use tonic::{Request, Response, Status};
 use tracing::{debug, error, info, trace};
+use crate::utils::get_descriptors_for_interaction;
 
 /// Plugin gRPC server implementation
 #[derive(Debug, Default)]
@@ -161,7 +162,7 @@ impl PactPlugin for AvroPactPlugin {
 
   async fn compare_contents(&self, request: Request<proto::CompareContentsRequest>) -> Result<Response<proto::CompareContentsResponse>, Status> {
     trace!("Got compare_contents request {:?}", request.get_ref());
-/*
+
     let request = request.get_ref();
 
     // Check for the plugin specific configuration for the interaction
@@ -253,16 +254,17 @@ impl PactPlugin for AvroPactPlugin {
         Ok(ct) => ct,
         Err(err) => return Self::error_response(format!("Expected content type is not set or not valid - {}", err))
       };
-      match_service(
-        service,
-        method,
-        &descriptors,
-        &mut expected_body,
-        &mut actual_body,
-        &matching_rules,
-        request.allow_unexpected_keys,
-        &expected_content_type
-      )
+      // match_service(
+      //   service,
+      //   method,
+      //   &descriptors,
+      //   &mut expected_body,
+      //   &mut actual_body,
+      //   &matching_rules,
+      //   request.allow_unexpected_keys,
+      //   &expected_content_type
+      // )
+      Ok(BodyMatchResult::Ok)
     } else {
       Err(anyhow!("Did not get a message or service to match"))
     };
@@ -293,15 +295,13 @@ impl PactPlugin for AvroPactPlugin {
       }
       Err(err) => Self::error_response(format!("Failed to compare the Avro messages - {}", err))
     }
- */
-    Self::error_response("Plugin configuration item with key 'message' or 'service' is required")
   }
 
   async fn configure_interaction(&self, request: Request<proto::ConfigureInteractionRequest>) -> Result<Response<proto::ConfigureInteractionResponse>, Status> {
     let message = request.get_ref();
     debug!("Configure interaction request for content type '{}'", message.content_type);
-
-    // Check for the "pact:proto" key
+    todo!()
+    /*// Check for the "pact:proto" key
     let fields = message.contents_config.as_ref().map(|config| config.fields.clone()).unwrap_or_default();
     let proto_file = match fields.get("pact:proto").and_then(proto_value_to_string) {
       Some(pf) => pf,
@@ -352,7 +352,7 @@ impl PactPlugin for AvroPactPlugin {
           .. proto::ConfigureInteractionResponse::default()
         }))
       }
-    }
+    }*/
   }
 
   async fn generate_content(&self, request: Request<proto::GenerateContentRequest>) -> Result<Response<proto::GenerateContentResponse>, Status> {
@@ -404,6 +404,77 @@ impl PactPlugin for AvroPactPlugin {
 
   async fn verify_interaction(&self, request: Request<proto::VerifyInteractionRequest>) -> Result<Response<proto::VerifyInteractionResponse>, Status> {
     todo!()
+  }
+}
+
+fn mismatch_to_proto_mismatch(mismatch: &Mismatch) -> proto::ContentMismatch {
+  match mismatch {
+    Mismatch::MethodMismatch { expected, actual } => {
+      proto::ContentMismatch {
+        expected: Some(expected.as_bytes().to_vec()),
+        actual: Some(actual.as_bytes().to_vec()),
+        mismatch: "Method mismatch".to_string(),
+        ..proto::ContentMismatch::default()
+      }
+    }
+    Mismatch::PathMismatch { expected, actual, mismatch } => {
+      proto::ContentMismatch {
+        expected: Some(expected.as_bytes().to_vec()),
+        actual: Some(actual.as_bytes().to_vec()),
+        mismatch: mismatch.clone(),
+        ..proto::ContentMismatch::default()
+      }
+    }
+    Mismatch::StatusMismatch { expected, actual, mismatch } => {
+      proto::ContentMismatch {
+        expected: Some(expected.to_string().as_bytes().to_vec()),
+        actual: Some(actual.to_string().as_bytes().to_vec()),
+        mismatch: mismatch.clone(),
+        ..proto::ContentMismatch::default()
+      }
+    }
+    Mismatch::QueryMismatch { expected, actual, mismatch, .. } => {
+      proto::ContentMismatch {
+        expected: Some(expected.as_bytes().to_vec()),
+        actual: Some(actual.as_bytes().to_vec()),
+        mismatch: mismatch.clone(),
+        ..proto::ContentMismatch::default()
+      }
+    }
+    Mismatch::HeaderMismatch { expected, actual, mismatch, .. } => {
+      proto::ContentMismatch {
+        expected: Some(expected.as_bytes().to_vec()),
+        actual: Some(actual.as_bytes().to_vec()),
+        mismatch: mismatch.clone(),
+        ..proto::ContentMismatch::default()
+      }
+    }
+    Mismatch::BodyTypeMismatch { expected, actual, mismatch, .. } => {
+      proto::ContentMismatch {
+        expected: Some(expected.as_bytes().to_vec()),
+        actual: Some(actual.as_bytes().to_vec()),
+        mismatch: mismatch.clone(),
+        ..proto::ContentMismatch::default()
+      }
+    }
+    Mismatch::BodyMismatch { path, expected, actual, mismatch } => {
+      proto::ContentMismatch {
+        expected: expected.as_ref().map(|v| v.to_vec()),
+        actual: actual.as_ref().map(|v| v.to_vec()),
+        mismatch: mismatch.clone(),
+        path: path.clone(),
+        ..proto::ContentMismatch::default()
+      }
+    }
+    Mismatch::MetadataMismatch { key, expected, actual, mismatch } => {
+      proto::ContentMismatch {
+        expected: Some(expected.as_bytes().to_vec()),
+        actual: Some(actual.as_bytes().to_vec()),
+        mismatch: mismatch.clone(),
+        path: key.clone(),
+        ..proto::ContentMismatch::default()
+      }
+    }
   }
 }
 
@@ -465,5 +536,101 @@ mod tests {
     let response_message = response.get_ref();
     expect!(&response_message.error).to(
       be_equal_to("Config item with key 'pact:proto' and path to the proto file is required"));
+  }
+
+  #[tokio::test]
+  async fn configure_interaction_test__with_missing_message_or_service_name() {
+    let plugin = AvroPactPlugin { manifest: Default::default() };
+    let request = proto::ConfigureInteractionRequest {
+      content_type: "text/test".to_string(),
+      contents_config: Some(prost_types::Struct {
+        fields: btreemap!{
+          "pact:proto".to_string() => prost_types::Value { kind: Some(prost_types::value::Kind::StringValue("test.proto".to_string())) }
+        }
+      })
+    };
+
+    let response = plugin.configure_interaction(Request::new(request)).await.unwrap();
+    let response_message = response.get_ref();
+    expect!(&response_message.error).to(
+      be_equal_to("Config item with key 'pact:message-type' and the avro message name or 'pact:proto-service' and the service name is required"));
+  }
+
+  #[test]
+  fn AvroPactPlugin__host_to_bind_to__default() {
+    let plugin = AvroPactPlugin { manifest: Default::default() };
+    expect!(plugin.host_to_bind_to()).to(be_none());
+  }
+
+  #[test]
+  fn AvroPactPlugin__host_to_bind_to__with_string_value() {
+    let manifest = PactPluginManifest {
+      plugin_config: hashmap! {
+        "hostToBindTo".to_string() => json!("127.0.1.1")
+      },
+      .. PactPluginManifest::default()
+    };
+    let plugin = AvroPactPlugin { manifest };
+    expect!(plugin.host_to_bind_to()).to(be_some().value("127.0.1.1".to_string()));
+  }
+
+  #[test]
+  fn AvroPactPlugin__host_to_bind_to__with_non_string_value() {
+    let manifest = PactPluginManifest {
+      plugin_config: hashmap! {
+        "hostToBindTo".to_string() => json!("127")
+      },
+      .. PactPluginManifest::default()
+    };
+    let plugin = AvroPactPlugin { manifest };
+    expect!(plugin.host_to_bind_to()).to(be_some().value("127".to_string()));
+  }
+
+  #[test]
+  fn AvroPactPlugin__additional_includes__default() {
+    let plugin = AvroPactPlugin { manifest: Default::default() };
+    expect!(plugin.additional_includes().iter()).to(be_empty());
+  }
+
+  #[test]
+  fn AvroPactPlugin__additional_includes__with_string_value() {
+    let manifest = PactPluginManifest {
+      plugin_config: hashmap! {
+        "additionalIncludes".to_string() => json!("/some/path")
+      },
+      .. PactPluginManifest::default()
+    };
+    let plugin = AvroPactPlugin { manifest };
+    expect!(plugin.additional_includes()).to(be_equal_to(vec!["/some/path".to_string()]));
+  }
+
+  #[test]
+  fn AvroPactPlugin__additional_includes__with_list_value() {
+    let manifest = PactPluginManifest {
+      plugin_config: hashmap! {
+        "additionalIncludes".to_string() => json!(["/path1", "/path2"])
+      },
+      .. PactPluginManifest::default()
+    };
+    let plugin = AvroPactPlugin { manifest };
+    expect!(plugin.additional_includes()).to(be_equal_to(vec![
+      "/path1".to_string(),
+      "/path2".to_string()
+    ]));
+  }
+
+  #[test]
+  fn AvroPactPlugin__additional_includes__with_non_string_values() {
+    let manifest = PactPluginManifest {
+      plugin_config: hashmap! {
+        "additionalIncludes".to_string() => json!(["/path1", 200])
+      },
+      .. PactPluginManifest::default()
+    };
+    let plugin = AvroPactPlugin { manifest };
+    expect!(plugin.additional_includes()).to(be_equal_to(vec![
+      "/path1".to_string(),
+      "200".to_string()
+    ]));
   }
 }
