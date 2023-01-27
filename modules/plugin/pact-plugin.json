@@ -1,0 +1,18 @@
+{
+  "manifestVersion": 1,
+  "pluginInterfaceVersion": 1,
+  "name": "avro",
+  "version": "0.0.1",
+  "executableType": "exec",
+  "entryPoint": "bin/pact-avro-plugin",
+  "entryPoints": {
+    "windows": "bin/pact-avro-plugin.bat"
+  },
+  "dependencies": [
+    {
+      "name": "jvm",
+      "version": "11+",
+      "type": "OSPackage"
+    }
+  ]
+}
