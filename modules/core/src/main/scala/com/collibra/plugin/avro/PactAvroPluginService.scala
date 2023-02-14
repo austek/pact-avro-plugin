@@ -39,15 +39,6 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
             CatalogueEntry.EntryType.CONTENT_MATCHER,
             "avro",
             Map("content-types" -> contentTypesStr)
-          ),
-          CatalogueEntry(
-            CatalogueEntry.EntryType.CONTENT_GENERATOR,
-            "avro",
-            Map("content-types" -> contentTypesStr)
-          ),
-          CatalogueEntry(
-            CatalogueEntry.EntryType.TRANSPORT,
-            "avro"
           )
         )
       )
@@ -154,44 +145,38 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
   /** Request to generate the content using any defined generators
     */
   override def generateContent(in: GenerateContentRequest): Future[GenerateContentResponse] = {
-    logger.debug("Generate Content")
-    Future.successful(GenerateContentResponse())
+    ???
   }
 
   /** Start a mock server
     */
   override def startMockServer(in: StartMockServerRequest): Future[StartMockServerResponse] = {
-    logger.debug("Start Mock Server")
-    Future.successful(StartMockServerResponse(StartMockServerResponse.Response.Empty))
+    ???
   }
 
   /** Shutdown a running mock server TODO: Replace the message types with MockServerRequest and MockServerResults in the next major version
     */
   override def shutdownMockServer(in: ShutdownMockServerRequest): Future[ShutdownMockServerResponse] = {
-    logger.debug("Shutdown Mock Server")
-    Future.successful(ShutdownMockServerResponse(ok = true))
+    ???
   }
 
   /** Get the matching results from a running mock server
     */
   override def getMockServerResults(in: MockServerRequest): Future[MockServerResults] = {
-    logger.debug("Get Mock Server results")
-    Future.successful(MockServerResults(ok = true))
+    ???
   }
 
   /** Prepare an interaction for verification. This should return any data required to construct any request so that it can be amended before the verification
     * is run
     */
   override def prepareInteractionForVerification(in: VerificationPreparationRequest): Future[VerificationPreparationResponse] = {
-    logger.debug("Prepare interaction for verification")
-    Future.successful(VerificationPreparationResponse())
+    ???
   }
 
   /** Execute the verification for the interaction.
     */
   override def verifyInteraction(in: VerifyInteractionRequest): Future[VerifyInteractionResponse] = {
-    logger.debug("Verify interaction")
-    Future.successful(VerifyInteractionResponse())
+    ???
   }
 
   private def getConfigValue(configs: Map[String, Value], id: String, msg: String): Either[String, Value] =

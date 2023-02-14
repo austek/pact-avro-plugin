@@ -23,6 +23,7 @@ object Dependencies extends DependencyUtils {
   val akkaHttpTest: ModuleID = "com.typesafe.akka"             %% "akka-http-testkit"              % Versions.akkaHttp
   val akkaStreamTest: ModuleID = "com.typesafe.akka"           %% "akka-stream-testkit"            % Versions.akka
   val apacheAvro: ModuleID = "org.apache.avro"                  % "avro"                           % Versions.avro
+  val assertJCore: ModuleID = "org.assertj"                     % "assertj-core"                   % "3.24.2"
   val avroCompiler: ModuleID = "org.apache.avro"                % "avro-compiler"                  % Versions.avro
   val hamcrest: ModuleID = "org.hamcrest"                       % "hamcrest"                       % "2.2"
   val jUnitInterface: ModuleID = "net.aichler"                  % "jupiter-interface"              % "0.11.1"

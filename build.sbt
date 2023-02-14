@@ -75,7 +75,7 @@ lazy val consumer = project
   .settings(
     basicSettings,
     libraryDependencies ++=
-      Dependencies.test(hamcrest, jUnitInterface, pactConsumerJunit).map(withExclusions),
+      Dependencies.test(assertJCore, jUnitInterface, pactConsumerJunit).map(withExclusions),
     dependencyOverrides += Dependencies.pactCore,
     publish / skip := false
   )

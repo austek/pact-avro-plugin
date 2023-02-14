@@ -1,11 +1,13 @@
 package com.collibra.plugin.avro
 
 import com.google.protobuf.struct.{Struct, Value}
-import io.pact.plugin.{CatalogueEntry, ConfigureInteractionRequest, InitPluginRequest}
+import io.pact.plugin._
+import org.scalatest.OptionValues
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AsyncFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
-class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers {
+class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionValues with ScalaFutures {
 
   "Avro Plugin" should "initialise" in {
     new PactAvroPluginService()
@@ -126,7 +128,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers {
 
   it should "return Interaction Response" in {
     val url = getClass.getResource("/schemas.avsc")
-    new PactAvroPluginService()
+    val eventualResponse = new PactAvroPluginService()
       .configureInteraction(
         ConfigureInteractionRequest(
           "avro/binary",
@@ -134,14 +136,22 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers {
             Struct(
               Map(
                 "pact:avro" -> Value(Value.Kind.StringValue(url.getPath)),
-                "pact:content-type" -> Value(Value.Kind.StringValue("application/avro"))
+                "pact:content-type" -> Value(Value.Kind.StringValue("application/avro")),
+                "pact:record-name" -> Value(Value.Kind.StringValue("Item")),
+                "pact:content-type" -> Value(Value.Kind.StringValue("avro/binary")),
+                "name" -> Value(Value.Kind.StringValue("notEmpty('Item-41')")),
+                "id" -> Value(Value.Kind.StringValue("notEmpty('41')"))
               )
             )
           )
         )
       )
-      .map { response =>
-        response shouldNot be(null)
-      }
+    val response = eventualResponse.futureValue
+    response.interaction should have size 1
+    val interaction: InteractionResponse = response.interaction.head
+    val content = interaction.contents.value
+    content.contentTypeHint shouldBe Body.ContentTypeHint.BINARY
+    content.contentType shouldBe "avro/binary;record=Item"
+    content.getContent shouldBe ""
   }
 }

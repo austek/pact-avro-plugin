@@ -17,12 +17,15 @@ import io.pact.plugin._
 import org.apache.avro.Schema
 import org.apache.avro.Schema.Type._
 import org.apache.avro.generic.{GenericData, GenericDatumWriter, GenericRecord}
-import org.apache.avro.io.EncoderFactory
+import org.apache.avro.io.{DecoderFactory, EncoderFactory}
+import org.apache.avro.specific.SpecificDatumReader
 
-import java.io.ByteArrayOutputStream
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.net.ServerSocket
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.language.implicitConversions
+import scala.util.{Failure, Success, Using}
 
 object InteractionResponseBuilder extends StrictLogging {
 
@@ -79,7 +82,7 @@ object InteractionResponseBuilder extends StrictLogging {
             contents = Some(
               Body(
                 contentType = s"avro/binary;record=$recordName",
-                content = Some(ByteString.copyFrom(avroRecordToInputStream(schema, record))),
+                content = avroRecordToInputStream(schema, record),
                 contentTypeHint = ContentTypeHint.BINARY
               )
             ),
@@ -99,16 +102,19 @@ object InteractionResponseBuilder extends StrictLogging {
     }
   }
 
-  private def avroRecordToInputStream(schema: Schema, record: GenericData.Record) = {
+  private def avroRecordToInputStream(schema: Schema, record: GenericData.Record): Option[ByteString] = {
     val datumWriter = new GenericDatumWriter[GenericRecord](schema)
-    val os = new ByteArrayOutputStream();
-    try {
+    Using(new ByteArrayOutputStream()) { os =>
       val encoder = EncoderFactory.get.binaryEncoder(os, null)
       datumWriter.write(record, encoder)
       encoder.flush()
-
       os.toByteArray
-    } finally os.close()
+    } match {
+      case Success(bytes) => Some(ByteString.copyFrom(bytes))
+      case Failure(exception) =>
+        exception.printStackTrace()
+        None
+    }
   }
 
   private def buildFieldValue(
