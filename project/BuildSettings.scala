@@ -15,6 +15,12 @@ object BuildSettings {
     resolvers += Resolver.mavenLocal,
     resolvers ++= Resolver.sonatypeOssRepos("releases"),
     javacOptions ++= Seq("-encoding", "UTF-8"),
-    Test / fork := true
+    Test / fork := true,
+    scalacOptions --= {
+      if (sys.env.contains("CI"))
+        Seq.empty
+      else
+        Seq("-Xfatal-warnings")
+    }
   )
 }

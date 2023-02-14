@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -23,32 +24,7 @@ import static org.hamcrest.Matchers.is;
 @ExtendWith(PactConsumerTestExt.class)
 @PactTestFor(providerName = "avro-provider", providerType = ProviderType.ASYNCH, pactVersion = PactSpecVersion.V4)
 class PactConsumerTest {
-    String schemasPath = getClass().getResource("/schemas.avsc").getPath();
-
-    @Pact(consumer = "avro-consumer")
-    V4Pact initPluginMessage(PactBuilder builder) {
-        return builder
-                .usingPlugin("avro")
-                .expectsToReceive("init plugin message", "core/interaction/message")
-                .with(Map.of(
-                        "message.contents", Map.of(
-                                "pact:avro", schemasPath,
-                                "pact:message-type", "InitPluginRequest",
-                                "pact:content-type", "avro/binary",
-                                "implementation", "notEmpty('pact-jvm-driver')",
-                                "version", "matching(semver, '0.0.0')"
-                        )
-                ))
-                .toPact();
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "initPluginMessage")
-    void consumeInitPluginMessage(V4Interaction.AsynchronousMessage message) throws InvalidProtocolBufferException {
-        Plugin.InitPluginRequest request = Plugin.InitPluginRequest.parseFrom(message.getContents().getContents().getValue());
-        assertThat(request.getImplementation(), is("pact-jvm-driver"));
-        assertThat(request.getVersion(), is("0.0.0"));
-    }
+    String schemasPath = Objects.requireNonNull(getClass().getResource("/schemas.avsc")).getPath();
 
     @Pact(consumer = "avro-consumer")
     V4Pact configureInteractionResponseMessage(PactBuilder builder) {
@@ -58,13 +34,10 @@ class PactConsumerTest {
                 .with(Map.of(
                         "message.contents", Map.of(
                                 "pact:avro", schemasPath,
-                                "pact:message-type", "Item",
+                                "pact:record-name", "Item",
                                 "pact:content-type", "avro/binary",
-                                "contents", Map.of(
-                                        "contentType", "notEmpty('application/json')",
-                                        "content", "matching(contentType, 'application/json', '{}')",
-                                        "contentTypeHint", "matching(equalTo, 'TEXT')"
-                                )
+                                "name", "notEmpty('Item-41')",
+                                "id", "notEmpty('41')"
                         )
                 ))
                 .toPact();

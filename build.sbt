@@ -40,7 +40,7 @@ lazy val core = project
   )
   .settings(
     name := "core",
-    maintainer := "aliustek@gmail.com",
+    maintainer := "ali.ustek@collibra.com",
     basicSettings,
     Defaults.itSettings,
     executableScriptName := "pact-avro-plugin",

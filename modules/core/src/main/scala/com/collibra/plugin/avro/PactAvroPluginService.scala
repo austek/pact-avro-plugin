@@ -1,11 +1,9 @@
 package com.collibra.plugin.avro
 
 import com.google.common.io.BaseEncoding
-import com.google.protobuf.ByteString
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging
-import io.pact.plugin.Body.ContentTypeHint
 import io.pact.plugin._
 import org.apache.avro.Schema
 
@@ -28,7 +26,7 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
   )
   private val contentTypesStr = contentTypes.mkString(";")
 
-  private val messageTypeKey = "message-type"
+  private val recordNameKey = "record-name"
 
   /** Check that the plugin loaded OK. Returns the catalogue entries describing what the plugin provides
     */
@@ -70,48 +68,35 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
 
     (for {
       configuration <- getConfiguration(in.contentsConfig, "Configuration not found")
-//      _ <- getContentType(configuration)
       avroSchema <- getAvroSchema(configuration)
-      messageType <- getMessageType(configuration)
+      recordName <- getRecordName(configuration)
     } yield {
       logger.debug("Digest avro file")
       val digest: MessageDigest = MessageDigest.getInstance("MD5")
       digest.update(avroSchema.toString.getBytes)
       val avroSchemaHash: String = BaseEncoding.base16().lowerCase().encode(digest.digest())
+
       logger.debug("Start to build response")
-      val response = ConfigureInteractionResponse(
-        interaction = Seq(
-          InteractionResponse(
-            contents = Some(
-              Body(
-                s"$contentTypeAvroBinary;message=$messageType",
-                Some(ByteString.copyFromUtf8("""{ "key" :"value"}""")),
-                ContentTypeHint.TEXT
-              )
-            ),
-            rules = Map(
-              "implementation" -> MatchingRules(Seq(MatchingRule("not-empty", None)))
+      logger.debug("return response")
+      InteractionResponseBuilder
+        .constructAvroMessageForSchema(avroSchema, recordName, configuration)
+        .map { interactionResponse =>
+          ConfigureInteractionResponse(
+            interaction = Seq(
+              interactionResponse
             ),
             pluginConfiguration = Some(
               PluginConfiguration(
-                interactionConfiguration = Some(Struct(Map("custom-field" -> Value(Value.Kind.StringValue("custom-value")))))
-              )
-            ),
-            interactionMarkup = """
-                |""".stripMargin,
-            partName = "Some-Name"
-          )
-        ),
-        pluginConfiguration = Some(
-          PluginConfiguration(
-            pactConfiguration = Some(
-              Struct(
-                Map(
-                  avroSchemaHash -> Value(
-                    Value.Kind.StructValue(
-                      Struct(
-                        Map(
-                          "avroSchema" -> Value(Value.Kind.StringValue(avroSchema.toString))
+                pactConfiguration = Some(
+                  Struct(
+                    Map(
+                      avroSchemaHash -> Value(
+                        Value.Kind.StructValue(
+                          Struct(
+                            Map(
+                              "avroSchema" -> Value(Value.Kind.StringValue(avroSchema.toString))
+                            )
+                          )
                         )
                       )
                     )
@@ -120,11 +105,8 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
               )
             )
           )
-        )
-      )
-      logger.debug("return response")
-      response
-    }) match {
+        }
+    }).flatten match {
       case Right(response) =>
         logger.debug(s"Responding: $response")
         Future.successful(response)
@@ -242,10 +224,10 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
     }
   }
 
-  private def getMessageType(configuration: Struct): Either[String, String] =
+  private def getRecordName(configuration: Struct): Either[String, String] =
     getConfigStringValue(
       configuration.fields,
-      s"pact:$messageTypeKey",
-      s"Config item with key 'pact:$messageTypeKey' and $messageTypeKey of the payload is required"
+      s"pact:$recordNameKey",
+      s"Config item with key 'pact:$recordNameKey' and $recordNameKey of the payload is required"
     )
 }
