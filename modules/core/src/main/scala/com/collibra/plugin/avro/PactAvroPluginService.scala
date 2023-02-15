@@ -1,16 +1,14 @@
 package com.collibra.plugin.avro
 
-import com.google.common.io.BaseEncoding
+import com.collibra.plugin.avro.interaction.InteractionResponseBuilder.buildInteractionResponse
+import com.collibra.plugin.avro.utils.{AvroUtils, PluginError, PluginErrorMessage}
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging
 import io.pact.plugin._
 import org.apache.avro.Schema
 
-import java.nio.file.Path
-import java.security.MessageDigest
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
 
 class PactAvroPluginService extends PactPlugin with StrictLogging {
 
@@ -61,49 +59,16 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
       configuration <- getConfiguration(in.contentsConfig, "Configuration not found")
       avroSchema <- getAvroSchema(configuration)
       recordName <- getRecordName(configuration)
+      response <- buildInteractionResponse(configuration, avroSchema, recordName)
     } yield {
-      logger.debug("Digest avro file")
-      val digest: MessageDigest = MessageDigest.getInstance("MD5")
-      digest.update(avroSchema.toString.getBytes)
-      val avroSchemaHash: String = BaseEncoding.base16().lowerCase().encode(digest.digest())
-
-      logger.debug("Start to build response")
-      logger.debug("return response")
-      InteractionResponseBuilder
-        .constructAvroMessageForSchema(avroSchema, recordName, configuration)
-        .map { interactionResponse =>
-          ConfigureInteractionResponse(
-            interaction = Seq(
-              interactionResponse
-            ),
-            pluginConfiguration = Some(
-              PluginConfiguration(
-                pactConfiguration = Some(
-                  Struct(
-                    Map(
-                      avroSchemaHash -> Value(
-                        Value.Kind.StructValue(
-                          Struct(
-                            Map(
-                              "avroSchema" -> Value(Value.Kind.StringValue(avroSchema.toString))
-                            )
-                          )
-                        )
-                      )
-                    )
-                  )
-                )
-              )
-            )
-          )
-        }
-    }).flatten match {
+      response
+    }) match {
       case Right(response) =>
         logger.debug(s"Responding: $response")
         Future.successful(response)
       case Left(msg) =>
-        logger.error(s"Configure interaction failed: $msg")
-        Future.successful(ConfigureInteractionResponse(error = msg))
+        logger.error(s"Configure interaction failed: ${msg.value}")
+        Future.successful(ConfigureInteractionResponse(error = msg.value))
     }
   }
 
@@ -144,72 +109,61 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
 
   /** Request to generate the content using any defined generators
     */
-  override def generateContent(in: GenerateContentRequest): Future[GenerateContentResponse] = {
+  override def generateContent(in: GenerateContentRequest): Future[GenerateContentResponse] =
     ???
-  }
 
   /** Start a mock server
     */
-  override def startMockServer(in: StartMockServerRequest): Future[StartMockServerResponse] = {
+  override def startMockServer(in: StartMockServerRequest): Future[StartMockServerResponse] =
     ???
-  }
 
   /** Shutdown a running mock server TODO: Replace the message types with MockServerRequest and MockServerResults in the next major version
     */
-  override def shutdownMockServer(in: ShutdownMockServerRequest): Future[ShutdownMockServerResponse] = {
+  override def shutdownMockServer(in: ShutdownMockServerRequest): Future[ShutdownMockServerResponse] =
     ???
-  }
 
   /** Get the matching results from a running mock server
     */
-  override def getMockServerResults(in: MockServerRequest): Future[MockServerResults] = {
+  override def getMockServerResults(in: MockServerRequest): Future[MockServerResults] =
     ???
-  }
 
   /** Prepare an interaction for verification. This should return any data required to construct any request so that it can be amended before the verification
     * is run
     */
-  override def prepareInteractionForVerification(in: VerificationPreparationRequest): Future[VerificationPreparationResponse] = {
+  override def prepareInteractionForVerification(in: VerificationPreparationRequest): Future[VerificationPreparationResponse] =
     ???
-  }
 
   /** Execute the verification for the interaction.
     */
-  override def verifyInteraction(in: VerifyInteractionRequest): Future[VerifyInteractionResponse] = {
+  override def verifyInteraction(in: VerifyInteractionRequest): Future[VerifyInteractionResponse] =
     ???
-  }
 
-  private def getConfigValue(configs: Map[String, Value], id: String, msg: String): Either[String, Value] =
+  private def getConfigValue(configs: Map[String, Value], id: String, msg: String): Either[PluginErrorMessage, Value] =
     configs.get(id) match {
       case Some(value) => Right(value)
-      case None        => Left(msg)
+      case None        => Left(PluginErrorMessage(msg))
     }
 
-  private def getConfigStringValue(configs: Map[String, Value], id: String, msg: String): Either[String, String] =
-    getConfigValue(configs, id, msg).map(_.getStringValue).filterOrElse(!_.isBlank, msg)
+  private def getConfigStringValue(configs: Map[String, Value], id: String, msg: String): Either[PluginErrorMessage, String] =
+    getConfigValue(configs, id, msg).map(_.getStringValue).filterOrElse(!_.isBlank, PluginErrorMessage(msg))
 
-  private def getConfiguration(structOpt: Option[Struct], errorMsg: String): Either[String, Struct] =
+  private def getConfiguration(structOpt: Option[Struct], errorMsg: String): Either[PluginErrorMessage, Struct] =
     structOpt match {
       case Some(struct) => Right(struct)
-      case None         => Left(errorMsg)
+      case None         => Left(PluginErrorMessage(errorMsg))
     }
 
-  private def getAvroSchema(configuration: Struct): Either[String, Schema] = {
+  private def getAvroSchema(configuration: Struct): Either[PluginErrorMessage, Schema] = {
     getConfigStringValue(
       configuration.fields,
       "pact:avro",
       "Config item with key 'pact:avro' and path to the avro file is required"
     ).flatMap { avroFilePath =>
-      Try(new Schema.Parser().parse(Path.of(avroFilePath).toFile)) match {
-        case Success(schema) => Right(schema)
-        case Failure(exception) =>
-          exception.printStackTrace()
-          Left(exception.getMessage)
-      }
+      AvroUtils.parseSchema(avroFilePath)
     }
   }
 
-  private def getRecordName(configuration: Struct): Either[String, String] =
+  private def getRecordName(configuration: Struct): Either[PluginErrorMessage, String] =
     getConfigStringValue(
       configuration.fields,
       s"pact:$recordNameKey",

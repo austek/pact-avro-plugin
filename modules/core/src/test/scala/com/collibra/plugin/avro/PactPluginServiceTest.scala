@@ -1,13 +1,14 @@
 package com.collibra.plugin.avro
 
+import com.collibra.plugin.avro.utils.AvroUtils
 import com.google.protobuf.struct.{Struct, Value}
 import io.pact.plugin._
-import org.scalatest.OptionValues
+import org.scalatest.{EitherValues, OptionValues}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AsyncFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
-class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionValues with ScalaFutures {
+class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionValues with ScalaFutures with EitherValues {
 
   "Avro Plugin" should "initialise" in {
     new PactAvroPluginService()
@@ -152,6 +153,8 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     val content = interaction.contents.value
     content.contentTypeHint shouldBe Body.ContentTypeHint.BINARY
     content.contentType shouldBe "avro/binary;record=Item"
+
+    val schema = AvroUtils.parseSchema(url.getPath).value
     content.getContent shouldBe ""
   }
 }
