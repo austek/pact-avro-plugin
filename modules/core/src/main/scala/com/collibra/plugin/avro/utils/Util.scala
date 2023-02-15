@@ -16,6 +16,7 @@ object Util {
       case _: JsonValue.Null => Value(Value.Kind.NullValue(NullValue.NULL_VALUE))
       case array: JsonValue.Array => Value(Value.Kind.ListValue(ListValue(array.getValues.asScala.map(jsonToValue).toSeq)))
       case value: JsonValue.Object => Value(Value.Kind.StructValue(toProtoStruct(value.getEntries.asScala.toMap)))
+      case _ => Value(Value.Kind.StringValue(json.toString)) // This is here to suppress error 'match may not be exhaustive'
     }
   }
 

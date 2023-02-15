@@ -4,10 +4,10 @@ object Dependencies extends DependencyUtils {
 
   object Versions {
     val akka = "2.7.0"
-    val akkaHttp = "10.2.9"
+    val akkaHttp = "10.4.0"
     val avro = "1.11.1"
     val logback = "1.2.11"
-    val pact = "4.5.0-beta.0"
+    val pact = "4.5.0-beta.1"
     val scalaTest = "3.2.15"
   }
 
@@ -15,7 +15,7 @@ object Dependencies extends DependencyUtils {
   val akkaStream: ModuleID = "com.typesafe.akka"            %% "akka-stream"      % Versions.akka
   val grpcStub: ModuleID = "io.grpc"                         % "grpc-stub"        % "1.49.0"
   val logback: ModuleID = "ch.qos.logback"                   % "logback-classic"  % "1.4.5"
-  val pactCore: ModuleID = "io.pact.plugin.driver"           % "core"             % "0.2.2"
+  val pactCore: ModuleID = "io.pact.plugin.driver"           % "core"             % "0.3.1"
   val scalaLogging: ModuleID = "com.typesafe.scala-logging" %% "scala-logging"    % "3.9.5"
 
   // Test dependencies

@@ -1,6 +1,6 @@
 package com.collibra.plugin.avro.interaction
 
-import com.collibra.plugin.avro.utils.{PluginError, PluginErrorMessage, PluginErrorMessages}
+import com.collibra.plugin.avro.utils.{PluginErrorMessage, PluginErrorMessages}
 import com.google.common.io.BaseEncoding
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging

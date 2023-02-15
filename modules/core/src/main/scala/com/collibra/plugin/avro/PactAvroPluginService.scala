@@ -1,7 +1,7 @@
 package com.collibra.plugin.avro
 
 import com.collibra.plugin.avro.interaction.InteractionResponseBuilder.buildInteractionResponse
-import com.collibra.plugin.avro.utils.{AvroUtils, PluginError, PluginErrorMessage}
+import com.collibra.plugin.avro.utils.{AvroUtils, PluginErrorMessage}
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging

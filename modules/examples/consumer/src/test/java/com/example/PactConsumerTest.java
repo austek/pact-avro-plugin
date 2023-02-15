@@ -45,7 +45,7 @@ class PactConsumerTest {
                                 "pact:record-name", "Item",
                                 "pact:content-type", "avro/binary",
                                 "name", "notEmpty('Item-41')",
-                                "id", "notEmpty('41')"
+                                "id", "matching(contentType, '22', '100')"
                         )
                 ))
                 .toPact();
@@ -60,7 +60,7 @@ class PactConsumerTest {
         assertThat(items).hasSize(1);
         Item item = items.get(0);
         assertThat(item.getName()).hasToString("Item-41");
-        assertThat(item.getId()).isEqualTo(41L);
+        assertThat(item.getId()).isEqualTo(100L);
 
         assertThat(messageContents.getContents().getContentType()).hasToString("avro/binary; record=Item");
         assertThat(messageContents.getContents().getContentTypeHint()).isEqualTo(ContentTypeHint.BINARY);
@@ -68,7 +68,7 @@ class PactConsumerTest {
         Map<String, MatchingRuleCategory> ruleCategoryMap = ((MatchingRulesImpl) messageContents.getMatchingRules()).getRules();
         assertThat(ruleCategoryMap).hasSize(1);
         Map<String, MatchingRuleGroup> rules = ruleCategoryMap.get("body").getMatchingRules();
-        List<MatchingRule> nameRules = rules.get("$.name.name").getRules();
+        List<MatchingRule> nameRules = rules.get("$.name").getRules();
         assertThat(nameRules).hasSize(1);
         assertThat(nameRules.get(0)).extracting("name").isEqualTo("not-empty");
 

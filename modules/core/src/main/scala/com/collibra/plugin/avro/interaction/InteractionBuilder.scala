@@ -17,7 +17,6 @@ import org.apache.avro.Schema.Type._
 import org.apache.avro.generic.GenericData
 
 import scala.jdk.CollectionConverters._
-import scala.language.implicitConversions
 
 object InteractionBuilder extends StrictLogging {
 

@@ -1,12 +1,15 @@
 package com.collibra.plugin.avro
 
 import com.collibra.plugin.avro.utils.AvroUtils
+import com.google.protobuf.ByteString
 import com.google.protobuf.struct.{Struct, Value}
 import io.pact.plugin._
-import org.scalatest.{EitherValues, OptionValues}
+import org.apache.avro.Schema
+import org.apache.avro.generic.GenericData
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AsyncFlatSpecLike
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.{EitherValues, OptionValues}
 
 class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionValues with ScalaFutures with EitherValues {
 
@@ -128,7 +131,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
   }
 
   it should "return Interaction Response" in {
-    val url = getClass.getResource("/schemas.avsc")
+    val url = getClass.getResource("/item.avsc")
     val eventualResponse = new PactAvroPluginService()
       .configureInteraction(
         ConfigureInteractionRequest(
@@ -155,6 +158,15 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     content.contentType shouldBe "avro/binary;record=Item"
 
     val schema = AvroUtils.parseSchema(url.getPath).value
-    content.getContent shouldBe ""
+    val bytes = toByteString(schema, Map("name" -> "Item-41", "id" -> 41)).value
+    content.getContent shouldBe bytes
+
+   interaction.rules should have size 2
+  }
+
+  private def toByteString(schema: Schema, fields: Map[String, Any]): Option[ByteString] = {
+    val record = new GenericData.Record(schema)
+    fields.foreach(v => record.put(v._1, v._2))
+    AvroUtils.schemaToByteString(schema, record)
   }
 }
