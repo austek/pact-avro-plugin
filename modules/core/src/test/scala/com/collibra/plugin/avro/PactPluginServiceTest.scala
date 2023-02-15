@@ -11,27 +11,20 @@ import org.scalatest.flatspec.AsyncFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{EitherValues, OptionValues}
 
+import java.util.Objects
+
 class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionValues with ScalaFutures with EitherValues {
 
   "Avro Plugin" should "initialise" in {
     new PactAvroPluginService()
       .initPlugin(InitPluginRequest("test", "0"))
       .map { response =>
-        response.catalogue should have size 3
+        response.catalogue should have size 1
 
         val first = response.catalogue.head
         first.`type` shouldBe CatalogueEntry.EntryType.CONTENT_MATCHER
         first.key shouldBe "avro"
         first.values("content-types") shouldBe "application/avro;avro/bytes;avro/binary;application/*+avro"
-
-        val second = response.catalogue(1)
-        second.`type` shouldBe CatalogueEntry.EntryType.CONTENT_GENERATOR
-        second.key shouldBe "avro"
-        second.values("content-types") shouldBe "application/avro;avro/bytes;avro/binary;application/*+avro"
-
-        val last = response.catalogue.last
-        last.`type` shouldBe CatalogueEntry.EntryType.TRANSPORT
-        last.key shouldBe "avro"
       }
   }
 
@@ -43,34 +36,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
       }
   }
 
-  it should "require content-type to be defined" in {
-    new PactAvroPluginService()
-      .configureInteraction(ConfigureInteractionRequest("text/test", Some(Struct(Map("pact:avro" -> Value(Value.Kind.StringValue("schemas.avsc")))))))
-      .map { response =>
-        response.error shouldBe "Config item with key 'pact:content-type' and content-type of the payload is required"
-      }
-  }
-
-  it should "require avro content-type" in {
-    new PactAvroPluginService()
-      .configureInteraction(
-        ConfigureInteractionRequest(
-          "text/test",
-          Some(
-            Struct(
-              Map(
-                "pact:content-type" -> Value(Value.Kind.StringValue("application/json"))
-              )
-            )
-          )
-        )
-      )
-      .map { response =>
-        response.error shouldBe "Provided content-type 'application/json' is not supported by this plugin"
-      }
-  }
-
-  it should "require path to the avro file" in {
+  it should "require path to the avro schema file" in {
     new PactAvroPluginService()
       .configureInteraction(
         ConfigureInteractionRequest(
@@ -85,11 +51,11 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
         )
       )
       .map { response =>
-        response.error shouldBe "Config item with key 'pact:avro' and path to the avro file is required"
+        response.error shouldBe "Config item with key 'pact:avro' and path to the avro schema file is required"
       }
   }
 
-  it should "require path to the avro file that exists" in {
+  it should "require path to the avro schema file that exists" in {
     new PactAvroPluginService()
       .configureInteraction(
         ConfigureInteractionRequest(
@@ -97,8 +63,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
           Some(
             Struct(
               Map(
-                "pact:avro" -> Value(Value.Kind.StringValue("non-existing.avsc")),
-                "pact:content-type" -> Value(Value.Kind.StringValue("application/avro"))
+                "pact:avro" -> Value(Value.Kind.StringValue("non-existing.avsc"))
               )
             )
           )
@@ -109,8 +74,8 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
       }
   }
 
-  it should "require a valid avro file" in {
-    val url = getClass.getResource("/invalid.avsc")
+  it should "require a valid avro schema file" in {
+    val schemasPath = getClass.getResource("/invalid.avsc").getPath
     new PactAvroPluginService()
       .configureInteraction(
         ConfigureInteractionRequest(
@@ -118,8 +83,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
           Some(
             Struct(
               Map(
-                "pact:avro" -> Value(Value.Kind.StringValue(url.getPath)),
-                "pact:content-type" -> Value(Value.Kind.StringValue("application/avro"))
+                "pact:avro" -> Value(Value.Kind.StringValue(schemasPath))
               )
             )
           )
@@ -127,6 +91,26 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
       )
       .map { response =>
         response.error shouldBe "Type not supported: invalid"
+      }
+  }
+
+  it should "require record-name to be defined" in {
+    val schemasPath = getClass.getResource("/schemas.avsc").getPath
+    new PactAvroPluginService()
+      .configureInteraction(
+        ConfigureInteractionRequest(
+          "text/test",
+          Some(
+            Struct(
+              Map(
+                "pact:avro" -> Value(Value.Kind.StringValue(schemasPath))
+              )
+            )
+          )
+        )
+      )
+      .map { response =>
+        response.error shouldBe "Config item with key 'pact:record-name' and record-name of the payload is required"
       }
   }
 
@@ -140,7 +124,6 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
             Struct(
               Map(
                 "pact:avro" -> Value(Value.Kind.StringValue(url.getPath)),
-                "pact:content-type" -> Value(Value.Kind.StringValue("application/avro")),
                 "pact:record-name" -> Value(Value.Kind.StringValue("Item")),
                 "pact:content-type" -> Value(Value.Kind.StringValue("avro/binary")),
                 "name" -> Value(Value.Kind.StringValue("notEmpty('Item-41')")),

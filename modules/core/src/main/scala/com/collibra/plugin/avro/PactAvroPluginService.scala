@@ -155,7 +155,7 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
     getConfigStringValue(
       configuration.fields,
       "pact:avro",
-      "Config item with key 'pact:avro' and path to the avro file is required"
+      "Config item with key 'pact:avro' and path to the avro schema file is required"
     ).flatMap { avroFilePath =>
       AvroUtils.parseSchema(avroFilePath)
     }
