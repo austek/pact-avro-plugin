@@ -60,9 +60,7 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
       avroSchema <- getAvroSchema(configuration)
       recordName <- getRecordName(configuration)
       response <- buildInteractionResponse(configuration, avroSchema, recordName)
-    } yield {
-      response
-    }) match {
+    } yield response) match {
       case Right(response) =>
         logger.debug(s"Responding: $response")
         Future.successful(response)

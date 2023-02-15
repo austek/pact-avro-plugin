@@ -47,9 +47,9 @@ object InteractionResponseBuilder extends StrictLogging {
         )
       } match {
       case Right(value) => Right(value)
-      case Left(errors)      =>
+      case Left(errors) =>
         errors.foreach {
-          case PluginErrorMessage(value) => logger.error(value)
+          case PluginErrorMessage(value)   => logger.error(value)
           case PluginErrorMessages(values) => values.foreach(v => logger.error(v))
         }
         Left(PluginErrorMessage("Multiple errors detected and logged, please check logs"))

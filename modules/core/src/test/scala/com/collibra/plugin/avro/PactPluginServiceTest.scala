@@ -161,7 +161,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     val bytes = toByteString(schema, Map("name" -> "Item-41", "id" -> 41)).value
     content.getContent shouldBe bytes
 
-   interaction.rules should have size 2
+    interaction.rules should have size 2
   }
 
   private def toByteString(schema: Schema, fields: Map[String, Any]): Option[ByteString] = {
