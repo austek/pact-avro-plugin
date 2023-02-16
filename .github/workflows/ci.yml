@@ -55,7 +55,7 @@ jobs:
         run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
       - name: Build project
-        run: 'sbt ++${{ matrix.scala }} ''''; set core / Universal / stagingDirectory := file(System.getProperty("user.home")+"/.pact/plugins/avro-"+version.value)'''' compile scalafmtCheckAll test'
+        run: 'sbt ++${{ matrix.scala }} ''; set core / Universal / stagingDirectory := file(System.getProperty("user.home")+"/.pact/plugins/avro-"+version.value)'' compile scalafmtCheckAll test'
 
       - name: Compress target directories
         run: tar cf targets.tar target modules/core/target modules/examples/provider/target modules/examples/consumer/target project/target
