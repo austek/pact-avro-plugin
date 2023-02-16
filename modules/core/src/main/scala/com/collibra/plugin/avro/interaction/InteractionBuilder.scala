@@ -61,24 +61,27 @@ object InteractionBuilder extends StrictLogging {
       .partitionMap(identity) match {
       case (errors, _) if errors.nonEmpty => Left(errors.toSeq)
       case _ =>
-        schemaToByteString(schema, record).map { bodyContent =>
-          InteractionResponse(
-            contents = Some(
-              Body(
-                contentType = s"avro/binary;record=$recordName",
-                content = Some(bodyContent),
-                contentTypeHint = ContentTypeHint.BINARY
-              )
-            ),
-            rules = matchingRules.getMatchingRules.asScala.toMap.map { case (key, rules) =>
-              key -> MatchingRules(
-                rules.getRules.asScala.toSeq.map { r =>
-                  MatchingRule(r.getName, Option(toProtoStruct(r.getAttributes.asScala.toMap)))
-                }
-              )
-            }
-          )
-        }.left.map(e => Seq(e))
+        schemaToByteString(schema, record)
+          .map { bodyContent =>
+            InteractionResponse(
+              contents = Some(
+                Body(
+                  contentType = s"avro/binary;record=$recordName",
+                  content = Some(bodyContent),
+                  contentTypeHint = ContentTypeHint.BINARY
+                )
+              ),
+              rules = matchingRules.getMatchingRules.asScala.toMap.map { case (key, rules) =>
+                key -> MatchingRules(
+                  rules.getRules.asScala.toSeq.map { r =>
+                    MatchingRule(r.getName, Option(toProtoStruct(r.getAttributes.asScala.toMap)))
+                  }
+                )
+              }
+            )
+          }
+          .left
+          .map(e => Seq(e))
     }
   }
 

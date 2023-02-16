@@ -11,7 +11,7 @@ ThisBuild / scalaVersion := scala213 // scala-steward:off
 // sbt-github-actions
 ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(name = Some("Build project"), commands = List(
-    "; set core / Universal / stagingDirectory := file(System.getProperty(\"user.home\")+\"/.pact/plugins/avro-\"+version.value)",
+    """; set core / Universal / stagingDirectory := file(s"${System.getProperty("user.home")}/.pact/plugins/avro-${version.value}")""",
     "compile", "scalafmtCheckAll", "test"
   ))
 )

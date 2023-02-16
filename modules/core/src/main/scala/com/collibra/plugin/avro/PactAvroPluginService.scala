@@ -153,7 +153,7 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
   private def getConfigStringValue(configs: Map[String, Value], id: String, msg: String): Either[PluginErrorMessage, String] =
     getConfigValue(configs, id, msg).map(_.getStringValue).filterOrElse(!_.isBlank, PluginErrorMessage(msg))
 
-  //noinspection SameParameterValue
+  // noinspection SameParameterValue
   private def getConfiguration(structOpt: Option[Struct], errorMsg: String): Either[PluginErrorMessage, Struct] =
     structOpt match {
       case Some(struct) => Right(struct)

@@ -48,8 +48,8 @@ object InteractionResponseBuilder extends StrictLogging {
       case Right(value) => Right(value)
       case Left(errors) =>
         errors.foreach {
-          case PluginErrorMessage(value)   => logger.error(value)
-          case PluginErrorMessages(values) => values.foreach(v => logger.error(v))
+          case PluginErrorMessage(value)       => logger.error(value)
+          case PluginErrorMessages(values)     => values.foreach(v => logger.error(v))
           case PluginErrorException(exception) => logger.error("Failed to build interaction response", exception)
         }
         Left(PluginErrorMessage("Multiple errors detected and logged, please check logs"))
