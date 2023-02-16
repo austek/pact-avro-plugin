@@ -148,6 +148,6 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
   private def toByteString(schema: Schema, fields: Map[String, Any]): Option[ByteString] = {
     val record = new GenericData.Record(schema)
     fields.foreach(v => record.put(v._1, v._2))
-    AvroUtils.schemaToByteString(schema, record)
+    AvroUtils.schemaToByteString(schema, record).toOption
   }
 }

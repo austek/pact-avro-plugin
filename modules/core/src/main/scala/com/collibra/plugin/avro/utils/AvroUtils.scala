@@ -11,16 +11,13 @@ import scala.util._
 
 object AvroUtils {
 
-  def parseSchema(avroFilePath: String): Either[PluginErrorMessage, Schema] = {
+  def parseSchema(avroFilePath: String): Either[PluginErrorException, Schema] =
     Try(new Schema.Parser().parse(Path.of(avroFilePath).toFile)) match {
-      case Success(schema) => Right(schema)
-      case Failure(exception) =>
-        exception.printStackTrace()
-        Left(PluginErrorMessage(exception.getMessage))
+      case Success(schema)    => Right(schema)
+      case Failure(exception) => Left(PluginErrorException(exception))
     }
-  }
 
-  def schemaToByteString(schema: Schema, record: GenericData.Record): Option[ByteString] = {
+  def schemaToByteString(schema: Schema, record: GenericData.Record): Either[PluginErrorException, ByteString] = {
     val datumWriter = new GenericDatumWriter[GenericRecord](schema)
     Using(new ByteArrayOutputStream()) { os =>
       val encoder = EncoderFactory.get.binaryEncoder(os, null)
@@ -28,10 +25,8 @@ object AvroUtils {
       encoder.flush()
       os.toByteArray
     } match {
-      case Success(bytes) => Some(ByteString.copyFrom(bytes))
-      case Failure(exception) =>
-        exception.printStackTrace()
-        None
+      case Success(bytes)     => Right(ByteString.copyFrom(bytes))
+      case Failure(exception) => Left(PluginErrorException(exception))
     }
   }
 }

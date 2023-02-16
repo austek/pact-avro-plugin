@@ -10,7 +10,10 @@ ThisBuild / scalaVersion := scala213 // scala-steward:off
 
 // sbt-github-actions
 ThisBuild / githubWorkflowBuild := Seq(
-  WorkflowStep.Sbt(name = Some("Build project"), commands = List("compile", "scalafmtCheckAll", "test"))
+  WorkflowStep.Sbt(name = Some("Build project"), commands = List(
+    "'; set core / Universal / stagingDirectory := file(System.getProperty(\"user.home\")+\"/.pact/plugins/avro-\"+version.value)'",
+    "compile", "scalafmtCheckAll", "test"
+  ))
 )
 // Add windows-latest when https://github.com/sbt/sbt/issues/7082 is resolved
 ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest", "macos-latest")

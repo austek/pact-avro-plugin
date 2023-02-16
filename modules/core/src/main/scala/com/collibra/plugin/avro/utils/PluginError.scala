@@ -5,3 +5,4 @@ sealed trait PluginError[T] {
 }
 case class PluginErrorMessage(override val value: String) extends PluginError[String]
 case class PluginErrorMessages(override val value: Seq[String]) extends PluginError[Seq[String]]
+case class PluginErrorException(override val value: Throwable) extends PluginError[Throwable]

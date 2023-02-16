@@ -1,7 +1,7 @@
 package com.collibra.plugin.avro
 
 import com.collibra.plugin.avro.interaction.InteractionResponseBuilder.buildInteractionResponse
-import com.collibra.plugin.avro.utils.{AvroUtils, PluginErrorMessage}
+import com.collibra.plugin.avro.utils.{AvroUtils, PluginError, PluginErrorException, PluginErrorMessage}
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging
@@ -64,9 +64,12 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
       case Right(response) =>
         logger.debug(s"Responding: $response")
         Future.successful(response)
-      case Left(msg) =>
+      case Left(msg: PluginErrorMessage) =>
         logger.error(s"Configure interaction failed: ${msg.value}")
         Future.successful(ConfigureInteractionResponse(error = msg.value))
+      case Left(e: PluginErrorException) =>
+        logger.error(s"Configure interaction failed", e.value)
+        Future.successful(ConfigureInteractionResponse(error = e.value.getMessage))
     }
   }
 
@@ -151,7 +154,7 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
       case None         => Left(PluginErrorMessage(errorMsg))
     }
 
-  private def getAvroSchema(configuration: Struct): Either[PluginErrorMessage, Schema] = {
+  private def getAvroSchema(configuration: Struct): Either[PluginError[_], Schema] = {
     getConfigStringValue(
       configuration.fields,
       "pact:avro",

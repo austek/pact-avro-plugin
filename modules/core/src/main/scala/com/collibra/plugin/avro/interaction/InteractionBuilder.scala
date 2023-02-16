@@ -61,12 +61,12 @@ object InteractionBuilder extends StrictLogging {
       .partitionMap(identity) match {
       case (errors, _) if errors.nonEmpty => Left(errors.toSeq)
       case _ =>
-        Right(
+        schemaToByteString(schema, record).map { bodyContent =>
           InteractionResponse(
             contents = Some(
               Body(
                 contentType = s"avro/binary;record=$recordName",
-                content = schemaToByteString(schema, record),
+                content = Some(bodyContent),
                 contentTypeHint = ContentTypeHint.BINARY
               )
             ),
@@ -78,7 +78,7 @@ object InteractionBuilder extends StrictLogging {
               )
             }
           )
-        )
+        }.left.map(e => Seq(e))
     }
   }
 

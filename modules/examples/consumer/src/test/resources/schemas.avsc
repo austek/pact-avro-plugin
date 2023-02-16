@@ -1,1 +1,31 @@
-../../../../common/test/resources/schemas.avsc
+[
+  {
+    "namespace": "com.example",
+    "type": "record",
+    "name": "Item",
+    "fields": [
+      {
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "name": "id",
+        "type": "long"
+      }
+    ]
+  },
+  {
+    "namespace": "com.example",
+    "type": "record",
+    "name": "Order",
+    "fields": [
+      {
+        "name": "items",
+        "type": {
+          "type": "array",
+          "items": "com.example.Item"
+        }
+      }
+    ]
+  }
+]
