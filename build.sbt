@@ -89,9 +89,5 @@ lazy val `pact-avro-plugin` = (project in file("."))
   )
   .settings(
     basicSettings,
-    commands += Command.command("pactTest") { state =>
-      s"""set core / Universal / stagingDirectory := file(s"${System.getProperty("user.home")}/.pact/plugins/avro-${version.value}")""" ::
-        "consumer/test" :: state
-    },
     publish / skip := false
   )

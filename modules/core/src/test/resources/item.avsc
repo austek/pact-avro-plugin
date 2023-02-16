@@ -1,15 +1,1 @@
-{
-  "namespace": "com.example",
-  "type": "record",
-  "name": "Item",
-  "fields": [
-    {
-      "name": "name",
-      "type": "string"
-    },
-    {
-      "name": "id",
-      "type": "long"
-    }
-  ]
-}
+../../../../common/test/resources/item.avsc
