@@ -74,6 +74,7 @@ lazy val consumer = project
   .dependsOn(provider)
   .settings(
     basicSettings,
+    Test / sbt.Keys.test := (Test / sbt.Keys.test).dependsOn(core / Universal / stage).value,
     libraryDependencies ++=
       Dependencies.test(assertJCore, jUnitInterface, pactConsumerJunit).map(withExclusions),
     dependencyOverrides += Dependencies.pactCore,
@@ -88,5 +89,9 @@ lazy val `pact-avro-plugin` = (project in file("."))
   )
   .settings(
     basicSettings,
+    commands += Command.command("pactTest") { state =>
+      s"""set core / Universal / stagingDirectory := file(s"${System.getProperty("user.home")}/.pact/plugins/avro-${version.value}")""" ::
+        "consumer/test" :: state
+    },
     publish / skip := false
   )

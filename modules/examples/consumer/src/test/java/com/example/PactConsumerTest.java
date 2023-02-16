@@ -45,7 +45,7 @@ class PactConsumerTest {
                                 "pact:record-name", "Item",
                                 "pact:content-type", "avro/binary",
                                 "name", "notEmpty('Item-41')",
-                                "id", "matching(contentType, '22', '100')"
+                                "id", "notEmpty('100')"
                         )
                 ))
                 .toPact();
