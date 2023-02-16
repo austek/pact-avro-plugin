@@ -1,10 +1,12 @@
 package com.collibra.plugin.avro
 
 import com.collibra.plugin.avro.interaction.InteractionResponseBuilder.buildInteractionResponse
-import com.collibra.plugin.avro.utils.{AvroUtils, PluginError, PluginErrorException, PluginErrorMessage}
+import com.collibra.plugin.avro.utils._
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging
+import io.grpc.Status.UNIMPLEMENTED
+import io.grpc.StatusException
 import io.pact.plugin._
 import org.apache.avro.Schema
 
@@ -64,12 +66,15 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
       case Right(response) =>
         logger.debug(s"Responding: $response")
         Future.successful(response)
-      case Left(msg: PluginErrorMessage) =>
-        logger.error(s"Configure interaction failed: ${msg.value}")
-        Future.successful(ConfigureInteractionResponse(error = msg.value))
-      case Left(e: PluginErrorException) =>
-        logger.error(s"Configure interaction failed", e.value)
-        Future.successful(ConfigureInteractionResponse(error = e.value.getMessage))
+      case Left(PluginErrorMessage(msg)) =>
+        logger.error(s"Configure interaction failed: $msg")
+        Future.successful(ConfigureInteractionResponse(error = msg))
+      case Left(PluginErrorMessages(values)) =>
+        values.foreach(v => logger.error(v))
+        Future.successful(ConfigureInteractionResponse(error = "Multiple errors detected and logged, please check logs"))
+      case Left(PluginErrorException(e)) =>
+        logger.error(s"Configure interaction failed", e)
+        Future.successful(ConfigureInteractionResponse(error = e.getMessage))
     }
   }
 
@@ -111,33 +116,33 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
   /** Request to generate the content using any defined generators
     */
   override def generateContent(in: GenerateContentRequest): Future[GenerateContentResponse] =
-    ???
+    throw new StatusException(UNIMPLEMENTED.withDescription("Method io.pact.plugin.PactPlugin.GenerateContent is unimplemented"))
 
   /** Start a mock server
     */
   override def startMockServer(in: StartMockServerRequest): Future[StartMockServerResponse] =
-    ???
+    throw new StatusException(UNIMPLEMENTED.withDescription("Method io.pact.plugin.PactPlugin.StartMockServer is unimplemented"))
 
-  /** Shutdown a running mock server TODO: Replace the message types with MockServerRequest and MockServerResults in the next major version
+  /** Shutdown a running mock server
     */
   override def shutdownMockServer(in: ShutdownMockServerRequest): Future[ShutdownMockServerResponse] =
-    ???
+    throw new StatusException(UNIMPLEMENTED.withDescription("Method io.pact.plugin.PactPlugin.ShutdownMockServer is unimplemented"))
 
   /** Get the matching results from a running mock server
     */
   override def getMockServerResults(in: MockServerRequest): Future[MockServerResults] =
-    ???
+    throw new StatusException(UNIMPLEMENTED.withDescription("Method io.pact.plugin.PactPlugin.GetMockServerResults is unimplemented"))
 
   /** Prepare an interaction for verification. This should return any data required to construct any request so that it can be amended before the verification
     * is run
     */
   override def prepareInteractionForVerification(in: VerificationPreparationRequest): Future[VerificationPreparationResponse] =
-    ???
+    throw new StatusException(UNIMPLEMENTED.withDescription("Method io.pact.plugin.PactPlugin.PrepareInteractionForVerification is unimplemented"))
 
   /** Execute the verification for the interaction.
     */
   override def verifyInteraction(in: VerifyInteractionRequest): Future[VerifyInteractionResponse] =
-    ???
+    throw new StatusException(UNIMPLEMENTED.withDescription("Method io.pact.plugin.PactPlugin.VerifyInteraction is unimplemented"))
 
   private def getConfigValue(configs: Map[String, Value], id: String, msg: String): Either[PluginErrorMessage, Value] =
     configs.get(id) match {
@@ -148,6 +153,7 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
   private def getConfigStringValue(configs: Map[String, Value], id: String, msg: String): Either[PluginErrorMessage, String] =
     getConfigValue(configs, id, msg).map(_.getStringValue).filterOrElse(!_.isBlank, PluginErrorMessage(msg))
 
+  //noinspection SameParameterValue
   private def getConfiguration(structOpt: Option[Struct], errorMsg: String): Either[PluginErrorMessage, Struct] =
     structOpt match {
       case Some(struct) => Right(struct)

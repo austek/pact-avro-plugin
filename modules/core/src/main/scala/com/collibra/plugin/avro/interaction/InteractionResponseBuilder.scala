@@ -1,6 +1,6 @@
 package com.collibra.plugin.avro.interaction
 
-import com.collibra.plugin.avro.utils.{PluginErrorMessage, PluginErrorMessages}
+import com.collibra.plugin.avro.utils.{PluginErrorException, PluginErrorMessage, PluginErrorMessages}
 import com.google.common.io.BaseEncoding
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging
@@ -17,7 +17,6 @@ object InteractionResponseBuilder extends StrictLogging {
     val avroSchemaHash: String = BaseEncoding.base16().lowerCase().encode(digest.digest())
 
     logger.debug("Start to build response")
-    logger.debug("return response")
     InteractionBuilder
       .constructAvroMessageForSchema(avroSchema, recordName, configuration)
       .map { interactionResponse =>
@@ -51,6 +50,7 @@ object InteractionResponseBuilder extends StrictLogging {
         errors.foreach {
           case PluginErrorMessage(value)   => logger.error(value)
           case PluginErrorMessages(values) => values.foreach(v => logger.error(v))
+          case PluginErrorException(exception) => logger.error("Failed to build interaction response", exception)
         }
         Left(PluginErrorMessage("Multiple errors detected and logged, please check logs"))
     }
