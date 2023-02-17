@@ -3,7 +3,7 @@ package com.collibra.plugin.avro.interaction
 import au.com.dius.pact.core.model.PathExpressionsKt._
 import au.com.dius.pact.core.model.matchingrules.expressions.MatchingRuleDefinition
 import au.com.dius.pact.core.model.matchingrules.{MatchingRule => CoreMatchingRule, MatchingRules => _, _}
-import com.collibra.plugin.avro.FieldValue
+import com.collibra.plugin.avro.{AvroSchemaBase16Hash, FieldValue}
 import com.collibra.plugin.avro.utils.AvroSupportImplicits._
 import com.collibra.plugin.avro.utils.AvroUtils._
 import com.collibra.plugin.avro.utils.Util._
@@ -20,15 +20,20 @@ import scala.jdk.CollectionConverters._
 
 object InteractionBuilder extends StrictLogging {
 
-  def constructAvroMessageForSchema(schema: Schema, recordName: String, configuration: Struct): Either[Seq[PluginError[_]], InteractionResponse] = {
+  def constructAvroMessageForSchema(
+    schema: Schema,
+    recordName: String,
+    avroSchemaHash: AvroSchemaBase16Hash,
+    configuration: Struct
+  ): Either[Seq[PluginError[_]], InteractionResponse] = {
     schema.getType match {
       case UNION =>
         schema.getTypes.asScala.find(s => s.getType == RECORD && s.getName == recordName) match {
-          case Some(value) => constructAvroMessage(value, recordName, configuration)
+          case Some(value) => constructAvroMessage(value, recordName, avroSchemaHash, configuration)
           case None        => Left(Seq(PluginErrorMessage(s"Avro union schema didn't contain record: '$recordName'")))
         }
       case RECORD if schema.getName == recordName =>
-        constructAvroMessage(schema, recordName, configuration)
+        constructAvroMessage(schema, recordName, avroSchemaHash, configuration)
       case RECORD if schema.getName != recordName =>
         Left(Seq(PluginErrorMessage(s"Record '$recordName' was not found in avro Schema provided")))
       case t =>
@@ -36,7 +41,12 @@ object InteractionBuilder extends StrictLogging {
     }
   }
 
-  private def constructAvroMessage(schema: Schema, recordName: String, configuration: Struct): Either[Seq[PluginError[_]], InteractionResponse] = {
+  private def constructAvroMessage(
+    schema: Schema,
+    recordName: String,
+    avroSchemaHash: AvroSchemaBase16Hash,
+    configuration: Struct
+  ): Either[Seq[PluginError[_]], InteractionResponse] = {
     val matchingRules = new MatchingRuleCategory("body")
     val schemaFields: Seq[Schema.Field] = schema.getFields.asScala.toSeq
     val record = new GenericData.Record(schema)
@@ -77,7 +87,19 @@ object InteractionBuilder extends StrictLogging {
                     MatchingRule(r.getName, Option(toProtoStruct(r.getAttributes.asScala.toMap)))
                   }
                 )
-              }
+              },
+              pluginConfiguration = Some(
+                PluginConfiguration(
+                  interactionConfiguration = Some(
+                    Struct(
+                      Map(
+                        "record" -> Value(Value.Kind.StringValue(recordName)),
+                        "avroSchemaKey" -> Value(Value.Kind.StringValue(avroSchemaHash.value))
+                      )
+                    )
+                  )
+                )
+              )
             )
           }
           .left

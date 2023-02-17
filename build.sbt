@@ -1,6 +1,8 @@
 import BuildSettings._
 import Dependencies._
 
+val setPluginStage = """; set core / Universal / stagingDirectory := file(s"${System.getProperty("user.home")}/.pact/plugins/avro-${version.value}")"""
+
 ThisBuild / version := {
   val orig = (ThisBuild / version).value
   if (orig.endsWith("-SNAPSHOT")) orig.split("""\+""").head + "-SNAPSHOT"
@@ -10,10 +12,15 @@ ThisBuild / scalaVersion := scala213 // scala-steward:off
 
 // sbt-github-actions
 ThisBuild / githubWorkflowBuild := Seq(
-  WorkflowStep.Sbt(name = Some("Build project"), commands = List(
-    """; set core / Universal / stagingDirectory := file(s"${System.getProperty("user.home")}/.pact/plugins/avro-${version.value}")""",
-    "compile", "scalafmtCheckAll", "test"
-  ))
+  WorkflowStep.Sbt(
+    name = Some("Build project"),
+    commands = List(
+      setPluginStage,
+      "compile",
+      "scalafmtCheckAll",
+      "test"
+    )
+  )
 )
 // Add windows-latest when https://github.com/sbt/sbt/issues/7082 is resolved
 ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest", "macos-latest")
@@ -21,15 +28,17 @@ ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("11"))
 ThisBuild / githubWorkflowTargetBranches := Seq("main")
 ThisBuild / githubWorkflowTargetTags := Seq("v*")
 ThisBuild / githubWorkflowPublishTargetBranches := Seq(RefPredicate.StartsWith(Ref.Tag("v")))
-ThisBuild / githubWorkflowPublish := Seq(WorkflowStep.Sbt(
-  commands = List("ci-release"),
-  env = Map(
-    "PGP_PASSPHRASE" -> "${{ secrets.PGP_PASSPHRASE }}",
-    "PGP_SECRET" -> "${{ secrets.PGP_SECRET }}",
-    "SONATYPE_PASSWORD" -> "${{ secrets.SONATYPE_PASSWORD }}",
-    "SONATYPE_USERNAME" -> "${{ secrets.SONATYPE_USERNAME }}"
+ThisBuild / githubWorkflowPublish := Seq(
+  WorkflowStep.Sbt(
+    commands = List("ci-release"),
+    env = Map(
+      "PGP_PASSPHRASE" -> "${{ secrets.PGP_PASSPHRASE }}",
+      "PGP_SECRET" -> "${{ secrets.PGP_SECRET }}",
+      "SONATYPE_PASSWORD" -> "${{ secrets.SONATYPE_PASSWORD }}",
+      "SONATYPE_USERNAME" -> "${{ secrets.SONATYPE_USERNAME }}"
+    )
   )
-))
+)
 
 val withExclusions: ModuleID => ModuleID = moduleId => moduleId.excludeAll(Dependencies.exclusions: _*)
 
@@ -92,5 +101,9 @@ lazy val `pact-avro-plugin` = (project in file("."))
   )
   .settings(
     basicSettings,
+    commands += Command.command("pactTest") { state =>
+      setPluginStage ::
+        "consumer/test" :: state
+    },
     publish / skip := false
   )

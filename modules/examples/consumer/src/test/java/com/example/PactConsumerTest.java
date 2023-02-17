@@ -71,12 +71,9 @@ class PactConsumerTest {
         List<MatchingRule> nameRules = rules.get("$.name").getRules();
         assertThat(nameRules).hasSize(1);
         assertThat(nameRules.get(0)).extracting("name").isEqualTo("not-empty");
-
-//        Map<String, Plugin.MatchingRules> rulesMap = response.getRulesMap();
-//        assertThat(rulesMap.keySet().iterator().next(), is("$.test.one"));
-//        Plugin.MatchingRules matchingRules = rulesMap.get("$.test.one");
-//        assertThat(matchingRules.getRuleCount(), is(1));
-//        assertThat(matchingRules.getRule(0).getType(), is("regex"));
+        List<MatchingRule> idRules = rules.get("$.id").getRules();
+        assertThat(idRules).hasSize(1);
+        assertThat(idRules.get(0)).extracting("name").isEqualTo("not-empty");
     }
 
     private <T> List<T> arrayByteToAvroRecord(Class<T> c, byte[] bytes) throws IOException {
