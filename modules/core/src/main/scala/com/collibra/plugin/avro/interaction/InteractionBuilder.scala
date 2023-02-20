@@ -111,8 +111,26 @@ object InteractionBuilder extends StrictLogging {
         field.schema().getType match {
           case UNION  => Left(Seq(PluginErrorMessage(s"'UNION' is not a support field type - FIELD '$key'")))
           case RECORD => Left(Seq(PluginErrorMessage(s"'RECORD' is not a support field type - FIELD '$key'")))
-          case ARRAY  => buildArrayFieldValue(field, key, inValue, matchingRules, record)
-          case MAP    => Left(Seq(PluginErrorMessage(s"'MAP' is not a support field type - FIELD '$key'")))
+          case ARRAY =>
+            buildArrayFieldValue("$", field.name(), field.schema().getElementType.getType, key, inValue).map { avroFields =>
+              val values = avroFields.map { avroField =>
+                avroField.rules.foreach(rule => matchingRules.addRule(avroField.path, rule))
+                avroField.value.value
+              }.asJava
+              logger.debug(s"Setting field $field to value '$values'")
+              record.put(field.name(), values)
+              ()
+            }
+          case MAP =>
+            buildMapFieldValue("$", field.name(), field.schema().getValueType.getType, key, inValue).map { avroFields =>
+              val values = avroFields.map { case (key, avroField) =>
+                avroField.rules.foreach(rule => matchingRules.addRule(avroField.path, rule))
+                key -> avroField.value.value
+              }.asJava
+              record.put(field.name(), values)
+              logger.debug(s"Setting field $field to value '$values'")
+              ()
+            }
           case _ =>
             buildFieldValue("$", field.name(), field.schema().getType, inValue) map { avroField =>
               logger.debug(s"Setting field $field to value '${avroField.value}'")
@@ -126,37 +144,54 @@ object InteractionBuilder extends StrictLogging {
     }
   }
 
-  private def buildArrayFieldValue(
-    field: Schema.Field,
+  private def buildMapFieldValue(
+    rootPath: String,
+    fieldName: String,
+    schemaType: Schema.Type,
     key: String,
-    inValue: Value,
-    matchingRules: MatchingRuleCategory,
-    record: GenericData.Record
-  ): Either[Seq[PluginError[_]], Unit] = {
+    inValue: Value
+  ): Either[Seq[PluginError[_]], Map[String, AvroField[_]]] = {
+    val path = constructValidPath(fieldName, rootPath)
+    inValue.kind match {
+      case Kind.Empty        => Right(Map.empty)
+      case Kind.NullValue(_) => Right(Map.empty)
+      case Kind.StructValue(structValue) =>
+        structValue.fields
+          .map { case (key, singleValue) =>
+            buildFieldValue(path, key, schemaType, singleValue).map(v => key -> v)
+          }
+          .partitionMap(identity) match {
+          case (errors, _) if errors.nonEmpty =>
+            Left(errors.toSeq.flatten)
+          case (_, fields) => Right(fields.toMap)
+        }
+      case _ => Left(Seq(PluginErrorMessage(s"Expected map value for field '$key' but got '${inValue.kind}'")))
+    }
+  }
+
+  private def buildArrayFieldValue(
+    rootPath: String,
+    fieldName: String,
+    schemaType: Schema.Type,
+    key: String,
+    inValue: Value
+  ): Either[Seq[PluginError[_]], Seq[AvroField[_]]] = {
     inValue.kind match {
       case Kind.Empty =>
-        record.put(field.name(), Seq.empty)
-        Right(())
+        val path = constructValidPath(fieldName, rootPath)
+        Right(Seq(AvroField(path, AvroFieldValue(Seq.empty), Seq.empty)))
       case Kind.NullValue(_) =>
-        record.put(field.name(), Seq.empty)
-        Right(())
+        val path = constructValidPath(fieldName, rootPath)
+        Right(Seq(AvroField(path, AvroFieldValue(Seq.empty), Seq.empty)))
       case Kind.ListValue(listValue) =>
         listValue.values
           .map { singleValue =>
-            buildFieldValue("$", field.name(), field.schema().getElementType.getType, singleValue)
+            buildFieldValue(rootPath, fieldName, schemaType, singleValue)
           }
           .partitionMap(identity) match {
           case (errors, _) if errors.nonEmpty =>
             Left(errors.flatten)
-          case (_, fields) =>
-            val fieldPath = constructValidPath(field.name(), "$")
-            val values = fields.map { avroField =>
-              avroField.rules.foreach(rule => matchingRules.addRule(fieldPath, rule))
-              avroField.value.value
-            }.asJava
-            logger.debug(s"Setting field $field to value '$values'")
-            record.put(field.name(), values)
-            Right(())
+          case (_, fields) => Right(fields)
         }
       case _ => Left(Seq(PluginErrorMessage(s"Expected list value for field '$key' but got '${inValue.kind}'")))
     }

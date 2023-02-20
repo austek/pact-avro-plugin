@@ -90,6 +90,14 @@ class PactConsumerTest {
                                 "names", List.of(
                                         "notEmpty('name-1')",
                                         "notEmpty('name-2')"
+                                ),
+                                "enabled", "matching(boolean, true)",
+                                "no", "matching(integer, 121)",
+                                "height", "matching(decimal, 15.8)",
+                                "width", "matching(decimal, 1.8)",
+                                "ages", Map.of(
+                                        "first", "matching(integer, 2)",
+                                        "second", "matching(integer, 3)"
                                 )
                         )
                 ))

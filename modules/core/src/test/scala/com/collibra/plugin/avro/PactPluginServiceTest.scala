@@ -2,7 +2,8 @@ package com.collibra.plugin.avro
 
 import com.collibra.plugin.avro.utils.AvroUtils
 import com.google.protobuf.ByteString
-import com.google.protobuf.struct.{ListValue, Struct, Value}
+import com.google.protobuf.struct.Value.Kind._
+import com.google.protobuf.struct.{ListValue => StructListValue, Struct, Value}
 import io.pact.plugin._
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
@@ -44,7 +45,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
           Some(
             Struct(
               Map(
-                "pact:content-type" -> Value(Value.Kind.StringValue("application/avro"))
+                "pact:content-type" -> Value(StringValue("application/avro"))
               )
             )
           )
@@ -63,7 +64,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
           Some(
             Struct(
               Map(
-                "pact:avro" -> Value(Value.Kind.StringValue("non-existing.avsc"))
+                "pact:avro" -> Value(StringValue("non-existing.avsc"))
               )
             )
           )
@@ -83,7 +84,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
           Some(
             Struct(
               Map(
-                "pact:avro" -> Value(Value.Kind.StringValue(schemasPath))
+                "pact:avro" -> Value(StringValue(schemasPath))
               )
             )
           )
@@ -103,7 +104,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
           Some(
             Struct(
               Map(
-                "pact:avro" -> Value(Value.Kind.StringValue(schemasPath))
+                "pact:avro" -> Value(StringValue(schemasPath))
               )
             )
           )
@@ -123,11 +124,11 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
           Some(
             Struct(
               Map(
-                "pact:avro" -> Value(Value.Kind.StringValue(url.getPath)),
-                "pact:record-name" -> Value(Value.Kind.StringValue("Item")),
-                "pact:content-type" -> Value(Value.Kind.StringValue("avro/binary")),
-                "name" -> Value(Value.Kind.StringValue("notEmpty('Item-41')")),
-                "id" -> Value(Value.Kind.StringValue("notEmpty('41')"))
+                "pact:avro" -> Value(StringValue(url.getPath)),
+                "pact:record-name" -> Value(StringValue("Item")),
+                "pact:content-type" -> Value(StringValue("avro/binary")),
+                "name" -> Value(StringValue("notEmpty('Item-41')")),
+                "id" -> Value(StringValue("notEmpty('41')"))
               )
             )
           )
@@ -156,34 +157,30 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
           Some(
             Struct(
               Map(
-                "pact:avro" -> Value(Value.Kind.StringValue(url.getPath)),
-                "pact:record-name" -> Value(Value.Kind.StringValue("Order")),
-                "pact:content-type" -> Value(Value.Kind.StringValue("avro/binary")),
-                "id" -> Value(Value.Kind.StringValue("notEmpty('1')")),
-//                "items" -> Value(
-//                  Value.Kind.ListValue(
-//                    ListValue(
-//                      Seq(
-//                        Value(
-//                          Value.Kind.StructValue(
-//                            Struct(
-//                              Map(
-//                                "name" -> Value(Value.Kind.StringValue("notEmpty('Item-41')")),
-//                                "id" -> Value(Value.Kind.StringValue("notEmpty('41')"))
-//                              )
-//                            )
-//                          )
-//                        )
-//                      )
-//                    )
-//                  )
-//                )
+                "pact:avro" -> Value(StringValue(url.getPath)),
+                "pact:record-name" -> Value(StringValue("Complex")),
+                "pact:content-type" -> Value(StringValue("avro/binary")),
+                "id" -> Value(StringValue("notEmpty('1')")),
                 "names" -> Value(
-                  Value.Kind.ListValue(
-                    ListValue(
+                  ListValue(
+                    StructListValue(
                       Seq(
-                        Value(Value.Kind.StringValue("notEmpty('name-1')")),
-                        Value(Value.Kind.StringValue("notEmpty('name-2')"))
+                        Value(StringValue("notEmpty('name-1')")),
+                        Value(StringValue("notEmpty('name-2')"))
+                      )
+                    )
+                  )
+                ),
+                "enabled" -> Value(StringValue("matching(boolean, true)")),
+                "no" -> Value(StringValue("matching(integer, 121)")),
+                "height" -> Value(StringValue("matching(decimal, 15.8)")),
+                "width" -> Value(StringValue("matching(decimal, 1.8)")),
+                "ages" -> Value(
+                  StructValue(
+                    Struct(
+                      Map(
+                        "first" -> Value(StringValue("matching(integer, 2)")),
+                        "second" -> Value(StringValue("matching(integer, 3)"))
                       )
                     )
                   )
@@ -198,19 +195,30 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     val interaction: InteractionResponse = response.interaction.head
     val content = interaction.contents.value
     content.contentTypeHint shouldBe Body.ContentTypeHint.BINARY
-    content.contentType shouldBe "avro/binary;record=Order"
+    content.contentType shouldBe "avro/binary;record=Complex"
 
-    val schema = AvroUtils.parseSchema(url.getPath).value.getTypes.asScala.find(_.getName=="Order").get
-    val bytes = toByteString(schema, Map("id" -> 1, "names" -> List("name-1", "name-2").asJava)).value
+    val schema = AvroUtils.parseSchema(url.getPath).value.getTypes.asScala.find(_.getName == "Complex").get
+    val bytes =
+      toByteString(
+        schema,
+        Map(
+          "id" -> 1,
+          "names" -> List("name-1", "name-2").asJava,
+          "enabled" -> true,
+          "no" -> 121,
+          "height" -> 15.8d,
+          "width" -> 1.8d,
+          "ages" -> Map("first" -> 2, "second" -> 3).asJava
+        )
+      ).value
     content.getContent shouldBe bytes
 
-    interaction.rules should have size 2
+    interaction.rules should have size 8
   }
 
   private def toByteString(schema: Schema, fields: Map[String, Any]): Option[ByteString] = {
     val record = new GenericData.Record(schema)
     fields.foreach(v => record.put(v._1, v._2))
-    val exceptionOrString = AvroUtils.schemaToByteString(schema, record)
-    exceptionOrString.toOption
+    AvroUtils.schemaToByteString(schema, record).toOption
   }
 }

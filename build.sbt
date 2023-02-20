@@ -42,8 +42,15 @@ ThisBuild / githubWorkflowPublish := Seq(
 
 val withExclusions: ModuleID => ModuleID = moduleId => moduleId.excludeAll(Dependencies.exclusions: _*)
 
+lazy val common = project
+  .in(file("modules/common"))
+  .settings(
+    publish / skip := false
+  )
+
 lazy val core = project
   .in(file("modules/core"))
+  .dependsOn(common % "test->test")
   .configs(IntegrationTest)
   .enablePlugins(
     AkkaGrpcPlugin,
@@ -83,7 +90,7 @@ lazy val provider = project
 
 lazy val consumer = project
   .in(file("modules/examples/consumer"))
-  .dependsOn(provider)
+  .dependsOn(common % "test->test", core, provider)
   .settings(
     basicSettings,
     Test / sbt.Keys.test := (Test / sbt.Keys.test).dependsOn(core / Universal / stage).value,
