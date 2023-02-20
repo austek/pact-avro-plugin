@@ -82,23 +82,24 @@ class PactConsumerTest {
                 .usingPlugin("avro")
                 .expectsToReceive("Configure multi records", "core/interaction/message")
                 .with(Map.of(
-                        "message.contents", Map.of(
-                                "pact:avro", schemasPath,
-                                "pact:record-name", "Complex",
-                                "pact:content-type", "avro/binary",
-                                "id", "notEmpty('100')",
-                                "names", List.of(
+                        "message.contents", Map.ofEntries(
+                                Map.entry("pact:avro", schemasPath),
+                                Map.entry("pact:record-name", "Complex"),
+                                Map.entry("pact:content-type", "avro/binary"),
+                                Map.entry("id", "notEmpty('100')"),
+                                Map.entry("color", "matching(equalTo, 'GREEN')"),
+                                Map.entry("names", List.of(
                                         "notEmpty('name-1')",
                                         "notEmpty('name-2')"
-                                ),
-                                "enabled", "matching(boolean, true)",
-                                "no", "matching(integer, 121)",
-                                "height", "matching(decimal, 15.8)",
-                                "width", "matching(decimal, 1.8)",
-                                "ages", Map.of(
+                                )),
+                                Map.entry("enabled", "matching(boolean, true)"),
+                                Map.entry("no", "matching(integer, 121)"),
+                                Map.entry("height", "matching(decimal, 15.8)"),
+                                Map.entry("width", "matching(decimal, 1.8)"),
+                                Map.entry("ages", Map.of(
                                         "first", "matching(integer, 2)",
                                         "second", "matching(integer, 3)"
-                                )
+                                ))
                         )
                 ))
                 .toPact();
@@ -108,6 +109,8 @@ class PactConsumerTest {
     @PactTestFor(pactMethod = "configureRecordWithDependantRecord")
     void consumerRecordWithDependantRecord(V4Interaction.AsynchronousMessage message) throws IOException {
         MessageContents messageContents = message.getContents();
+//        Schema schema = AvroUtils.parseSchema(schemasPath).right().get().getTypes().stream().filter(f -> f.getName().equals("Complex")).findFirst().get();
+//        GenericRecord genericRecord = AvroUtils.recordFromByteString(schema, messageContents.getContents().getValue());
         List<Complex> complexes = arrayByteToAvroRecord(Complex.class, messageContents.getContents().getValue());
         assertThat(complexes).hasSize(1);
         Complex complex = complexes.get(0);

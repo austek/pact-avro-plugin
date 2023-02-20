@@ -72,19 +72,18 @@
         "name": "width",
         "type": "double"
       },
-//      {
-//        "name": "color",
-//        "type": {
-//          "type": "enum",
-//          "name": "Color",
-//          "symbols": [
-//            "UNKNOWN",
-//            "GREEN",
-//            "RED"
-//          ],
-//          "default": "UNKNOWN"
-//        }
-//      },
+      {
+        "name": "color",
+        "type": {
+          "type": "enum",
+          "name": "Color",
+          "symbols": [
+            "UNKNOWN",
+            "GREEN",
+            "RED"
+          ]
+        }
+      },
 //      {
 //        "name": "address",
 //        "type": {
