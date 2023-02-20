@@ -2,7 +2,7 @@ package com.collibra.plugin.avro
 
 import com.collibra.plugin.avro.utils.AvroUtils
 import com.google.protobuf.ByteString
-import com.google.protobuf.struct.{Struct, Value}
+import com.google.protobuf.struct.{ListValue, Struct, Value}
 import io.pact.plugin._
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
@@ -10,6 +10,8 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AsyncFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{EitherValues, OptionValues}
+
+import scala.jdk.CollectionConverters._
 
 class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionValues with ScalaFutures with EitherValues {
 
@@ -112,7 +114,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
       }
   }
 
-  it should "return Interaction Response" in {
+  it should "return Interaction Response for a single record" in {
     val url = getClass.getResource("/item.avsc")
     val eventualResponse = new PactAvroPluginService()
       .configureInteraction(
@@ -145,9 +147,70 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     interaction.rules should have size 2
   }
 
+  it should "return Interaction Response for a record with other record in field" in {
+    val url = getClass.getResource("/schemas.avsc")
+    val eventualResponse = new PactAvroPluginService()
+      .configureInteraction(
+        ConfigureInteractionRequest(
+          "avro/binary",
+          Some(
+            Struct(
+              Map(
+                "pact:avro" -> Value(Value.Kind.StringValue(url.getPath)),
+                "pact:record-name" -> Value(Value.Kind.StringValue("Order")),
+                "pact:content-type" -> Value(Value.Kind.StringValue("avro/binary")),
+                "id" -> Value(Value.Kind.StringValue("notEmpty('1')")),
+//                "items" -> Value(
+//                  Value.Kind.ListValue(
+//                    ListValue(
+//                      Seq(
+//                        Value(
+//                          Value.Kind.StructValue(
+//                            Struct(
+//                              Map(
+//                                "name" -> Value(Value.Kind.StringValue("notEmpty('Item-41')")),
+//                                "id" -> Value(Value.Kind.StringValue("notEmpty('41')"))
+//                              )
+//                            )
+//                          )
+//                        )
+//                      )
+//                    )
+//                  )
+//                )
+                "names" -> Value(
+                  Value.Kind.ListValue(
+                    ListValue(
+                      Seq(
+                        Value(Value.Kind.StringValue("notEmpty('name-1')")),
+                        Value(Value.Kind.StringValue("notEmpty('name-2')"))
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    val response = eventualResponse.futureValue
+    response.interaction should have size 1
+    val interaction: InteractionResponse = response.interaction.head
+    val content = interaction.contents.value
+    content.contentTypeHint shouldBe Body.ContentTypeHint.BINARY
+    content.contentType shouldBe "avro/binary;record=Order"
+
+    val schema = AvroUtils.parseSchema(url.getPath).value.getTypes.asScala.find(_.getName=="Order").get
+    val bytes = toByteString(schema, Map("id" -> 1, "names" -> List("name-1", "name-2").asJava)).value
+    content.getContent shouldBe bytes
+
+    interaction.rules should have size 2
+  }
+
   private def toByteString(schema: Schema, fields: Map[String, Any]): Option[ByteString] = {
     val record = new GenericData.Record(schema)
     fields.foreach(v => record.put(v._1, v._2))
-    AvroUtils.schemaToByteString(schema, record).toOption
+    val exceptionOrString = AvroUtils.schemaToByteString(schema, record)
+    exceptionOrString.toOption
   }
 }

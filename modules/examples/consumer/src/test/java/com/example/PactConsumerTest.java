@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(PactConsumerTestExt.class)
 @PactTestFor(providerName = "avro-provider", providerType = ProviderType.ASYNCH, pactVersion = PactSpecVersion.V4)
@@ -35,10 +35,10 @@ class PactConsumerTest {
     String schemasPath = Objects.requireNonNull(getClass().getResource("/schemas.avsc")).getPath();
 
     @Pact(consumer = "avro-consumer")
-    V4Pact configureInteractionResponseMessage(PactBuilder builder) {
+    V4Pact configureItemRecord(PactBuilder builder) {
         return builder
                 .usingPlugin("avro")
-                .expectsToReceive("Configure Interaction Response", "core/interaction/message")
+                .expectsToReceive("Configure Single Record", "core/interaction/message")
                 .with(Map.of(
                         "message.contents", Map.of(
                                 "pact:avro", schemasPath,
@@ -52,11 +52,10 @@ class PactConsumerTest {
     }
 
     @Test
-    @PactTestFor(pactMethod = "configureInteractionResponseMessage")
-    void consumeConfigureInteractionResponseMessage(V4Interaction.AsynchronousMessage message) throws IOException {
+    @PactTestFor(pactMethod = "configureItemRecord")
+    void consumeSingleRecord(V4Interaction.AsynchronousMessage message) throws IOException {
         MessageContents messageContents = message.getContents();
         List<Item> items = arrayByteToAvroRecord(Item.class, messageContents.getContents().getValue());
-        CharSequence name = "Item-41";
         assertThat(items).hasSize(1);
         Item item = items.get(0);
         assertThat(item.getName()).hasToString("Item-41");
@@ -76,8 +75,56 @@ class PactConsumerTest {
         assertThat(idRules.get(0)).extracting("name").isEqualTo("not-empty");
     }
 
+
+    @Pact(consumer = "avro-consumer")
+    V4Pact configureRecordWithDependantRecord(PactBuilder builder) {
+        return builder
+                .usingPlugin("avro")
+                .expectsToReceive("Configure multi records", "core/interaction/message")
+                .with(Map.of(
+                        "message.contents", Map.of(
+                                "pact:avro", schemasPath,
+                                "pact:record-name", "Complex",
+                                "pact:content-type", "avro/binary",
+                                "id", "notEmpty('100')",
+                                "names", List.of(
+                                        "notEmpty('name-1')",
+                                        "notEmpty('name-2')"
+                                )
+                        )
+                ))
+                .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "configureRecordWithDependantRecord")
+    void consumerRecordWithDependantRecord(V4Interaction.AsynchronousMessage message) throws IOException {
+        MessageContents messageContents = message.getContents();
+        List<Complex> complexes = arrayByteToAvroRecord(Complex.class, messageContents.getContents().getValue());
+        assertThat(complexes).hasSize(1);
+        Complex complex = complexes.get(0);
+        assertThat(complex.getId()).isEqualTo(100);
+        assertThat(complex.getNames()).hasSize(2);
+        assertThat(complex.getNames().get(0)).hasToString("name-1");
+        assertThat(complex.getNames().get(1)).hasToString("name-2");
+
+        assertThat(messageContents.getContents().getContentType()).hasToString("avro/binary; record=Complex");
+        assertThat(messageContents.getContents().getContentTypeHint()).isEqualTo(ContentTypeHint.BINARY);
+
+        Map<String, MatchingRuleCategory> ruleCategoryMap = ((MatchingRulesImpl) messageContents.getMatchingRules()).getRules();
+        assertThat(ruleCategoryMap).hasSize(1);
+        Map<String, MatchingRuleGroup> rules = ruleCategoryMap.get("body").getMatchingRules();
+        List<MatchingRule> idRules = rules.get("$.id").getRules();
+        assertThat(idRules).hasSize(1);
+        assertThat(idRules.get(0)).extracting("name").isEqualTo("not-empty");
+        List<MatchingRule> nameRules = rules.get("$.names").getRules();
+        assertThat(nameRules).hasSize(2);
+        assertThat(nameRules.get(0)).extracting("name").isEqualTo("not-empty");
+        assertThat(nameRules.get(1)).extracting("name").isEqualTo("not-empty");
+    }
+
     private <T> List<T> arrayByteToAvroRecord(Class<T> c, byte[] bytes) throws IOException {
-        SpecificDatumReader<T> datumReader = new SpecificDatumReader<T>(c);
+        SpecificDatumReader<T> datumReader = new SpecificDatumReader<>(c);
         List<T> records = new ArrayList<>();
 
         try (ByteArrayInputStream in = new ByteArrayInputStream(bytes)) {

@@ -27,5 +27,23 @@
         }
       }
     ]
+  },
+  {
+    "namespace": "com.example",
+    "type": "record",
+    "name": "Complex",
+    "fields": [
+      {
+        "name": "id",
+        "type": "long"
+      },
+      {
+        "name": "names",
+        "type": {
+          "type": "array",
+          "items": "string"
+        }
+      }
+    ]
   }
 ]

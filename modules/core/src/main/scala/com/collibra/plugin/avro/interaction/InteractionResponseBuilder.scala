@@ -12,7 +12,7 @@ object InteractionResponseBuilder extends StrictLogging {
     logger.debug("Start to build response")
     val avroSchemaHash = AvroSchemaBase16Hash(avroSchema)
     InteractionBuilder
-      .constructAvroMessageForSchema(avroSchema, recordName, avroSchemaHash, configuration)
+      .build(avroSchema, recordName, avroSchemaHash, configuration)
       .map { interactionResponse =>
         ConfigureInteractionResponse(
           interaction = Seq(interactionResponse),

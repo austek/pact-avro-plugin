@@ -1,13 +1,15 @@
 package com.collibra.plugin.avro.interaction
 
 import au.com.dius.pact.core.model.PathExpressionsKt._
+import au.com.dius.pact.core.model.matchingrules
 import au.com.dius.pact.core.model.matchingrules.expressions.MatchingRuleDefinition
-import au.com.dius.pact.core.model.matchingrules.{MatchingRule => CoreMatchingRule, MatchingRules => _, _}
-import com.collibra.plugin.avro.{AvroSchemaBase16Hash, FieldValue}
+import au.com.dius.pact.core.model.matchingrules.{MatchingRule => _, MatchingRules => _, _}
 import com.collibra.plugin.avro.utils.AvroSupportImplicits._
 import com.collibra.plugin.avro.utils.AvroUtils._
 import com.collibra.plugin.avro.utils.Util._
 import com.collibra.plugin.avro.utils._
+import com.collibra.plugin.avro.{AvroField, AvroFieldValue, AvroSchemaBase16Hash}
+import com.google.protobuf.struct.Value.Kind
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging
 import io.pact.plugin.Body.ContentTypeHint
@@ -20,7 +22,7 @@ import scala.jdk.CollectionConverters._
 
 object InteractionBuilder extends StrictLogging {
 
-  def constructAvroMessageForSchema(
+  def build(
     schema: Schema,
     recordName: String,
     avroSchemaHash: AvroSchemaBase16Hash,
@@ -29,11 +31,11 @@ object InteractionBuilder extends StrictLogging {
     schema.getType match {
       case UNION =>
         schema.getTypes.asScala.find(s => s.getType == RECORD && s.getName == recordName) match {
-          case Some(value) => constructAvroMessage(value, recordName, avroSchemaHash, configuration)
+          case Some(value) => buildInteractionResponse(value, recordName, avroSchemaHash, configuration)
           case None        => Left(Seq(PluginErrorMessage(s"Avro union schema didn't contain record: '$recordName'")))
         }
       case RECORD if schema.getName == recordName =>
-        constructAvroMessage(schema, recordName, avroSchemaHash, configuration)
+        buildInteractionResponse(schema, recordName, avroSchemaHash, configuration)
       case RECORD if schema.getName != recordName =>
         Left(Seq(PluginErrorMessage(s"Record '$recordName' was not found in avro Schema provided")))
       case t =>
@@ -41,35 +43,24 @@ object InteractionBuilder extends StrictLogging {
     }
   }
 
-  private def constructAvroMessage(
+  private def buildInteractionResponse(
     schema: Schema,
     recordName: String,
     avroSchemaHash: AvroSchemaBase16Hash,
     configuration: Struct
   ): Either[Seq[PluginError[_]], InteractionResponse] = {
-    val matchingRules = new MatchingRuleCategory("body")
+    val matchingRules: MatchingRuleCategory = new MatchingRuleCategory("body")
     val schemaFields: Seq[Schema.Field] = schema.getFields.asScala.toSeq
-    val record = new GenericData.Record(schema)
+    val record: GenericData.Record = new GenericData.Record(schema)
 
     configuration.fields
       .filter(!_._1.startsWith("pact:"))
       .map { case (key, value) =>
-        logger.debug(s"Keys: $key Value: $value")
-        schemaFields.find(_.name() == key) match {
-          case Some(field) =>
-            val fieldPath = constructValidPath(key, "$")
-            buildFieldValue(fieldPath, field, value) map { case (fieldValue, rules) =>
-              logger.debug(s"Setting field $field to value '$fieldValue'")
-              rules.foreach(rule => matchingRules.addRule(fieldPath, rule))
-              record.put(field.name(), fieldValue.value)
-              ()
-            }
-          case None =>
-            Left(PluginErrorMessage(s"Record $recordName has no field $key"))
-        }
+        logger.debug(s"Configuration Key: $key Value: $value")
+        configurationFieldToAvro(recordName, schemaFields, key, value, matchingRules, record)
       }
       .partitionMap(identity) match {
-      case (errors, _) if errors.nonEmpty => Left(errors.toSeq)
+      case (errors, _) if errors.nonEmpty => Left(errors.flatten.toSeq)
       case _ =>
         schemaToByteString(schema, record)
           .map { bodyContent =>
@@ -107,13 +98,118 @@ object InteractionBuilder extends StrictLogging {
     }
   }
 
-  private def buildFieldValue(
-    path: String,
+  private def configurationFieldToAvro(
+    recordName: String,
+    schemaFields: Seq[Schema.Field],
+    key: String,
+    inValue: Value,
+    matchingRules: MatchingRuleCategory,
+    record: GenericData.Record
+  ): Either[Seq[PluginError[_]], Unit] = {
+    schemaFields.find(_.name() == key) match {
+      case Some(field) =>
+        field.schema().getType match {
+          case UNION  => Left(Seq(PluginErrorMessage(s"'UNION' is not a support field type - FIELD '$key'")))
+          case RECORD => Left(Seq(PluginErrorMessage(s"'RECORD' is not a support field type - FIELD '$key'")))
+          case ARRAY  => buildArrayFieldValue(field, key, inValue, matchingRules, record)
+          case MAP    => Left(Seq(PluginErrorMessage(s"'MAP' is not a support field type - FIELD '$key'")))
+          case _ =>
+            buildFieldValue("$", field.name(), field.schema().getType, inValue) map { avroField =>
+              logger.debug(s"Setting field $field to value '${avroField.value}'")
+              avroField.rules.foreach(rule => matchingRules.addRule(avroField.path, rule))
+              record.put(field.name(), avroField.value.value)
+              ()
+            }
+        }
+      case None =>
+        Left(Seq(PluginErrorMessage(s"Record $recordName has no field $key")))
+    }
+  }
+
+  private def buildArrayFieldValue(
     field: Schema.Field,
-    value: Value
-  ): Either[PluginError[_], (FieldValue[_], Seq[CoreMatchingRule])] = {
-    logger.debug(s">>> buildFieldValue($path, $field, $value)")
-    fromPactResult(MatchingRuleDefinition.parseMatchingRuleDefinition(value.getStringValue)) match {
+    key: String,
+    inValue: Value,
+    matchingRules: MatchingRuleCategory,
+    record: GenericData.Record
+  ): Either[Seq[PluginError[_]], Unit] = {
+    inValue.kind match {
+      case Kind.Empty =>
+        record.put(field.name(), Seq.empty)
+        Right(())
+      case Kind.NullValue(_) =>
+        record.put(field.name(), Seq.empty)
+        Right(())
+      case Kind.ListValue(listValue) =>
+        listValue.values
+          .map { singleValue =>
+            buildFieldValue("$", field.name(), field.schema().getElementType.getType, singleValue)
+          }
+          .partitionMap(identity) match {
+          case (errors, _) if errors.nonEmpty =>
+            Left(errors.flatten)
+          case (_, fields) =>
+            val fieldPath = constructValidPath(field.name(), "$")
+            val values = fields.map { avroField =>
+              avroField.rules.foreach(rule => matchingRules.addRule(fieldPath, rule))
+              avroField.value.value
+            }.asJava
+            logger.debug(s"Setting field $field to value '$values'")
+            record.put(field.name(), values)
+            Right(())
+        }
+      case _ => Left(Seq(PluginErrorMessage(s"Expected list value for field '$key' but got '${inValue.kind}'")))
+    }
+  }
+
+  private def buildFieldValue(
+    rootPath: String,
+    fieldName: String,
+    schemaType: Schema.Type,
+    inValue: Value
+  ): Either[Seq[PluginError[_]], AvroField[_]] = {
+    val path = constructValidPath(fieldName, rootPath)
+    logger.debug(s">>> buildFieldValue($path, $fieldName, $inValue)")
+    inValue.kind match {
+      case Kind.Empty          => Left(Seq(PluginErrorMessage(s"Empty kind value for field is not supported")))
+      case Kind.NullValue(_)   => Left(Seq(PluginErrorMessage(s"Null kind value for field is not supported")))
+      case Kind.NumberValue(_) => Left(Seq(PluginErrorMessage(s"Number kind value for field is not supported")))
+      case Kind.StringValue(_) =>
+        parseRules(inValue)
+          .flatMap { case (fieldValue, rules) =>
+            AvroFieldValue.from(schemaType, fieldValue) match {
+              case Some(value) => Right(AvroField(path, value, rules))
+              case None        => Left(PluginErrorMessage(s"Field value failed to build: $path, $fieldName, $inValue"))
+            }
+          }
+          .left
+          .map(e => Seq(e))
+      case Kind.BoolValue(_)   => Left(Seq(PluginErrorMessage(s"Bool kind value for field is not supported")))
+      case Kind.StructValue(_) => Left(Seq(PluginErrorMessage(s"Struct kind value for field is not supported")))
+      case Kind.ListValue(listValue) =>
+        (listValue.values.map(parseRules).partitionMap(identity) match {
+          case (errors, _) if errors.nonEmpty => Left(errors)
+          case (_, result)                    => Right(result)
+        }).map { result =>
+          result.foldLeft((Seq.empty[String], Seq.empty[matchingrules.MatchingRule])) { (acc, values) =>
+            (acc._1 :+ values._1) -> (acc._2 ++ values._2)
+          }
+        }.map { case (fieldValues, rules) =>
+          AvroFieldValue.from(schemaType, fieldValues) match {
+            case Some(value) => Right(AvroField(path, value, rules))
+            case None        => Left(PluginErrorMessage(s"Field value failed to build: $path, $fieldName, $inValue"))
+          }
+        } match {
+          case Right(Right(value)) => Right(value)
+          case Right(Left(error))  => Left(Seq(error))
+          case Left(errors)        => Left(errors)
+        }
+    }
+
+  }
+
+  private def parseRules(inValue: Value): Either[PluginError[_], (String, Seq[matchingrules.MatchingRule])] = {
+    fromPactResult(MatchingRuleDefinition.parseMatchingRuleDefinition(inValue.getStringValue)) match {
       case Right(ok) =>
         ok.getRules.asScala.toSeq
           .map(fromPactEither)
@@ -123,14 +219,10 @@ object InteractionBuilder extends StrictLogging {
           }
           .partitionMap(identity) match {
           case (errors, _) if errors.nonEmpty => Left(PluginErrorMessages(errors))
-          case (_, rules) =>
-            FieldValue.from(ok.getValue, field) match {
-              case Some(value) => Right(value -> rules)
-              case None        => Left(PluginErrorMessage(s"Field value failed to build: $path, $field, $value"))
-            }
+          case (_, rules)                     => Right((ok.getValue, rules))
         }
       case Left(err) =>
-        Left(PluginErrorMessage(s"'${value.getStringValue}' is not a valid matching rule definition - $err"))
+        Left(PluginErrorMessage(s"'${inValue.getStringValue}' is not a valid matching rule definition - $err"))
     }
   }
 }
