@@ -36,4 +36,10 @@ object AvroUtils {
     val decoder: Decoder = DecoderFactory.get().binaryDecoder(bytes, null)
     reader.read(null, decoder)
   }
+
+  def recordFromJson(schema: Schema, json: String): GenericRecord = {
+    val reader: DatumReader[GenericRecord] = new SpecificDatumReader[GenericRecord](schema)
+    val jsonDecoder = DecoderFactory.get().jsonDecoder(schema, json)
+    reader.read(null, jsonDecoder)
+  }
 }

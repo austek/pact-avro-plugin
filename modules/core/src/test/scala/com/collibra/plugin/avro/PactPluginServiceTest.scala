@@ -1,12 +1,10 @@
 package com.collibra.plugin.avro
 
 import com.collibra.plugin.avro.utils.AvroUtils
-import com.google.protobuf.ByteString
+import com.collibra.plugin.avro.utils.StringUtils._
 import com.google.protobuf.struct.Value.Kind._
 import com.google.protobuf.struct.{ListValue => StructListValue, Struct, Value}
 import io.pact.plugin._
-import org.apache.avro.Schema
-import org.apache.avro.generic.GenericData
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AsyncFlatSpecLike
 import org.scalatest.matchers.should.Matchers
@@ -142,7 +140,19 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     content.contentType shouldBe "avro/binary;record=Item"
 
     val schema = AvroUtils.parseSchema(url.getPath).value
-    val bytes = toByteString(schema, Map("name" -> "Item-41", "id" -> 41)).value
+    val bytes = AvroRecord
+      .toByteString(
+        schema,
+        AvroRecord(
+          "$".toPactPath,
+          ".".toFieldName,
+          Map(
+            "$.name".toPactPath -> AvroString("$.name".toPactPath, "name".toFieldName, "Item-41"),
+            "$.id".toPactPath -> AvroInt("$.id".toPactPath, "id".toFieldName, 41)
+          )
+        )
+      )
+      .value
     content.getContent shouldBe bytes
 
     interaction.rules should have size 2
@@ -160,7 +170,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
                 "pact:avro" -> Value(StringValue(url.getPath)),
                 "pact:record-name" -> Value(StringValue("Complex")),
                 "pact:content-type" -> Value(StringValue("avro/binary")),
-                "id" -> Value(StringValue("notEmpty('1')")),
+                "id" -> Value(StringValue("notEmpty('100')")),
                 "names" -> Value(
                   ListValue(
                     StructListValue(
@@ -184,7 +194,8 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
                       )
                     )
                   )
-                )
+                ),
+                "color" -> Value(StringValue("matching(equalTo, 'GREEN')"))
               )
             )
           )
@@ -196,29 +207,38 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     val content = interaction.contents.value
     content.contentTypeHint shouldBe Body.ContentTypeHint.BINARY
     content.contentType shouldBe "avro/binary;record=Complex"
-
     val schema = AvroUtils.parseSchema(url.getPath).value.getTypes.asScala.find(_.getName == "Complex").get
-    val bytes =
-      toByteString(
-        schema,
-        Map(
-          "id" -> 1,
-          "names" -> List("name-1", "name-2").asJava,
-          "enabled" -> true,
-          "no" -> 121,
-          "height" -> 15.8d,
-          "width" -> 1.8d,
-          "ages" -> Map("first" -> 2, "second" -> 3).asJava
-        )
-      ).value
+    val avroRecord = AvroRecord(
+      "$".toPactPath,
+      ".".toFieldName,
+      Map(
+        "$.id".toPactPath -> AvroLong("$.id".toPactPath, "id".toFieldName, 100),
+        "$.names".toPactPath -> AvroArray(
+          "$.names".toPactPath,
+          "names".toFieldName,
+          List(
+            AvroString("$.names".toPactPath, "names".toFieldName, "name-1"),
+            AvroString("$.names".toPactPath, "names".toFieldName, "name-2")
+          )
+        ),
+        "$.width".toPactPath -> AvroDouble("$.width".toPactPath, "width".toFieldName, 1.8),
+        "$.enabled".toPactPath -> AvroBoolean("$.enabled".toPactPath, "enabled".toFieldName, value = true),
+        "$.color".toPactPath -> AvroEnum("$.color".toPactPath, "color".toFieldName, "GREEN"),
+        "$.height".toPactPath -> AvroFloat("$.height".toPactPath, "height".toFieldName, 15.8f),
+        "$.ages".toPactPath -> AvroMap(
+          "$.ages".toPactPath,
+          "ages".toFieldName,
+          Map(
+            "first".toPactPath -> AvroInt("$.ages.first".toPactPath, "first".toFieldName, 2),
+            "second".toPactPath -> AvroInt("$.ages.second".toPactPath, "second".toFieldName, 3)
+          )
+        ),
+        "$.no".toPactPath -> AvroInt("$.no".toPactPath, "no".toFieldName, 121)
+      )
+    )
+    val bytes = AvroRecord.toByteString(schema, avroRecord).value
     content.getContent shouldBe bytes
 
-    interaction.rules should have size 8
-  }
-
-  private def toByteString(schema: Schema, fields: Map[String, Any]): Option[ByteString] = {
-    val record = new GenericData.Record(schema)
-    fields.foreach(v => record.put(v._1, v._2))
-    AvroUtils.schemaToByteString(schema, record).toOption
+    interaction.rules should have size 9
   }
 }
