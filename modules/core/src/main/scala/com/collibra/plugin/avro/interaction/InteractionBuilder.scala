@@ -45,7 +45,7 @@ object InteractionBuilder extends StrictLogging {
     configuration: Struct
   ): Either[Seq[PluginError[_]], InteractionResponse] = {
     val matchingRules: MatchingRuleCategory = new MatchingRuleCategory("body")
-    AvroRecord("$".toPactPath, ".".toFieldName, schema, configuration.fields).flatMap { avroRecord =>
+    AvroRecord(schema, configuration.fields).flatMap { avroRecord =>
       AvroRecord
         .toByteString(schema, avroRecord)
         .map { bodyContent =>

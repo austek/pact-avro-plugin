@@ -274,6 +274,10 @@ object AvroRecord {
   def apply(rootPath: PactFieldPath, fieldName: AvroFieldName, fields: Seq[AvroValue]): AvroRecord =
     AvroRecord(rootPath, fieldName, fields.map(field => field.path -> field).toMap)
 
+  def apply(schema: Schema, configFields: Map[String, Value]): Either[Seq[PluginError[_]], AvroRecord] = {
+    this("$".toPactPath, ".".toFieldName, schema, configFields)
+  }
+
   def apply(rootPath: PactFieldPath, fieldName: AvroFieldName, schema: Schema, configFields: Map[String, Value]): Either[Seq[PluginError[_]], AvroRecord] = {
     schema.getFields.asScala.toSeq
       .map { schemaField =>
@@ -311,7 +315,7 @@ object AvroRecord {
       }
       .partitionMap(identity) match {
       case (errors, _) if errors.nonEmpty => Left(errors.flatten)
-      case (_, value)                     => Right(AvroRecord(rootPath, fieldName, value))
+      case (_, value)                     => Right(this(rootPath, fieldName, value))
     }
   }
 
