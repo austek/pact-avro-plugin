@@ -3,13 +3,14 @@ package com.collibra.plugin.avro
 import com.collibra.plugin.avro.utils.AvroUtils
 import com.collibra.plugin.avro.utils.StringUtils._
 import com.google.protobuf.struct.Value.Kind._
-import com.google.protobuf.struct.{ListValue => StructListValue, Struct, Value}
+import com.google.protobuf.struct.{Struct, Value, ListValue => StructListValue}
 import io.pact.plugin._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AsyncFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{EitherValues, OptionValues}
 
+import java.nio.file.Path
 import scala.jdk.CollectionConverters._
 
 class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionValues with ScalaFutures with EitherValues {
@@ -139,7 +140,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     content.contentTypeHint shouldBe Body.ContentTypeHint.BINARY
     content.contentType shouldBe "avro/binary;record=Item"
 
-    val schema = AvroUtils.parseSchema(url.getPath).value
+    val schema = AvroUtils.parseSchema(Path.of(url.getPath).toFile).value
     val bytes = AvroRecord
       .toByteString(
         schema,
@@ -207,7 +208,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     val content = interaction.contents.value
     content.contentTypeHint shouldBe Body.ContentTypeHint.BINARY
     content.contentType shouldBe "avro/binary;record=Complex"
-    val schema = AvroUtils.parseSchema(url.getPath).value.getTypes.asScala.find(_.getName == "Complex").get
+    val schema = AvroUtils.parseSchema(Path.of(url.getPath).toFile).value.getTypes.asScala.find(_.getName == "Complex").get
     val avroRecord = AvroRecord(
       "$".toPactPath,
       ".".toFieldName,
