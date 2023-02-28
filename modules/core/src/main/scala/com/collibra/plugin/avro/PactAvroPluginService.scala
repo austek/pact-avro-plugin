@@ -10,6 +10,7 @@ import io.grpc.StatusException
 import io.pact.plugin._
 import org.apache.avro.Schema
 
+import java.nio.file.Path
 import scala.concurrent.Future
 
 class PactAvroPluginService extends PactPlugin with StrictLogging {
@@ -166,7 +167,7 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
       "pact:avro",
       "Config item with key 'pact:avro' and path to the avro schema file is required"
     ).flatMap { avroFilePath =>
-      AvroUtils.parseSchema(avroFilePath)
+      AvroUtils.parseSchema(Path.of(avroFilePath).toFile)
     }
   }
 

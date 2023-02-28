@@ -10,6 +10,7 @@ import org.scalatest.flatspec.AsyncFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{EitherValues, OptionValues}
 
+import java.nio.file.Path
 import scala.jdk.CollectionConverters._
 
 class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionValues with ScalaFutures with EitherValues {
@@ -139,7 +140,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     content.contentTypeHint shouldBe Body.ContentTypeHint.BINARY
     content.contentType shouldBe "avro/binary;record=Item"
 
-    val schema = AvroUtils.parseSchema(url.getPath).value
+    val schema = AvroUtils.parseSchema(Path.of(url.getPath).toFile).value
     val bytes = AvroRecord
       .toByteString(
         schema,
@@ -207,12 +208,13 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     val content = interaction.contents.value
     content.contentTypeHint shouldBe Body.ContentTypeHint.BINARY
     content.contentType shouldBe "avro/binary;record=Complex"
-    val schema = AvroUtils.parseSchema(url.getPath).value.getTypes.asScala.find(_.getName == "Complex").get
+    val schema = AvroUtils.parseSchema(Path.of(url.getPath).toFile).value.getTypes.asScala.find(_.getName == "Complex").get
     val avroRecord = AvroRecord(
       "$".toPactPath,
       ".".toFieldName,
       Map(
         "$.id".toPactPath -> AvroLong("$.id".toPactPath, "id".toFieldName, 100),
+        "$.street".toPactPath -> AvroString("$.street".toPactPath, "street".toFieldName, "NONE"),
         "$.names".toPactPath -> AvroArray(
           "$.names".toPactPath,
           "names".toFieldName,
@@ -239,6 +241,6 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     val bytes = AvroRecord.toByteString(schema, avroRecord).value
     content.getContent shouldBe bytes
 
-    interaction.rules should have size 9
+    interaction.rules should have size 10
   }
 }

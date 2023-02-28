@@ -1,7 +1,6 @@
 package com.collibra.plugin.avro.interaction
 
 import au.com.dius.pact.core.model.matchingrules.{MatchingRule => _, MatchingRules => _, _}
-import com.collibra.plugin.avro.utils.StringUtils._
 import com.collibra.plugin.avro.utils.Util._
 import com.collibra.plugin.avro.utils._
 import com.collibra.plugin.avro.{AvroRecord, AvroSchemaBase16Hash}
@@ -45,7 +44,7 @@ object InteractionBuilder extends StrictLogging {
     configuration: Struct
   ): Either[Seq[PluginError[_]], InteractionResponse] = {
     val matchingRules: MatchingRuleCategory = new MatchingRuleCategory("body")
-    AvroRecord("$".toPactPath, ".".toFieldName, schema, configuration.fields).flatMap { avroRecord =>
+    AvroRecord(schema, configuration.fields).flatMap { avroRecord =>
       AvroRecord
         .toByteString(schema, avroRecord)
         .map { bodyContent =>

@@ -44,11 +44,11 @@
           "items": "string"
         }
       },
-//      {
-//        "name": "street",
-//        "type": "string",
-//        "default": "NONE"
-//      },
+      {
+        "name": "street",
+        "type": "string",
+        "default": "NONE"
+      },
       {
         "name": "enabled",
         "type": "boolean"

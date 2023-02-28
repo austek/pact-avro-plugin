@@ -109,8 +109,6 @@ class PactConsumerTest {
     @PactTestFor(pactMethod = "configureRecordWithDependantRecord")
     void consumerRecordWithDependantRecord(V4Interaction.AsynchronousMessage message) throws IOException {
         MessageContents messageContents = message.getContents();
-//        Schema schema = AvroUtils.parseSchema(schemasPath).right().get().getTypes().stream().filter(f -> f.getName().equals("Complex")).findFirst().get();
-//        GenericRecord genericRecord = AvroUtils.recordFromByteString(schema, messageContents.getContents().getValue());
         List<Complex> complexes = arrayByteToAvroRecord(Complex.class, messageContents.getContents().getValue());
         assertThat(complexes).hasSize(1);
         Complex complex = complexes.get(0);
@@ -118,6 +116,7 @@ class PactConsumerTest {
         assertThat(complex.getNames()).hasSize(2);
         assertThat(complex.getNames().get(0)).hasToString("name-1");
         assertThat(complex.getNames().get(1)).hasToString("name-2");
+        assertThat(complex.getStreet()).hasToString("NONE");
 
         assertThat(messageContents.getContents().getContentType()).hasToString("avro/binary; record=Complex");
         assertThat(messageContents.getContents().getContentTypeHint()).isEqualTo(ContentTypeHint.BINARY);
