@@ -271,6 +271,7 @@ case class AvroRecord(
       case a: AvroArray  => a.name.value -> a.toRecordValue
       case m: AvroMap    => m.name.value -> m.toRecordValue
       case r: AvroRecord => r.name.value -> r.toRecordValue
+      case n: AvroNull   => n.name.value -> null
       case av            => av.name.value -> av.value
     }
   }.asJava
@@ -314,6 +315,8 @@ object AvroRecord {
           case None =>
             if (schemaField.hasDefaultValue) {
               AvroValue(rootPath.subPathOf(fieldName.value), fieldName, schemaField.schema().getType, schemaField.defaultVal(), Seq.empty).left.map(e => Seq(e))
+            } else if (schemaField.schema().getType == UNION && schemaField.schema().getTypes.asScala.exists(_.getType == NULL)) {
+              Right(AvroNull(rootPath.subPathOf(fieldName.value), fieldName))
             } else {
               Left(Seq(PluginErrorException(new Exception(s"Couldn't find configuration for field: ${schemaField.name()}"))))
             }
@@ -329,7 +332,7 @@ object AvroRecord {
     val record: GenericData.Record = new GenericData.Record(schema)
     avroRecord.toRecordValue.asScala.foreach { case (key, value) =>
       val fieldSchema = schema.getField(key).schema()
-      if (fieldSchema.getType == Schema.Type.ENUM) {
+      if (null != value && fieldSchema.getType == Schema.Type.ENUM) {
         record.put(key, new GenericData.EnumSymbol(fieldSchema, value))
       } else {
         record.put(key, value)

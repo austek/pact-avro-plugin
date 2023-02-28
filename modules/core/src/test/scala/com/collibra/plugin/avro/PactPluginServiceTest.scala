@@ -241,6 +241,6 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     val bytes = AvroRecord.toByteString(schema, avroRecord).value
     content.getContent shouldBe bytes
 
-    interaction.rules should have size 10
+    interaction.rules should have size 11
   }
 }
