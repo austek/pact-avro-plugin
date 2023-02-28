@@ -3,7 +3,7 @@ package com.collibra.plugin.avro
 import com.collibra.plugin.avro.utils.AvroUtils
 import com.collibra.plugin.avro.utils.StringUtils._
 import com.google.protobuf.struct.Value.Kind._
-import com.google.protobuf.struct.{Struct, Value, ListValue => StructListValue}
+import com.google.protobuf.struct.{ListValue => StructListValue, Struct, Value}
 import io.pact.plugin._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AsyncFlatSpecLike
@@ -214,6 +214,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
       ".".toFieldName,
       Map(
         "$.id".toPactPath -> AvroLong("$.id".toPactPath, "id".toFieldName, 100),
+        "$.street".toPactPath -> AvroString("$.street".toPactPath, "street".toFieldName, "NONE"),
         "$.names".toPactPath -> AvroArray(
           "$.names".toPactPath,
           "names".toFieldName,
@@ -240,6 +241,6 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     val bytes = AvroRecord.toByteString(schema, avroRecord).value
     content.getContent shouldBe bytes
 
-    interaction.rules should have size 9
+    interaction.rules should have size 10
   }
 }
