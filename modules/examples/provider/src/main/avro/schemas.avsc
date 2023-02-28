@@ -57,13 +57,13 @@
         "name": "no",
         "type": "int"
       },
-//      {
-//        "name": "zipcode",
-//        "type": [
-//          "bytes",
-//          "null"
-//        ]
-//      },
+      {
+        "name": "zipcode",
+        "type": [
+          "bytes",
+          "null"
+        ]
+      },
       {
         "name": "height",
         "type": "float"
