@@ -315,7 +315,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
     val genericRecord = GenericRecord(schema, avroRecord)
-    genericRecord.get("md5") shouldBe "\\u0000\\u0001\\u0002\\u0003"
+    genericRecord.get("md5") shouldBe new GenericData.Fixed(schema.getField("md5").schema(), "\\u0000\\u0001\\u0002\\u0003".getBytes)
     val rules = avroRecord.value(PactFieldPath("$.md5")).rules
     rules should have size 1
     rules shouldBe Seq(EqualsMatcher.INSTANCE)
@@ -336,7 +336,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
     val genericRecord = GenericRecord(schema, avroRecord)
-    genericRecord.get("md5") shouldBe "\\u0000"
+    genericRecord.get("md5") shouldBe new GenericData.Fixed(schema.getField("md5").schema(), "\\u0000".getBytes)
     avroRecord.value(PactFieldPath("$.md5")).rules shouldBe empty
   }
 

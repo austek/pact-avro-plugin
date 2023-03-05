@@ -276,7 +276,6 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
         )
       )
     )
-    val record = GenericRecord(schema, avroRecord)
     val bytes = avroRecord.toByteString(schema).value
     content.getContent shouldBe bytes
 
