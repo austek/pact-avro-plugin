@@ -99,7 +99,23 @@ class PactConsumerTest {
                                 Map.entry("ages", Map.of(
                                         "first", "matching(integer, 2)",
                                         "second", "matching(integer, 3)"
-                                ))
+                                )),
+                                Map.entry("address", Map.of(
+                                        "mailing_address", Map.of(
+                                                "street", "street name"
+                                        )
+                                )),
+                                Map.entry("items", List.of(
+                                        Map.of(
+                                                "name", "notEmpty('Item-1')",
+                                                "id", "notEmpty('1')"
+                                        ),
+                                        Map.of(
+                                                "name", "notEmpty('Item-2')",
+                                                "id", "notEmpty('2')"
+                                        )
+                                )),
+                                Map.entry("md5", "notEmpty('\\u0000\\u0001\\u0002\\u0003')")
                         )
                 ))
                 .toPact();

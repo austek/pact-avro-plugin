@@ -3,6 +3,7 @@ package com.collibra.plugin.avro
 import au.com.dius.pact.core.model.PathExpressionsKt._
 import au.com.dius.pact.core.model.matchingrules.{MatchingRule, MatchingRuleCategory}
 import com.collibra.plugin.RuleParser.parseRules
+import com.collibra.plugin.avro.GenericRecord
 import com.collibra.plugin.avro.utils.StringUtils._
 import com.collibra.plugin.avro.utils._
 import com.google.protobuf.ByteString
@@ -11,7 +12,7 @@ import com.google.protobuf.struct.Value.Kind
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.avro.Schema
 import org.apache.avro.Schema.Type._
-import org.apache.avro.generic.{GenericData, GenericDatumWriter, GenericRecord}
+import org.apache.avro.generic._
 import org.apache.avro.io.EncoderFactory
 
 import java.io.ByteArrayOutputStream
@@ -41,11 +42,16 @@ object AvroValue extends StrictLogging {
   def apply(
     rootPath: PactFieldPath,
     fieldName: AvroFieldName,
-    schemaType: Schema.Type,
+    schema: Schema,
     inValue: Value
   ): Either[Seq[PluginError[_]], AvroValue] = {
     val path = rootPath.subPathOf(fieldName.value)
     logger.debug(s">>> buildFieldValue($path, $fieldName, $inValue)")
+    val schemaType = schema.getType match {
+      case ARRAY => schema.getElementType.getType
+      case MAP   => schema.getValueType.getType
+      case _     => schema.getType
+    }
     inValue.kind match {
       case Kind.Empty        => Right(AvroNull(path, fieldName))
       case Kind.NullValue(_) => Right(AvroNull(path, fieldName))
@@ -73,7 +79,12 @@ object AvroValue extends StrictLogging {
         }
       case Kind.NumberValue(_) => Left(Seq(PluginErrorMessage(s"Number kind value for field is not supported")))
       case Kind.BoolValue(_)   => Left(Seq(PluginErrorMessage(s"Bool kind value for field is not supported")))
-      case Kind.StructValue(_) => Left(Seq(PluginErrorMessage(s"Struct kind value for field is not supported")))
+      case Kind.StructValue(_) =>
+        if (schemaType == RECORD) {
+          AvroRecord(path, fieldName, schema.getElementType, inValue.getStructValue.fields)
+        } else {
+          Left(Seq(PluginErrorMessage(s"Struct kind value for field is not supported")))
+        }
     }
   }
   def apply(
@@ -179,7 +190,7 @@ case class AvroArray(
   def toRecordValue: util.List[Any] = value.map {
     case a: AvroArray  => a.toRecordValue
     case m: AvroMap    => m.toRecordValue
-    case r: AvroRecord => r.toRecordValue
+    case r: AvroRecord => r
     case v             => v.value
   }.asJava
 
@@ -196,7 +207,7 @@ object AvroArray {
       case Kind.ListValue(listValue) =>
         listValue.values
           .map { singleValue =>
-            AvroValue(rootPath, fieldName, schemaField.schema().getElementType.getType, singleValue)
+            AvroValue(rootPath, fieldName, schemaField.schema(), singleValue)
           }
           .partitionMap(identity) match {
           case (errors, _) if errors.nonEmpty => Left(errors.flatten)
@@ -219,7 +230,7 @@ case class AvroMap(
     v match {
       case a: AvroArray  => a.name.value -> a.toRecordValue
       case m: AvroMap    => m.name.value -> m.toRecordValue
-      case r: AvroRecord => r.name.value -> r.toRecordValue
+      case r: AvroRecord => r.name.value -> r
       case av            => av.name.value -> av.value
     }
   }.asJava
@@ -239,7 +250,7 @@ object AvroMap {
       case Kind.StructValue(structValue) =>
         structValue.fields
           .map { case (key, singleValue) =>
-            val either = AvroValue(rootPath, key.toFieldName, schemaField.schema().getValueType.getType, singleValue)
+            val either = AvroValue(rootPath, key.toFieldName, schemaField.schema(), singleValue)
             either.map { v =>
               key.toPactPath -> v
             }
@@ -270,11 +281,25 @@ case class AvroRecord(
     v match {
       case a: AvroArray  => a.name.value -> a.toRecordValue
       case m: AvroMap    => m.name.value -> m.toRecordValue
-      case r: AvroRecord => r.name.value -> r.toRecordValue
+      case r: AvroRecord => r.name.value -> r
       case n: AvroNull   => n.name.value -> null
       case av            => av.name.value -> av.value
     }
   }.asJava
+
+  def toByteString(schema: Schema): Either[PluginErrorException, ByteString] = {
+    val datumWriter = new GenericDatumWriter[GenericRecord](schema)
+    Using(new ByteArrayOutputStream()) { os =>
+      val encoder = EncoderFactory.get.binaryEncoder(os, null)
+      val record = GenericRecord(schema, this)
+      datumWriter.write(record, encoder)
+      encoder.flush()
+      os.toByteArray
+    } match {
+      case Success(bytes)     => Right(ByteString.copyFrom(bytes))
+      case Failure(exception) => Left(PluginErrorException(exception))
+    }
+  }
 }
 
 object AvroRecord {
@@ -292,16 +317,16 @@ object AvroRecord {
         configFields.get(schemaField.name()) match {
           case Some(configValue) =>
             schemaField.schema().getType match {
-              case STRING  => AvroValue(rootPath, fieldName, schemaField.schema().getType, configValue)
-              case INT     => AvroValue(rootPath, fieldName, schemaField.schema().getType, configValue)
-              case LONG    => AvroValue(rootPath, fieldName, schemaField.schema().getType, configValue)
-              case FLOAT   => AvroValue(rootPath, fieldName, schemaField.schema().getType, configValue)
-              case DOUBLE  => AvroValue(rootPath, fieldName, schemaField.schema().getType, configValue)
-              case BOOLEAN => AvroValue(rootPath, fieldName, schemaField.schema().getType, configValue)
-              case ENUM    => AvroValue(rootPath, fieldName, schemaField.schema().getType, configValue)
-              case FIXED   => AvroValue(rootPath, fieldName, schemaField.schema().getType, configValue)
-              case BYTES   => AvroValue(rootPath, fieldName, schemaField.schema().getType, configValue)
-              case NULL    => AvroValue(rootPath, fieldName, schemaField.schema().getType, configValue)
+              case STRING  => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+              case INT     => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+              case LONG    => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+              case FLOAT   => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+              case DOUBLE  => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+              case BOOLEAN => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+              case ENUM    => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+              case FIXED   => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+              case BYTES   => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+              case NULL    => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
               case RECORD =>
                 val recordPath = rootPath.subPathOf(schemaField.name())
                 AvroRecord(recordPath, fieldName, schemaField.schema(), configValue.getStructValue.fields)
@@ -328,30 +353,4 @@ object AvroRecord {
     }
   }
 
-  def toRecord(schema: Schema, avroRecord: AvroRecord): GenericData.Record = {
-    val record: GenericData.Record = new GenericData.Record(schema)
-    avroRecord.toRecordValue.asScala.foreach { case (key, value) =>
-      val fieldSchema = schema.getField(key).schema()
-      if (null != value && fieldSchema.getType == Schema.Type.ENUM) {
-        record.put(key, new GenericData.EnumSymbol(fieldSchema, value))
-      } else {
-        record.put(key, value)
-      }
-    }
-    record
-  }
-
-  def toByteString(schema: Schema, avroRecord: AvroRecord): Either[PluginErrorException, ByteString] = {
-    val datumWriter = new GenericDatumWriter[GenericRecord](schema)
-    Using(new ByteArrayOutputStream()) { os =>
-      val encoder = EncoderFactory.get.binaryEncoder(os, null)
-      val record = AvroRecord.toRecord(schema, avroRecord)
-      datumWriter.write(record, encoder)
-      encoder.flush()
-      os.toByteArray
-    } match {
-      case Success(bytes)     => Right(ByteString.copyFrom(bytes))
-      case Failure(exception) => Left(PluginErrorException(exception))
-    }
-  }
 }

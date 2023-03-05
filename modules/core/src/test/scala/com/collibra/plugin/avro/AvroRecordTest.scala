@@ -30,7 +30,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("street") shouldBe "hello"
     val rules = avroRecord.value("$.street".toPactPath).rules
     rules should have size 1
@@ -51,7 +51,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("street") shouldBe "NONE"
     avroRecord.value("$.street".toPactPath).rules shouldBe empty
   }
@@ -70,7 +70,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("no") shouldBe 121
     val rules = avroRecord.value("$.no".toPactPath).rules
     rules should have size 1
@@ -91,7 +91,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("no") shouldBe 5
     avroRecord.value("$.no".toPactPath).rules shouldBe empty
   }
@@ -110,7 +110,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("id") shouldBe 100
     val rules = avroRecord.value(PactFieldPath("$.id")).rules
     rules should have size 1
@@ -131,7 +131,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("id") shouldBe 100
     avroRecord.value(PactFieldPath("$.id")).rules shouldBe empty
   }
@@ -150,7 +150,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("width") shouldBe 1.8d
     val rules = avroRecord.value(PactFieldPath("$.width")).rules
     rules should have size 1
@@ -171,7 +171,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("width") shouldBe 1.8d
     avroRecord.value(PactFieldPath("$.width")).rules shouldBe empty
   }
@@ -190,7 +190,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("height") shouldBe 15.8f
     val rules = avroRecord.value(PactFieldPath("$.height")).rules
     rules should have size 1
@@ -211,7 +211,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("height") shouldBe 15.8f
     avroRecord.value(PactFieldPath("$.height")).rules shouldBe empty
   }
@@ -231,7 +231,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("enabled") shouldBe true
     val rules = avroRecord.value(PactFieldPath("$.enabled")).rules
     rules should have size 1
@@ -253,7 +253,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("enabled") shouldBe true
     avroRecord.value(PactFieldPath("$.enabled")).rules shouldBe empty
   }
@@ -272,7 +272,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     val value1 = genericRecord.get("color")
     value1 shouldBe new GenericData.EnumSymbol(schema, "GREEN")
     val rules = avroRecord.value(PactFieldPath("$.color")).rules
@@ -294,7 +294,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     val value1 = genericRecord.get("color")
     value1 shouldBe new GenericData.EnumSymbol(schema, "UNKNOWN")
     avroRecord.value(PactFieldPath("$.color")).rules shouldBe empty
@@ -314,7 +314,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("md5") shouldBe "\\u0000\\u0001\\u0002\\u0003"
     val rules = avroRecord.value(PactFieldPath("$.md5")).rules
     rules should have size 1
@@ -335,7 +335,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("md5") shouldBe "\\u0000"
     avroRecord.value(PactFieldPath("$.md5")).rules shouldBe empty
   }
@@ -356,7 +356,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("MAC") shouldBe "\\u0000\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007"
     val rules = avroRecord.value(PactFieldPath("$.MAC")).rules
     rules should have size 1
@@ -377,7 +377,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("MAC") shouldBe "\\u0000"
     avroRecord.value(PactFieldPath("$.MAC")).rules shouldBe empty
   }
@@ -407,7 +407,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("names").asInstanceOf[util.List[String]] should contain theSameElementsAs List("name-1", "name-2")
     avroRecord.value should have size 1
     val avroArray = avroRecord.value.head._2.asInstanceOf[AvroArray]
@@ -442,7 +442,7 @@ class AvroRecordTest extends AnyFlatSpecLike with Matchers with EitherValues {
 
     val schema = AvroUtils.parseSchema(schemaStr).value
     val avroRecord = AvroRecord(schema, pactConfiguration).value
-    val genericRecord = AvroRecord.toRecord(schema, avroRecord)
+    val genericRecord = GenericRecord(schema, avroRecord)
     genericRecord.get("ages").asInstanceOf[util.Map[String, Int]].asScala should contain theSameElementsAs Map("first" -> 2, "second" -> 3)
     avroRecord.value should have size 1
     val avroMap = avroRecord.value.head._2.asInstanceOf[AvroMap]

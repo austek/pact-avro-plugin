@@ -11,12 +11,13 @@ object Dependencies extends DependencyUtils {
     val scalaTest = "3.2.15"
   }
 
-  val akka: ModuleID = "com.typesafe.akka"                  %% "akka-actor-typed" % Versions.akka
-  val akkaStream: ModuleID = "com.typesafe.akka"            %% "akka-stream"      % Versions.akka
-  val grpcStub: ModuleID = "io.grpc"                         % "grpc-stub"        % "1.49.0"
-  val logback: ModuleID = "ch.qos.logback"                   % "logback-classic"  % "1.4.5"
-  val pactCore: ModuleID = "io.pact.plugin.driver"           % "core"             % "0.3.1"
-  val scalaLogging: ModuleID = "com.typesafe.scala-logging" %% "scala-logging"    % "3.9.5"
+  val akka: ModuleID = "com.typesafe.akka"                      %% "akka-actor-typed"        % Versions.akka
+  val akkaStream: ModuleID = "com.typesafe.akka"                %% "akka-stream"             % Versions.akka
+  val auPacMatchers: ModuleID = "au.com.dius.pact.core"          % "matchers"                % "4.4.6"
+  val grpcStub: ModuleID = "io.grpc"                             % "grpc-stub"               % "1.49.0"
+  val logback: ModuleID = "ch.qos.logback"                       % "logback-classic"         % "1.4.5"
+  val pactCore: ModuleID = "io.pact.plugin.driver"               % "core"                    % "0.3.1"
+  val scalaLogging: ModuleID = "com.typesafe.scala-logging"     %% "scala-logging"           % "3.9.5"
 
   // Test dependencies
   val akkaHttpAvro: ModuleID = "fr.davit"                      %% "akka-http-avro"                 % "0.1.3"

@@ -1,33 +1,23 @@
 package com.collibra.plugin.avro
 
-import com.collibra.plugin.avro.interaction.InteractionResponseBuilder.buildInteractionResponse
+import com.collibra.plugin.avro.AvroPactTestConstants._
+import com.collibra.plugin.avro.AvroPluginConstants._
+import com.collibra.plugin.avro.ContentTypeConstants._
+import com.collibra.plugin.avro.compare.CompareContentsResponseBuilder
+import com.collibra.plugin.avro.interaction.InteractionResponseBuilder
 import com.collibra.plugin.avro.utils._
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging
 import io.grpc.Status.UNIMPLEMENTED
 import io.grpc.StatusException
-import io.pact.plugin._
+import io.pact.plugin.{MatchingRule => _, _}
 import org.apache.avro.Schema
 
 import java.nio.file.Path
 import scala.concurrent.Future
 
 class PactAvroPluginService extends PactPlugin with StrictLogging {
-
-  private val contentTypeApplicationAvro = "application/avro"
-  private val contentTypeAvroBytes = "avro/bytes"
-  private val contentTypeAvroBinary = "avro/binary"
-  private val contentTypeAvroWildcard = "application/*+avro"
-  private val contentTypes = Seq(
-    contentTypeApplicationAvro,
-    contentTypeAvroBytes,
-    contentTypeAvroBinary,
-    contentTypeAvroWildcard
-  )
-  private val contentTypesStr = contentTypes.mkString(";")
-
-  private val recordNameKey = "record-name"
 
   /** Check that the plugin loaded OK. Returns the catalogue entries describing what the plugin provides
     */
@@ -39,7 +29,7 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
           CatalogueEntry(
             CatalogueEntry.EntryType.CONTENT_MATCHER,
             "avro",
-            Map("content-types" -> contentTypesStr)
+            Map("content-types" -> ContentTypesStr)
           )
         )
       )
@@ -59,10 +49,10 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
     logger.info(s"Configure interaction request for content type '${in.contentType}': $in")
 
     (for {
-      configuration <- getConfiguration(in.contentsConfig, "Configuration not found")
-      avroSchema <- getAvroSchema(configuration)
-      recordName <- getRecordName(configuration)
-      response <- buildInteractionResponse(configuration, avroSchema, recordName)
+      contentsConfig <- getConfiguration(in.contentsConfig, "Configuration not found")
+      avroSchema <- getAvroSchema(contentsConfig)
+      recordName <- getRecordName(contentsConfig)
+      response <- InteractionResponseBuilder.build(contentsConfig, avroSchema, recordName)
     } yield response) match {
       case Right(response) =>
         logger.debug(s"Responding: $response")
@@ -84,33 +74,26 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
   override def compareContents(request: CompareContentsRequest): Future[CompareContentsResponse] = {
     logger.debug(s"Got compareContents request $request")
 
-    (request.actual, request.expected) match {
-      case (Some(actualBody), Some(expectedBody)) =>
-        if (actualBody.contentType != expectedBody.contentType) {
-          Future.successful(CompareContentsResponse(error = "Content types don't match"))
-        } else if (contentTypes.contains(actualBody.contentType)) {
-          Future.successful(
-            CompareContentsResponse(
-              error = s"Actual body is not one of '$contentTypesStr' content type",
-              typeMismatch = Some(ContentTypeMismatch(contentTypesStr, actualBody.contentType))
-            )
-          )
-        } else if (contentTypes.contains(expectedBody.contentType)) {
-          Future.successful(
-            CompareContentsResponse(
-              error = s"Expected body is not of '$contentTypesStr' content type",
-              typeMismatch = Some(ContentTypeMismatch(contentTypesStr, expectedBody.contentType))
-            )
-          )
-        } else {
-          logger.info(s"Actual ${actualBody.content.get.toStringUtf8}")
-          logger.info(s"Expected ${expectedBody.content.get.toStringUtf8}")
-          Future.successful(CompareContentsResponse(results = Map.empty))
-        }
-      case (_, _) =>
-        val msg = "Both actual and expected body are required"
-        logger.error(msg)
+    (for {
+      interactionConfig <- getConfiguration(request.getPluginConfiguration.interactionConfiguration, "Interaction configuration not found")
+      schemaKey <- getConfigStringValue(interactionConfig.fields, SchemaKey, s"Plugin configuration item with key '$SchemaKey' is required")
+      pactConfiguration <- getConfiguration(request.getPluginConfiguration.pactConfiguration, "Pact configuration not found")
+      avroSchemaString <- getConfigStringValue(pactConfiguration.fields, schemaKey, s"Plugin configuration item with key '$schemaKey' is required")
+      avroSchema <- AvroUtils.parseSchema(avroSchemaString)
+      response <- CompareContentsResponseBuilder.build(request, avroSchema)
+    } yield response) match {
+      case Right(response) =>
+        logger.debug(s"Compare contents responding: $response")
+        Future.successful(response)
+      case Left(PluginErrorMessage(msg)) =>
+        logger.error(s"Compare contents failed: $msg")
         Future.successful(CompareContentsResponse(error = msg))
+      case Left(PluginErrorMessages(values)) =>
+        values.foreach(v => logger.error(v))
+        Future.successful(CompareContentsResponse(error = "Multiple errors detected and logged, please check logs"))
+      case Left(PluginErrorException(e)) =>
+        logger.error(s"Compare contents failed", e)
+        Future.successful(CompareContentsResponse(error = e.getMessage))
     }
   }
 
@@ -174,7 +157,7 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
   private def getRecordName(configuration: Struct): Either[PluginErrorMessage, String] =
     getConfigStringValue(
       configuration.fields,
-      s"pact:$recordNameKey",
-      s"Config item with key 'pact:$recordNameKey' and $recordNameKey of the payload is required"
+      s"pact:$RecordName",
+      s"Config item with key 'pact:$RecordName' and $RecordName of the payload is required"
     )
 }

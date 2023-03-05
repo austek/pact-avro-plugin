@@ -1,6 +1,7 @@
 package com.collibra.plugin.avro.interaction
 
 import au.com.dius.pact.core.model.matchingrules.{MatchingRule => _, MatchingRules => _, _}
+import com.collibra.plugin.avro.AvroPluginConstants._
 import com.collibra.plugin.avro.utils.Util._
 import com.collibra.plugin.avro.utils._
 import com.collibra.plugin.avro.{AvroRecord, AvroSchemaBase16Hash}
@@ -33,7 +34,7 @@ object InteractionBuilder extends StrictLogging {
       case RECORD if schema.getName != recordName =>
         Left(Seq(PluginErrorMessage(s"Record '$recordName' was not found in avro Schema provided")))
       case t =>
-        Left(Seq(PluginErrorMessage(s"Schema provided is of type: '$t', but expected to be $UNION/$RECORD")))
+        Left(Seq(PluginErrorMessage(s"Schema provided is of type: '$t', but expected to be ${UNION.getName}/${RECORD.getName}")))
     }
   }
 
@@ -43,10 +44,10 @@ object InteractionBuilder extends StrictLogging {
     avroSchemaHash: AvroSchemaBase16Hash,
     configuration: Struct
   ): Either[Seq[PluginError[_]], InteractionResponse] = {
-    val matchingRules: MatchingRuleCategory = new MatchingRuleCategory("body")
+    val matchingRules: MatchingRuleCategory = new MatchingRuleCategory(MatchingRuleCategoryName)
     AvroRecord(schema, configuration.fields).flatMap { avroRecord =>
-      AvroRecord
-        .toByteString(schema, avroRecord)
+      avroRecord
+        .toByteString(schema)
         .map { bodyContent =>
           avroRecord.addRules(matchingRules)
           buildInteractionResponse(recordName, avroSchemaHash, matchingRules, bodyContent)
@@ -82,8 +83,8 @@ object InteractionBuilder extends StrictLogging {
           interactionConfiguration = Some(
             Struct(
               Map(
-                "record" -> Value(Value.Kind.StringValue(recordName)),
-                "avroSchemaKey" -> Value(Value.Kind.StringValue(avroSchemaHash.value))
+                Record -> Value(Value.Kind.StringValue(recordName)),
+                SchemaKey -> Value(Value.Kind.StringValue(avroSchemaHash.value))
               )
             )
           )
