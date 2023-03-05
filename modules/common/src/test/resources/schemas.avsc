@@ -84,35 +84,35 @@
           ]
         }
       },
-//      {
-//        "name": "address",
-//        "type": {
-//          "type": "record",
-//          "name": "mailing_address",
-//          "fields": [
-//            {
-//              "name": "street",
-//              "type": "string",
-//              "default": "NONE"
-//            }
-//          ]
-//        }
-//      },
-//      {
-//        "name": "items",
-//        "type": {
-//          "type": "array",
-//          "items": "com.example.Item"
-//        }
-//      },
-//      {
-//        "name": "bdata",
-//        "type": {
-//          "type": "fixed",
-//          "name": "bdata",
-//          "size": 4
-//        }
-//      },
+      {
+        "name": "address",
+        "type": {
+          "type": "record",
+          "name": "mailing_address",
+          "fields": [
+            {
+              "name": "street",
+              "type": "string",
+              "default": "NONE"
+            }
+          ]
+        }
+      },
+      {
+        "name": "items",
+        "type": {
+          "type": "array",
+          "items": "com.example.Item"
+        }
+      },
+      {
+        "name": "md5",
+        "type": {
+          "name": "md5",
+          "type": "fixed",
+          "size": 4
+        }
+      },
       {
         "name": "ages",
         "type": {

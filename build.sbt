@@ -73,7 +73,7 @@ lazy val core = project
       )
     },
     libraryDependencies ++=
-      Dependencies.compile(apacheAvro, logback, pactCore, scalaLogging).map(withExclusions) ++
+      Dependencies.compile(apacheAvro, auPacMatchers, logback, pactCore, scalaLogging).map(withExclusions) ++
         Dependencies.test(scalaTest).map(withExclusions),
     dependencyOverrides += Dependencies.grpcStub
   )

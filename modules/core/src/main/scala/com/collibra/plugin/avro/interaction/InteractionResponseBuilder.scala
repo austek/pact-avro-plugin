@@ -1,5 +1,6 @@
 package com.collibra.plugin.avro.interaction
 
+import com.collibra.plugin.avro.AvroPluginConstants._
 import com.collibra.plugin.avro.AvroSchemaBase16Hash
 import com.collibra.plugin.avro.utils.{PluginErrorException, PluginErrorMessage, PluginErrorMessages}
 import com.google.protobuf.struct.{Struct, Value}
@@ -8,7 +9,8 @@ import io.pact.plugin._
 import org.apache.avro.Schema
 
 object InteractionResponseBuilder extends StrictLogging {
-  def buildInteractionResponse(configuration: Struct, avroSchema: Schema, recordName: String): Either[PluginErrorMessage, ConfigureInteractionResponse] = {
+
+  def build(configuration: Struct, avroSchema: Schema, recordName: String): Either[PluginErrorMessage, ConfigureInteractionResponse] = {
     logger.debug("Start to build response")
     val avroSchemaHash = AvroSchemaBase16Hash(avroSchema)
     InteractionBuilder
@@ -40,7 +42,7 @@ object InteractionResponseBuilder extends StrictLogging {
                 Value.Kind.StructValue(
                   Struct(
                     Map(
-                      "avroSchema" -> Value(Value.Kind.StringValue(avroSchema.toString))
+                      AvroSchema -> Value(Value.Kind.StringValue(avroSchema.toString))
                     )
                   )
                 )

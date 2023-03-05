@@ -1,4 +1,4 @@
-package com.collibra.plugin.avro.utils
+package com.collibra.plugin.avro.implicits
 
 import au.com.dius.pact.core.support.{Either => PactEither, Result}
 

@@ -141,19 +141,15 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     content.contentType shouldBe "avro/binary;record=Item"
 
     val schema = AvroUtils.parseSchema(Path.of(url.getPath).toFile).value
-    val bytes = AvroRecord
-      .toByteString(
-        schema,
-        AvroRecord(
-          "$".toPactPath,
-          ".".toFieldName,
-          Map(
-            "$.name".toPactPath -> AvroString("$.name".toPactPath, "name".toFieldName, "Item-41"),
-            "$.id".toPactPath -> AvroInt("$.id".toPactPath, "id".toFieldName, 41)
-          )
+    val bytes =
+      AvroRecord(
+        "$".toPactPath,
+        ".".toFieldName,
+        Map(
+          "$.name".toPactPath -> AvroString("$.name".toPactPath, "name".toFieldName, "Item-41"),
+          "$.id".toPactPath -> AvroInt("$.id".toPactPath, "id".toFieldName, 41)
         )
-      )
-      .value
+      ).toByteString(schema).value
     content.getContent shouldBe bytes
 
     interaction.rules should have size 2
@@ -196,7 +192,19 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
                     )
                   )
                 ),
-                "color" -> Value(StringValue("matching(equalTo, 'GREEN')"))
+                "color" -> Value(StringValue("matching(equalTo, 'GREEN')")),
+                "md5" -> Value(StringValue("matching(equalTo, '\\u0000\\u0001\\u0002\\u0003')")),
+                "address" -> Value(StructValue(Struct(Map("street" -> Value(StringValue("notEmpty('street name')")))))),
+                "items" -> Value(
+                  ListValue(
+                    StructListValue(
+                      Vector(
+                        Value(StructValue(Struct(Map("name" -> Value(StringValue("notEmpty('Item-1')")), "id" -> Value(StringValue("matching(integer, 1)")))))),
+                        Value(StructValue(Struct(Map("name" -> Value(StringValue("notEmpty('Item-2')")), "id" -> Value(StringValue("matching(integer, 2)"))))))
+                      )
+                    )
+                  )
+                )
               )
             )
           )
@@ -235,12 +243,42 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
             "second".toPactPath -> AvroInt("$.ages.second".toPactPath, "second".toFieldName, 3)
           )
         ),
-        "$.no".toPactPath -> AvroInt("$.no".toPactPath, "no".toFieldName, 121)
+        "$.no".toPactPath -> AvroInt("$.no".toPactPath, "no".toFieldName, 121),
+        "$.md5".toPactPath -> AvroString("$.md5".toPactPath, "md5".toFieldName, "\\u0000\\u0001\\u0002\\u0003"),
+        "$.address".toPactPath -> AvroRecord(
+          "$.address".toPactPath,
+          "address".toFieldName,
+          Map(
+            "street".toPactPath -> AvroString("$.address.street".toPactPath, "street".toFieldName, "street name")
+          )
+        ),
+        "$.items".toPactPath -> AvroArray(
+          "$.items".toPactPath,
+          "items".toFieldName,
+          List(
+            AvroRecord(
+              "$.items".toPactPath,
+              "items".toFieldName,
+              Map(
+                "$.items.name".toPactPath -> AvroString("$.items.name".toPactPath, "name".toFieldName, "Item-1"),
+                "$.items.id".toPactPath -> AvroLong("$.items.id".toPactPath, "id".toFieldName, 1)
+              )
+            ),
+            AvroRecord(
+              "$.items".toPactPath,
+              "items".toFieldName,
+              Map(
+                "$.items.name".toPactPath -> AvroString("$.items.name".toPactPath, "name".toFieldName, "Item-2"),
+                "$.items.id".toPactPath -> AvroLong("$.items.id".toPactPath, "id".toFieldName, 2)
+              )
+            )
+          )
+        )
       )
     )
-    val bytes = AvroRecord.toByteString(schema, avroRecord).value
+    val bytes = avroRecord.toByteString(schema).value
     content.getContent shouldBe bytes
 
-    interaction.rules should have size 11
+    interaction.rules should have size 15
   }
 }

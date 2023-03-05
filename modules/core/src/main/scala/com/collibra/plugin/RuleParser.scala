@@ -2,7 +2,7 @@ package com.collibra.plugin
 
 import au.com.dius.pact.core.model.matchingrules
 import au.com.dius.pact.core.model.matchingrules.expressions.MatchingRuleDefinition
-import com.collibra.plugin.avro.utils.AvroSupportImplicits.{fromPactEither, fromPactResult}
+import com.collibra.plugin.avro.implicits.AvroSupportImplicits.{fromPactEither, fromPactResult}
 import com.collibra.plugin.avro.utils.{PluginError, PluginErrorMessage, PluginErrorMessages}
 import com.google.protobuf.struct.Value
 
