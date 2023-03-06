@@ -1,9 +1,8 @@
 package com.collibra.plugin.avro
 
-import au.com.dius.pact.core.model.PathExpressionsKt._
 import au.com.dius.pact.core.model.matchingrules.{MatchingRule, MatchingRuleCategory}
 import com.collibra.plugin.RuleParser.parseRules
-import com.collibra.plugin.avro.GenericRecord
+import com.collibra.plugin.avro.AvroPluginConstants.MatchingRuleCategoryName
 import com.collibra.plugin.avro.utils.StringUtils._
 import com.collibra.plugin.avro.utils._
 import com.google.protobuf.ByteString
@@ -22,8 +21,22 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try, Using}
 
 case class AvroFieldName(value: String)
-case class PactFieldPath(value: String) {
-  def subPathOf(path: String): PactFieldPath = PactFieldPath(constructValidPath(path, value))
+case class PactFieldPath(segments: List[String]) {
+
+  @`inline` def :+(segment: String): PactFieldPath = append(segment)
+
+  @`inline` def :+(segment: Int): PactFieldPath = append(segment.toString)
+
+  @`inline` def :+(segment: AvroFieldName): PactFieldPath = append(segment.value)
+  def append(segment: String): PactFieldPath = PactFieldPath(segments :+ segment)
+
+  def startsWith(other: PactFieldPath): Boolean = segments.startsWith(other.segments)
+
+  def toJsonPath = segments.mkString(".")
+
+  def insertAt(i: Int, value: String): PactFieldPath = PactFieldPath(segments.take(i) ++ List(value) ++ segments.drop(i))
+
+  def size: Int = segments.size
 }
 
 sealed trait AvroValue {
@@ -34,7 +47,7 @@ sealed trait AvroValue {
   def value: AvroValueType
   def rules: Seq[MatchingRule]
 
-  def addRules(matchingRules: MatchingRuleCategory): Unit = matchingRules.addRules(path.value, rules.asJava)
+  def addRules(matchingRules: MatchingRuleCategory): Unit = matchingRules.addRules(path.toJsonPath, rules.asJava)
 }
 
 object AvroValue extends StrictLogging {
@@ -43,9 +56,10 @@ object AvroValue extends StrictLogging {
     rootPath: PactFieldPath,
     fieldName: AvroFieldName,
     schema: Schema,
-    inValue: Value
+    inValue: Value,
+    appendPath: Boolean = true
   ): Either[Seq[PluginError[_]], AvroValue] = {
-    val path = rootPath.subPathOf(fieldName.value)
+    val path = if (appendPath) rootPath :+ fieldName else rootPath
     logger.debug(s">>> buildFieldValue($path, $fieldName, $inValue)")
     val schemaType = schema.getType match {
       case ARRAY => schema.getElementType.getType
@@ -133,7 +147,7 @@ object AvroValue extends StrictLogging {
     (schemaType match {
       case BOOLEAN => Right(AvroBoolean(path, fieldName, fieldValue.toLowerCase == "true", rules))
       case BYTES   => Right(AvroString(path, fieldName, fieldValue, rules)) // TODO: Use bytes, Using String values for now
-      case DOUBLE  => Try(BigDecimal(fieldValue.toDouble)).map(v => AvroDouble(path, fieldName, v, rules)).toEither
+      case DOUBLE  => Try(fieldValue.toDouble).map(v => AvroDouble(path, fieldName, v, rules)).toEither
       case ENUM    => Right(AvroEnum(path, fieldName, fieldValue, rules))
       case FIXED   => Right(AvroString(path, fieldName, fieldValue, rules)) // TODO: Use bytes, Using String values for now
       case FLOAT   => Try(fieldValue.toFloat).map(v => AvroFloat(path, fieldName, v, rules)).toEither
@@ -163,9 +177,9 @@ case class AvroEnum(override val path: PactFieldPath, override val name: AvroFie
     extends AvroValue {
   override type AvroValueType = String
 }
-case class AvroDouble(override val path: PactFieldPath, override val name: AvroFieldName, value: BigDecimal, rules: Seq[MatchingRule] = Seq.empty)
+case class AvroDouble(override val path: PactFieldPath, override val name: AvroFieldName, value: Double, rules: Seq[MatchingRule] = Seq.empty)
     extends AvroValue {
-  override type AvroValueType = BigDecimal
+  override type AvroValueType = Double
 }
 case class AvroFloat(override val path: PactFieldPath, override val name: AvroFieldName, value: Float, rules: Seq[MatchingRule] = Seq.empty) extends AvroValue {
   override type AvroValueType = Float
@@ -205,13 +219,30 @@ object AvroArray {
       case Kind.Empty        => Right(AvroArray(rootPath, fieldName))
       case Kind.NullValue(_) => Right(AvroArray(rootPath, fieldName))
       case Kind.ListValue(listValue) =>
-        listValue.values
-          .map { singleValue =>
-            AvroValue(rootPath, fieldName, schemaField.schema(), singleValue)
+        val arrayBasePath = rootPath :+ fieldName
+        listValue.values.zipWithIndex
+          .map { case (singleValue, index) =>
+            schemaField.schema().getElementType.getType match {
+              case RECORD => AvroValue(arrayBasePath :+ index, fieldName, schemaField.schema(), singleValue, appendPath = false)
+              case _ =>
+                AvroValue(rootPath, fieldName, schemaField.schema(), singleValue).map {
+                  case v: AvroNull    => v.copy(path = v.path :+ index)
+                  case v: AvroString  => v.copy(path = v.path :+ index)
+                  case v: AvroEnum    => v.copy(path = v.path :+ index)
+                  case v: AvroDouble  => v.copy(path = v.path :+ index)
+                  case v: AvroFloat   => v.copy(path = v.path :+ index)
+                  case v: AvroInt     => v.copy(path = v.path :+ index)
+                  case v: AvroLong    => v.copy(path = v.path :+ index)
+                  case v: AvroBoolean => v.copy(path = v.path :+ index)
+                  case v: AvroArray   => v.copy(path = v.path :+ index)
+                  case v: AvroMap     => v.copy(path = v.path :+ index)
+                  case v: AvroRecord  => v
+                }
+            }
           }
           .partitionMap(identity) match {
           case (errors, _) if errors.nonEmpty => Left(errors.flatten)
-          case (_, fields)                    => Right(AvroArray(rootPath.subPathOf(fieldName.value), fieldName, fields.toList))
+          case (_, fields)                    => Right(AvroArray(arrayBasePath, fieldName, fields.toList))
         }
       case _ => Left(Seq(PluginErrorMessage(s"Expected list value for field '${fieldName.value}' but got '${inValue.kind}'")))
     }
@@ -277,7 +308,13 @@ case class AvroRecord(
       avroValue.addRules(matchingRules)
     }
 
-  def toRecordValue: util.Map[String, Any] = value.map { case (_, v) =>
+  def matchingRules: MatchingRuleCategory = {
+    val matchingRules: MatchingRuleCategory = new MatchingRuleCategory(MatchingRuleCategoryName)
+    addRules(matchingRules)
+    matchingRules
+  }
+
+  private def toRecordValue: util.Map[String, Any] = value.map { case (_, v) =>
     v match {
       case a: AvroArray  => a.name.value -> a.toRecordValue
       case m: AvroMap    => m.name.value -> m.toRecordValue
@@ -287,11 +324,51 @@ case class AvroRecord(
     }
   }.asJava
 
+  def toGenericRecord(schema: Schema): GenericRecord = {
+    val record: GenericRecord = new GenericData.Record(schema)
+    toRecordValue.asScala.foreach { case (key, value) =>
+      if (null != value) {
+        val field = schema.getField(key)
+        val fieldSchema = field.schema()
+        fieldSchema.getType match {
+          case ENUM =>
+            record.put(key, new GenericData.EnumSymbol(fieldSchema, value))
+          case ARRAY if fieldSchema.getElementType.getType == RECORD =>
+            val subType = fieldSchema.getElementType
+            val subRecords = value
+              .asInstanceOf[java.util.List[AvroRecord]]
+              .asScala
+              .map { item =>
+                item.toGenericRecord(subType)
+              }
+              .asJava
+            record.put(key, subRecords)
+          case MAP if fieldSchema.getValueType.getType == RECORD =>
+            val subType = fieldSchema.getValueType
+            val subRecords = value.asInstanceOf[util.Map[String, AvroRecord]].asScala.map { case (key, item) =>
+              key -> item.toGenericRecord(subType)
+            }
+            record.put(key, subRecords)
+          case RECORD =>
+            val subRecord = value.asInstanceOf[AvroRecord].toGenericRecord(fieldSchema)
+            record.put(key, subRecord)
+          case FIXED =>
+            record.put(key, new GenericData.Fixed(fieldSchema, value.asInstanceOf[String].getBytes))
+          case _ =>
+            record.put(key, value)
+        }
+      } else {
+        record.put(key, value)
+      }
+    }
+    record
+  }
+
   def toByteString(schema: Schema): Either[PluginErrorException, ByteString] = {
     val datumWriter = new GenericDatumWriter[GenericRecord](schema)
     Using(new ByteArrayOutputStream()) { os =>
       val encoder = EncoderFactory.get.binaryEncoder(os, null)
-      val record = GenericRecord(schema, this)
+      val record = this.toGenericRecord(schema)
       datumWriter.write(record, encoder)
       encoder.flush()
       os.toByteArray
@@ -327,21 +404,17 @@ object AvroRecord {
               case FIXED   => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
               case BYTES   => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
               case NULL    => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
-              case RECORD =>
-                val recordPath = rootPath.subPathOf(schemaField.name())
-                AvroRecord(recordPath, fieldName, schemaField.schema(), configValue.getStructValue.fields)
-              case ARRAY => AvroArray(rootPath, schemaField, configValue)
-              case MAP =>
-                val mapPath = rootPath.subPathOf(schemaField.name())
-                AvroMap(mapPath, schemaField, configValue)
-              case UNION => Left(Seq(PluginErrorException(new UnsupportedOperationException("'UNION' not support as AvroValue"))))
-              case t     => Left(Seq(PluginErrorException(new UnsupportedOperationException(s"Unknown type '$t' not support as AvroValue"))))
+              case RECORD  => AvroRecord(rootPath :+ schemaField.name(), fieldName, schemaField.schema(), configValue.getStructValue.fields)
+              case ARRAY   => AvroArray(rootPath, schemaField, configValue)
+              case MAP     => AvroMap(rootPath :+ schemaField.name(), schemaField, configValue)
+              case UNION   => Left(Seq(PluginErrorException(new UnsupportedOperationException("'UNION' not support as AvroValue"))))
+              case t       => Left(Seq(PluginErrorException(new UnsupportedOperationException(s"Unknown type '$t' not support as AvroValue"))))
             }
           case None =>
             if (schemaField.hasDefaultValue) {
-              AvroValue(rootPath.subPathOf(fieldName.value), fieldName, schemaField.schema().getType, schemaField.defaultVal(), Seq.empty).left.map(e => Seq(e))
+              AvroValue(rootPath :+ fieldName, fieldName, schemaField.schema().getType, schemaField.defaultVal(), Seq.empty).left.map(e => Seq(e))
             } else if (schemaField.schema().getType == UNION && schemaField.schema().getTypes.asScala.exists(_.getType == NULL)) {
-              Right(AvroNull(rootPath.subPathOf(fieldName.value), fieldName))
+              Right(AvroNull(rootPath :+ fieldName, fieldName))
             } else {
               Left(Seq(PluginErrorException(new Exception(s"Couldn't find configuration for field: ${schemaField.name()}"))))
             }

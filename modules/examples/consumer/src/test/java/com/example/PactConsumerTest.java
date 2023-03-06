@@ -143,10 +143,12 @@ class PactConsumerTest {
         List<MatchingRule> idRules = rules.get("$.id").getRules();
         assertThat(idRules).hasSize(1);
         assertThat(idRules.get(0)).extracting("name").isEqualTo("not-empty");
-        List<MatchingRule> nameRules = rules.get("$.names").getRules();
-        assertThat(nameRules).hasSize(2);
-        assertThat(nameRules.get(0)).extracting("name").isEqualTo("not-empty");
-        assertThat(nameRules.get(1)).extracting("name").isEqualTo("not-empty");
+        List<MatchingRule> name0Rules = rules.get("$.names.0").getRules();
+        assertThat(name0Rules).hasSize(1);
+        assertThat(name0Rules.get(0)).extracting("name").isEqualTo("not-empty");
+        List<MatchingRule> name1Rules = rules.get("$.names.1").getRules();
+        assertThat(name1Rules).hasSize(1);
+        assertThat(name1Rules.get(0)).extracting("name").isEqualTo("not-empty");
     }
 
     private <T> List<T> arrayByteToAvroRecord(Class<T> c, byte[] bytes) throws IOException {

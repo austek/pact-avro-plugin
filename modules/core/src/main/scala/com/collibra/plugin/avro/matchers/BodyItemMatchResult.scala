@@ -1,7 +1,7 @@
 package com.collibra.plugin.avro.matchers
 
 import au.com.dius.pact.core.matchers.{BodyItemMatchResult => AvroBodyItemMatchResult, BodyMismatch}
-import com.collibra.plugin.avro.implicits.AvroRecordImplicits._
+import com.collibra.plugin.avro.implicits.RecordImplicits._
 import com.collibra.plugin.avro.utils.{PluginError, PluginErrorException}
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
@@ -9,6 +9,8 @@ import org.apache.avro.generic.GenericRecord
 import scala.jdk.CollectionConverters._
 
 object BodyItemMatchResult {
+
+  def apply(key: String, result: List[BodyMismatch]) = new AvroBodyItemMatchResult(key, result.asJava)
 
   def apply(
     path: String,
@@ -19,9 +21,9 @@ object BodyItemMatchResult {
   ): Either[PluginError[_], List[AvroBodyItemMatchResult]] = {
     expected.diff(actual).map { diff =>
       List(
-        new AvroBodyItemMatchResult(
+        BodyItemMatchResult(
           path,
-          List(new BodyMismatch(expected, actual, mismatch, mismatchPath, diff)).asJava
+          List(new BodyMismatch(expected, actual, mismatch, mismatchPath, diff))
         )
       )
     }
