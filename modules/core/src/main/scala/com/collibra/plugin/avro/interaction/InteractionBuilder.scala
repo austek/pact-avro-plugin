@@ -44,13 +44,11 @@ object InteractionBuilder extends StrictLogging {
     avroSchemaHash: AvroSchemaBase16Hash,
     configuration: Struct
   ): Either[Seq[PluginError[_]], InteractionResponse] = {
-    val matchingRules: MatchingRuleCategory = new MatchingRuleCategory(MatchingRuleCategoryName)
     AvroRecord(schema, configuration.fields).flatMap { avroRecord =>
       avroRecord
         .toByteString(schema)
         .map { bodyContent =>
-          avroRecord.addRules(matchingRules)
-          buildInteractionResponse(recordName, avroSchemaHash, matchingRules, bodyContent)
+          buildInteractionResponse(recordName, avroSchemaHash, avroRecord.matchingRules, bodyContent)
         }
         .left
         .map(e => Seq(e))

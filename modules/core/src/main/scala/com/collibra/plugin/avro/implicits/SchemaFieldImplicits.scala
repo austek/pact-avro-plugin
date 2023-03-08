@@ -1,39 +1,47 @@
 package com.collibra.plugin.avro.implicits
 
-import au.com.dius.pact.core.matchers._
+import au.com.dius.pact.core.matchers.{BodyItemMatchResult => AvroBodyItemMatchResult, _}
+import au.com.dius.pact.core.model.PathExpressionsKt._
 import com.collibra.plugin.avro.implicits.PathExpressionImplicits._
-import com.collibra.plugin.avro.matchers.BodyItemMatchResult
+import com.collibra.plugin.avro.implicits.RecordImplicits._
+import com.collibra.plugin.avro.implicits.SchemaTypeImplicits._
+import com.collibra.plugin.avro.matchers.{BodyItemMatchResult, BodyMismatch}
 import com.collibra.plugin.avro.utils.PluginError
+import com.typesafe.scalalogging.StrictLogging
 import org.apache.avro.Schema
 import org.apache.avro.Schema.Type._
+import org.apache.avro.generic.GenericData.{EnumSymbol, Fixed}
+import org.apache.avro.generic.GenericRecord
 
+import java.util
 import scala.jdk.CollectionConverters._
 
-object SchemaFieldImplicits {
+object SchemaFieldImplicits extends StrictLogging {
 
   implicit class SchemaField(field: Schema.Field) {
 
-    def compare(path: List[String], other: Schema.Field)(implicit context: MatchingContext): Either[Seq[PluginError[_]], List[BodyItemMatchResult]] = {
+    def compare(path: List[String], other: Schema.Field, expected: GenericRecord, actual: GenericRecord)(implicit
+      context: MatchingContext
+    ): Either[Seq[PluginError[_]], List[AvroBodyItemMatchResult]] = {
       (field.schema().getType, other.schema().getType) match {
         case (expectedType, actualType) if expectedType == actualType =>
           expectedType match {
-            case STRING  => ??? // compareValue(path, expected)
-            case INT     => ???
-            case LONG    => ???
-            case FLOAT   => ???
-            case DOUBLE  => ???
-            case BOOLEAN => ???
-            case ENUM    => ???
-            case FIXED   => ???
-            case BYTES   => ???
-            case NULL    => ???
-            case RECORD  => ???
-            case ARRAY   => ???
-            case MAP     => ???
-            case UNION   => ???
-            case _ =>
-              context.hashCode()
-              ???
+            case STRING | BYTES =>
+              Right(compareValue(path, field, expected.valueOf[String](field.name()), actual.valueOf[String](field.name()), () => "", context))
+            case INT     => Right(compareValue(path, field, expected.valueOf[Int](field.name()), actual.valueOf[Int](field.name()), () => "", context))
+            case LONG    => Right(compareValue(path, field, expected.valueOf[Long](field.name()), actual.valueOf[Long](field.name()), () => "", context))
+            case FLOAT   => Right(compareValue(path, field, expected.valueOf[Float](field.name()), actual.valueOf[Float](field.name()), () => "", context))
+            case DOUBLE  => Right(compareValue(path, field, expected.valueOf[Double](field.name()), actual.valueOf[Double](field.name()), () => "", context))
+            case BOOLEAN => Right(compareValue(path, field, expected.valueOf[Boolean](field.name()), actual.valueOf[Boolean](field.name()), () => "", context))
+            case ENUM =>
+              Right(compareValue(path, field, expected.valueOf[EnumSymbol](field.name()), actual.valueOf[EnumSymbol](field.name()), () => "", context))
+            case FIXED  => Right(compareValue(path, field, expected.valueOf[Fixed](field.name()), actual.valueOf[Fixed](field.name()), () => "", context))
+            case ARRAY  => Right(compareArrayField(path, expected, actual, context))
+            case MAP    => Right(List.empty)
+            case RECORD => expected.compare(path, actual)
+            case t =>
+              logger.warn(s"Field.compare doesn't support type: $t")
+              Right(List.empty)
           }
         case _ =>
           BodyItemMatchResult
@@ -42,10 +50,10 @@ object SchemaFieldImplicits {
               other,
               diff => {
                 List(
-                  new BodyItemMatchResult(
+                  new AvroBodyItemMatchResult(
                     path.constructPath,
                     List(
-                      new BodyMismatch(
+                      BodyMismatch(
                         field,
                         other,
                         s"Expected field '${field.name()}' to be type '${field.schema.getType}' but got '${other.schema().getType}'",
@@ -59,6 +67,166 @@ object SchemaFieldImplicits {
             )
             .left
             .map(e => Seq(e))
+      }
+    }
+
+    private def compareArrayField(
+      path: List[String],
+      expected: GenericRecord,
+      actual: GenericRecord,
+      context: MatchingContext
+    ): List[AvroBodyItemMatchResult] = {
+      val clazz: Class[_] = field.schema().getElementType.getType.asJava
+      val expectedList = expected.get(field.name()).asInstanceOf[util.List[clazz.type]]
+      logger.debug(s">>> compareArrayField($path, $field, $expectedList)")
+      Option(actual.get(field.name()).asInstanceOf[util.List[clazz.type]]) match {
+        case Some(actualList) => compareArrayFieldValues[clazz.type](field, path, context, expectedList, actualList)
+        case None =>
+          List(
+            BodyItemMatchResult(
+              path.constructPath,
+              List(
+                BodyMismatch(
+                  expectedList,
+                  null,
+                  s"Expected null (Null) to equal '$expectedList' (Array)",
+                  path.constructPath
+                )
+              )
+            )
+          )
+      }
+    }
+
+    private def compareArrayFieldValues[T](
+      field: Schema.Field,
+      path: List[String],
+      context: MatchingContext,
+      expectedList: util.List[T],
+      actualList: util.List[T]
+    ): List[AvroBodyItemMatchResult] = {
+      val ruleGroup = context.selectBestMatcher(path.asJava)
+      if (context.matcherDefined(path.asJava)) {
+        logger.debug(s"compareArrayField: Matcher defined for path $path")
+        ruleGroup.getRules.asScala.flatMap { matcher =>
+          Matchers.INSTANCE
+            .compareLists[T](
+              path.asJava,
+              matcher,
+              expectedList,
+              actualList,
+              context,
+              () => "",
+              ruleGroup.getCascaded,
+              (p, expectedValue, actualValue, c) => compareValue(p.asScala.toList, field, expectedValue, actualValue, () => "", c).asJava
+            )
+            .asScala
+        }.toList
+      } else {
+        if (expectedList.isEmpty && !actualList.isEmpty) {
+          List(
+            BodyItemMatchResult(
+              path.constructPath,
+              List(
+                BodyMismatch(
+                  expectedList,
+                  actualList,
+                  s"Expected repeated field '${field.name}' to be empty but received $actualList",
+                  path.constructPath,
+                  null
+                )
+              )
+            )
+          )
+        } else {
+          List(
+            Matchers.INSTANCE
+              .compareListContent[T](
+                expectedList,
+                actualList,
+                path.asJava,
+                context,
+                () => "",
+                (p, expectedValue, actualValue, c) => {
+                  expectedValue match {
+                    case v: GenericRecord =>
+                      v.compare(p.asScala.toList, actualValue.asInstanceOf[GenericRecord])(c) match {
+                        case Left(_)      => List.empty.asJava
+                        case Right(value) => value.asJava
+                      }
+                    case _ =>
+                      compareValue(p.asScala.toList, field, expectedValue, actualValue, () => "", c).asJava
+                  }
+                }
+              )
+              .asScala
+              .toList
+          ).flatten ++
+            (if (expectedList.size != actualList.size) {
+               List(
+                 BodyItemMatchResult(
+                   path.constructPath,
+                   List(
+                     BodyMismatch(
+                       expectedList,
+                       actualList,
+                       s"Expected repeated field '${field.name}' to have ${expectedList.size} values but received ${actualList.size} values",
+                       path.constructPath,
+                       null
+                     )
+                   )
+                 )
+               )
+             } else Nil)
+        }
+      }
+    }
+
+    private def compareValue[T](
+      path: List[String],
+      field: Schema.Field,
+      expected: T,
+      actual: T,
+      diffCallback: () => String,
+      context: MatchingContext
+    ): List[AvroBodyItemMatchResult] = {
+      val valuePath = path.constructPath
+      logger.debug(s">>> compareValue($path, $field, $expected, $actual, $context)")
+      if (context.matcherDefined(path.asJava)) {
+        logger.debug(s"compareValue: Matcher defined for path $path")
+        List(
+          new AvroBodyItemMatchResult(
+            valuePath,
+            Matchers.domatch(
+              context,
+              path.asJava,
+              expected,
+              actual,
+              (expected: Any, actual: Any, message: String, path: java.util.List[String]) =>
+                BodyMismatch(expected, actual, message, constructPath(path), diffCallback())
+            )
+          )
+        )
+      } else {
+        logger.debug(s"compareValue: No matcher defined for path $path, using equality")
+        if (expected == actual) {
+          List(BodyItemMatchResult(valuePath, List()))
+        } else {
+          List(
+            BodyItemMatchResult(
+              valuePath,
+              List(
+                BodyMismatch(
+                  expected,
+                  actual,
+                  s"Expected '$expected' ($field) but received value '$actual'",
+                  valuePath,
+                  diffCallback()
+                )
+              )
+            )
+          )
+        }
       }
     }
   }

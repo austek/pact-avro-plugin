@@ -2,7 +2,6 @@ package com.collibra.plugin.avro.implicits
 
 import au.com.dius.pact.core.matchers._
 import com.collibra.plugin.avro.implicits.PathExpressionImplicits._
-import com.collibra.plugin.avro.implicits.SchemaFieldImplicits._
 import com.collibra.plugin.avro.matchers.BodyItemMatchResult
 import com.collibra.plugin.avro.utils._
 import com.typesafe.scalalogging.StrictLogging
@@ -14,15 +13,15 @@ import java.nio.charset.StandardCharsets
 import scala.jdk.CollectionConverters._
 import scala.util._
 
-object AvroRecordImplicits extends StrictLogging {
+object RecordImplicits extends StrictLogging {
 
-  implicit class RichAvroRecord(genericRecord: GenericRecord) {
+  implicit class RichAvroRecord(record: GenericRecord) {
 
     def toJson: Either[PluginErrorException, String] = {
       Using(new ByteArrayOutputStream()) { outputStream =>
-        val writer = new GenericDatumWriter[GenericRecord](genericRecord.getSchema)
-        val encoder = EncoderFactory.get().jsonEncoder(genericRecord.getSchema, outputStream, true)
-        writer.write(genericRecord, encoder)
+        val writer = new GenericDatumWriter[GenericRecord](record.getSchema)
+        val encoder = EncoderFactory.get().jsonEncoder(record.getSchema, outputStream, true)
+        writer.write(record, encoder)
         encoder.flush()
 
         outputStream.toString(StandardCharsets.UTF_8)
@@ -34,36 +33,40 @@ object AvroRecordImplicits extends StrictLogging {
 
     def diff(other: GenericRecord): Either[PluginErrorException, String] = {
       for {
-        genericRecordJson <- genericRecord.toJson
+        recordJson <- record.toJson
         otherJson <- other.toJson
-        result <- Right(DiffUtilsKt.generateDiff(genericRecordJson, otherJson).asScala.mkString("\n"))
+        result <- Right(DiffUtilsKt.generateDiff(recordJson, otherJson).asScala.mkString("\n"))
       } yield result
     }
 
     def toByteArray: Array[Byte] = {
       val outputStream = new ByteArrayOutputStream()
-      val writer = new GenericDatumWriter[GenericRecord](genericRecord.getSchema)
+      val writer = new GenericDatumWriter[GenericRecord](record.getSchema)
       val encoder = EncoderFactory.get().binaryEncoder(outputStream, null)
-      writer.write(genericRecord, encoder)
+      writer.write(record, encoder)
       encoder.flush()
       outputStream.toByteArray
     }
+
+    def valueOf[T](name: String): T = record.get(name).asInstanceOf[T]
 
     def compare(
       path: List[String],
       other: GenericRecord
     )(implicit context: MatchingContext): Either[Seq[PluginError[_]], List[BodyItemMatchResult]] = {
-      logger.debug(s">>> compareMessage($path, $genericRecord, $other)")
-      if (genericRecord.getSchema.getName == other.getSchema.getName) {
-        genericRecord.getSchema.getFields.asScala
+      import com.collibra.plugin.avro.implicits.SchemaFieldImplicits._
+
+      logger.debug(s">>> Record.compare($path, $record, $other)")
+      if (record.getSchema.getName == other.getSchema.getName) {
+        record.getSchema.getFields.asScala
           .map { field =>
             val fieldPath = path :+ field.name
             Try(other.getSchema.getField(field.name())) match {
-              case Success(otherField) => field.compare(fieldPath, otherField)
+              case Success(otherField) => field.compare(fieldPath, otherField, record, other)
               case Failure(_) =>
                 BodyItemMatchResult
                   .mismatch(
-                    genericRecord,
+                    record,
                     other,
                     diff => {
                       List(
@@ -73,7 +76,7 @@ object AvroRecordImplicits extends StrictLogging {
                             new BodyMismatch(
                               field.name,
                               null,
-                              s"genericRecord field '${field.name}' but was missing",
+                              s"record field '${field.name}' but was missing",
                               fieldPath.constructPath,
                               diff
                             )
@@ -93,7 +96,7 @@ object AvroRecordImplicits extends StrictLogging {
       } else {
         BodyItemMatchResult
           .mismatch(
-            genericRecord,
+            record,
             other,
             diff => {
               List(
@@ -101,9 +104,9 @@ object AvroRecordImplicits extends StrictLogging {
                   path.head,
                   List(
                     new BodyMismatch(
-                      genericRecord,
+                      record,
                       other,
-                      s"Expected record '${genericRecord.getSchema.getName}' but got '${other.getSchema.getName}'",
+                      s"Expected record '${record.getSchema.getName}' but got '${other.getSchema.getName}'",
                       "/",
                       diff
                     )
