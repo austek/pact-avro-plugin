@@ -1,6 +1,6 @@
 package com.collibra.plugin
 
-import au.com.dius.pact.core.model.matchingrules
+import au.com.dius.pact.core.model.matchingrules.MatchingRule
 import au.com.dius.pact.core.model.matchingrules.expressions.MatchingRuleDefinition
 import com.collibra.plugin.avro.implicits.AvroSupportImplicits.{fromPactEither, fromPactResult}
 import com.collibra.plugin.avro.utils.{PluginError, PluginErrorMessage, PluginErrorMessages}
@@ -8,8 +8,10 @@ import com.google.protobuf.struct.Value
 
 import scala.jdk.CollectionConverters._
 
+case class FieldRule(value: String, rules: Seq[MatchingRule])
+
 object RuleParser {
-  def parseRules(inValue: Value): Either[PluginError[_], (String, Seq[matchingrules.MatchingRule])] = {
+  def parseRules(inValue: Value): Either[PluginError[_], FieldRule] = {
     fromPactResult(MatchingRuleDefinition.parseMatchingRuleDefinition(inValue.getStringValue)) match {
       case Right(ok) =>
         ok.getRules.asScala.toSeq
@@ -20,7 +22,7 @@ object RuleParser {
           }
           .partitionMap(identity) match {
           case (errors, _) if errors.nonEmpty => Left(PluginErrorMessages(errors))
-          case (_, rules)                     => Right((ok.getValue, rules))
+          case (_, rules)                     => Right(FieldRule(ok.getValue, rules))
         }
       case Left(err) =>
         Left(PluginErrorMessage(s"'${inValue.getStringValue}' is not a valid matching rule definition - $err"))

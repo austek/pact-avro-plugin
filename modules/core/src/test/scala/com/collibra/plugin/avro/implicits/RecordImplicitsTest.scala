@@ -2,8 +2,7 @@ package com.collibra.plugin.avro.implicits
 
 import au.com.dius.pact.core.matchers.{BodyMismatch, MatchingContext}
 import au.com.dius.pact.core.model.matchingrules.MatchingRuleCategory
-import com.collibra.plugin.avro.AvroPluginConstants.MatchingRuleCategoryName
-import com.collibra.plugin.avro.AvroRecord
+import com.collibra.plugin.avro.Avro.AvroRecord
 import com.collibra.plugin.avro.TestSchemas._
 import com.collibra.plugin.avro.implicits.RecordImplicits._
 import com.collibra.plugin.avro.matchers.BodyItemMatchResult
@@ -23,8 +22,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
       val avroRecord = AvroRecord(schema, pactConfiguration).value
       val record = avroRecord.toGenericRecord(schema)
 
-      val matchingRules: MatchingRuleCategory = new MatchingRuleCategory(MatchingRuleCategoryName)
-      avroRecord.addRules(matchingRules)
+      val matchingRules: MatchingRuleCategory = avroRecord.matchingRules
       implicit val context: MatchingContext = new MatchingContext(matchingRules, false)
 
       "return empty BodyMatch list for equal fields" in {
@@ -73,8 +71,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
       val avroRecord = AvroRecord(schema, pactConfiguration).value
       val record = avroRecord.toGenericRecord(schema)
 
-      val matchingRules: MatchingRuleCategory = new MatchingRuleCategory(MatchingRuleCategoryName)
-      avroRecord.addRules(matchingRules)
+      val matchingRules: MatchingRuleCategory = avroRecord.matchingRules
       implicit val context: MatchingContext = new MatchingContext(matchingRules, false)
 
       "return empty BodyMatch list for equal fields" in {
@@ -123,8 +120,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
       val avroRecord = AvroRecord(schema, pactConfiguration).value
       val record = avroRecord.toGenericRecord(schema)
 
-      val matchingRules: MatchingRuleCategory = new MatchingRuleCategory(MatchingRuleCategoryName)
-      avroRecord.addRules(matchingRules)
+      val matchingRules: MatchingRuleCategory = avroRecord.matchingRules
       implicit val context: MatchingContext = new MatchingContext(matchingRules, false)
 
       "return empty BodyMatch list for equal fields" in {
@@ -173,8 +169,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
       val avroRecord = AvroRecord(schema, pactConfiguration).value
       val record = avroRecord.toGenericRecord(schema)
 
-      val matchingRules: MatchingRuleCategory = new MatchingRuleCategory(MatchingRuleCategoryName)
-      avroRecord.addRules(matchingRules)
+      val matchingRules: MatchingRuleCategory = avroRecord.matchingRules
       implicit val context: MatchingContext = new MatchingContext(matchingRules, false)
 
       "return empty BodyMatch list for equal fields" in {
@@ -223,8 +218,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
       val avroRecord = AvroRecord(schema, pactConfiguration).value
       val record = avroRecord.toGenericRecord(schema)
 
-      val matchingRules: MatchingRuleCategory = new MatchingRuleCategory(MatchingRuleCategoryName)
-      avroRecord.addRules(matchingRules)
+      val matchingRules: MatchingRuleCategory = avroRecord.matchingRules
       implicit val context: MatchingContext = new MatchingContext(matchingRules, false)
 
       "return empty BodyMatch list for equal fields" in {
@@ -273,8 +267,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
       val avroRecord = AvroRecord(schema, pactConfiguration).value
       val record = avroRecord.toGenericRecord(schema)
 
-      val matchingRules: MatchingRuleCategory = new MatchingRuleCategory(MatchingRuleCategoryName)
-      avroRecord.addRules(matchingRules)
+      val matchingRules: MatchingRuleCategory = avroRecord.matchingRules
       implicit val context: MatchingContext = new MatchingContext(matchingRules, false)
 
       "return empty BodyMatch list for equal fields" in {
@@ -323,8 +316,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
       val avroRecord = AvroRecord(schema, pactConfiguration).value
       val record = avroRecord.toGenericRecord(schema)
 
-      val matchingRules: MatchingRuleCategory = new MatchingRuleCategory(MatchingRuleCategoryName)
-      avroRecord.addRules(matchingRules)
+      val matchingRules: MatchingRuleCategory = avroRecord.matchingRules
       implicit val context: MatchingContext = new MatchingContext(matchingRules, false)
       val green = new GenericData.EnumSymbol(schema, "GREEN")
 
@@ -375,8 +367,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
       val avroRecord = AvroRecord(schema, pactConfiguration).value
       val record = avroRecord.toGenericRecord(schema)
 
-      val matchingRules: MatchingRuleCategory = new MatchingRuleCategory(MatchingRuleCategoryName)
-      avroRecord.addRules(matchingRules)
+      val matchingRules: MatchingRuleCategory = avroRecord.matchingRules
       implicit val context: MatchingContext = new MatchingContext(matchingRules, false)
       val fixed = new GenericData.Fixed(schema.getField("md5").schema(), "\\u0000\\u0001\\u0002\\u0003".getBytes)
 
@@ -427,8 +418,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
       val avroRecord = AvroRecord(schema, pactConfiguration).value
       val record = avroRecord.toGenericRecord(schema)
 
-      val matchingRules: MatchingRuleCategory = new MatchingRuleCategory(MatchingRuleCategoryName)
-      avroRecord.addRules(matchingRules)
+      val matchingRules: MatchingRuleCategory = avroRecord.matchingRules
       implicit val context: MatchingContext = new MatchingContext(matchingRules, false)
 
       "return empty BodyMatch list for equal fields" in {

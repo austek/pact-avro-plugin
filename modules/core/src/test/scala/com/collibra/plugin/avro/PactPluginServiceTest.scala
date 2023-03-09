@@ -1,5 +1,6 @@
 package com.collibra.plugin.avro
 
+import com.collibra.plugin.avro.Avro._
 import com.collibra.plugin.avro.utils.AvroUtils
 import com.collibra.plugin.avro.utils.StringUtils._
 import com.google.protobuf.struct.Value.Kind._

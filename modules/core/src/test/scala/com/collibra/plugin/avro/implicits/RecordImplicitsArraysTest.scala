@@ -2,8 +2,7 @@ package com.collibra.plugin.avro.implicits
 
 import au.com.dius.pact.core.matchers.MatchingContext
 import au.com.dius.pact.core.model.matchingrules.MatchingRuleCategory
-import com.collibra.plugin.avro.AvroPluginConstants.MatchingRuleCategoryName
-import com.collibra.plugin.avro.AvroRecord
+import com.collibra.plugin.avro.Avro.AvroRecord
 import com.collibra.plugin.avro.TestSchemas._
 import com.collibra.plugin.avro.implicits.RecordImplicits._
 import com.collibra.plugin.avro.matchers.{BodyItemMatchResult, BodyMismatch}
@@ -15,7 +14,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 import scala.jdk.CollectionConverters._
-class RecordImplicitsCollectionsTest extends AnyWordSpec with Matchers with EitherValues {
+class RecordImplicitsArraysTest extends AnyWordSpec with Matchers with EitherValues {
   "GenericRecord" when {
     "comparing Array fields with String values" should {
       val schema = schemaWithField("""{"name": "names", "type": {"type": "array", "items": "string"}}""")
@@ -34,8 +33,7 @@ class RecordImplicitsCollectionsTest extends AnyWordSpec with Matchers with Eith
       val avroRecord = AvroRecord(schema, pactConfiguration).value
       val record = avroRecord.toGenericRecord(schema)
 
-      val matchingRules: MatchingRuleCategory = new MatchingRuleCategory(MatchingRuleCategoryName)
-      avroRecord.addRules(matchingRules)
+      val matchingRules: MatchingRuleCategory = avroRecord.matchingRules
       implicit val context: MatchingContext = new MatchingContext(matchingRules, false)
 
       val expected = List("name-1", "name-2").asJava
