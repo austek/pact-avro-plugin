@@ -1,10 +1,11 @@
 package com.collibra.plugin.avro.interaction
 
 import au.com.dius.pact.core.model.matchingrules.{MatchingRule => _, MatchingRules => _, _}
+import com.collibra.plugin.avro.Avro.AvroRecord
 import com.collibra.plugin.avro.AvroPluginConstants._
+import com.collibra.plugin.avro.AvroSchemaBase16Hash
 import com.collibra.plugin.avro.utils.Util._
 import com.collibra.plugin.avro.utils._
-import com.collibra.plugin.avro.{AvroRecord, AvroSchemaBase16Hash}
 import com.google.protobuf.ByteString
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging

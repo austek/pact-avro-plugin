@@ -2,6 +2,7 @@ package com.collibra.plugin.avro
 
 import au.com.dius.pact.core.model.matchingrules.NumberTypeMatcher.NumberType
 import au.com.dius.pact.core.model.matchingrules._
+import com.collibra.plugin.avro.Avro.AvroRecord
 import com.collibra.plugin.avro.TestSchemas._
 import com.collibra.plugin.avro.utils.MatchingRuleCategoryImplicits._
 import com.google.protobuf.struct.Value.Kind._
