@@ -420,7 +420,7 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
     }
   }
 
-  "Map field" when {
+  "Map simple type field" when {
     "value provided" should provide {
       val schema = schemaWithField("""{"name": "ages","type": { "type": "map", "values": "int"}}""")
       val pactConfiguration: Map[String, Value] = Map(
@@ -447,6 +447,58 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
           avroRecord.matchingRules should have size 2
           avroRecord.matchingRules.getRules("$.ages.first") shouldBe List(new NumberTypeMatcher(NumberType.INTEGER))
           avroRecord.matchingRules.getRules("$.ages.second") shouldBe List(new NumberTypeMatcher(NumberType.INTEGER))
+        }
+      }
+    }
+  }
+
+  "Map complex type field" when {
+    "value provided" should provide {
+      val schema = schemaWithField("""{
+          |  "name": "addresses",
+          |  "type": {
+          |    "type": "map",
+          |    "values": {
+          |      "name": "address",
+          |      "type": "record",
+          |      "fields": [
+          |        { "name": "street", "type": "string" }
+          |      ]
+          |    }
+          |  }
+          |}""".stripMargin)
+      val pactConfiguration: Map[String, Value] = Map(
+        "addresses" -> Value(
+          StructValue(
+            Struct(
+              Map(
+                "first" -> Value(StructValue(Struct(Map("street" -> Value(StringValue("matching(equalTo, 'first street')")))))),
+                "second" -> Value(StructValue(Struct(Map("street" -> Value(StringValue("matching(equalTo, 'second street')"))))))
+              )
+            )
+          )
+        )
+      )
+      val avroRecord = AvroRecord(schema, pactConfiguration).value
+      val addressSchema = schema.getField("addresses").schema().getValueType
+      val firstAddressRecord = new GenericData.Record(addressSchema)
+      firstAddressRecord.put("street", "first street")
+      val secondAddressRecord = new GenericData.Record(addressSchema)
+      secondAddressRecord.put("street", "second street")
+
+      "a method," which {
+        "returns GenericRecord with field" in {
+          val genericRecord = avroRecord.toGenericRecord(schema)
+          genericRecord.get("addresses").asInstanceOf[util.Map[String, GenericRecord]].asScala should contain theSameElementsAs Map(
+            "first" -> firstAddressRecord,
+            "second" -> secondAddressRecord
+          )
+          avroRecord.value should have size 1
+        }
+        "returns matching rules using JsonPath" in {
+          avroRecord.matchingRules should have size 2
+          avroRecord.matchingRules.getRules("$.addresses.first.street") shouldBe List(EqualsMatcher.INSTANCE)
+          avroRecord.matchingRules.getRules("$.addresses.second.street") shouldBe List(EqualsMatcher.INSTANCE)
         }
       }
     }
