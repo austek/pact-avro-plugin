@@ -64,10 +64,10 @@ object Avro {
     ): Either[Seq[PluginError[_]], AvroValue] = {
       val path = if (appendPath) rootPath :+ fieldName else rootPath
       logger.debug(s">>> buildFieldValue($path, $fieldName, $inValue)")
-      val schemaType = schema.getType match {
-        case ARRAY => schema.getElementType.getType
-        case MAP   => schema.getValueType.getType
-        case _     => schema.getType
+      val valueSchema = schema.getType match {
+        case ARRAY => schema.getElementType
+        case MAP   => schema.getValueType
+        case _     => schema
       }
       inValue.kind match {
         case Empty        => Right(AvroNull(path, fieldName))
@@ -75,7 +75,7 @@ object Avro {
         case StringValue(_) =>
           parseRules(inValue)
             .flatMap { fieldRule =>
-              AvroValue(path, fieldName, schemaType, fieldRule.value, fieldRule.rules)
+              AvroValue(path, fieldName, valueSchema.getType, fieldRule.value, fieldRule.rules)
             }
             .left
             .map(e => Seq(e))
@@ -83,8 +83,8 @@ object Avro {
         case NumberValue(_) => Left(Seq(PluginErrorMessage(s"Number kind value for field is not supported")))
         case BoolValue(_)   => Left(Seq(PluginErrorMessage(s"Bool kind value for field is not supported")))
         case StructValue(_) =>
-          if (schemaType == RECORD) {
-            AvroRecord(path, fieldName, schema.getElementType, inValue.getStructValue.fields)
+          if (valueSchema.getType == RECORD) {
+            AvroRecord(path, fieldName, valueSchema, inValue.getStructValue.fields)
           } else {
             Left(Seq(PluginErrorMessage(s"Struct kind value for field is not supported")))
           }
@@ -280,8 +280,7 @@ object Avro {
         case StructValue(structValue) =>
           structValue.fields
             .map { case (key, singleValue) =>
-              val either = AvroValue(rootPath, key.toFieldName, schemaField.schema(), singleValue)
-              either.map { v =>
+              AvroValue(rootPath, key.toFieldName, schemaField.schema(), singleValue).map { v =>
                 key.toPactPath -> v
               }
             }
@@ -333,24 +332,29 @@ object Avro {
             case ENUM =>
               record.put(key, new GenericData.EnumSymbol(fieldSchema, value))
             case ARRAY if fieldSchema.getElementType.getType == RECORD =>
-              val subType = fieldSchema.getElementType
-              val subRecords = value
-                .asInstanceOf[java.util.List[AvroRecord]]
-                .asScala
-                .map { item =>
-                  item.toGenericRecord(subType)
-                }
-                .asJava
-              record.put(key, subRecords)
+              record.put(
+                key,
+                value
+                  .asInstanceOf[java.util.List[AvroRecord]]
+                  .asScala
+                  .map { item =>
+                    item.toGenericRecord(fieldSchema.getElementType)
+                  }
+                  .asJava
+              )
             case MAP if fieldSchema.getValueType.getType == RECORD =>
-              val subType = fieldSchema.getValueType
-              val subRecords = value.asInstanceOf[util.Map[String, AvroRecord]].asScala.map { case (key, item) =>
-                key -> item.toGenericRecord(subType)
-              }
-              record.put(key, subRecords)
+              record.put(
+                key,
+                value
+                  .asInstanceOf[util.Map[String, AvroRecord]]
+                  .asScala
+                  .map { case (key, item) =>
+                    key -> item.toGenericRecord(fieldSchema.getValueType)
+                  }
+                  .asJava
+              )
             case RECORD =>
-              val subRecord = value.asInstanceOf[AvroRecord].toGenericRecord(fieldSchema)
-              record.put(key, subRecord)
+              record.put(key, value.asInstanceOf[AvroRecord].toGenericRecord(fieldSchema))
             case FIXED =>
               record.put(key, new GenericData.Fixed(fieldSchema, value.asInstanceOf[String].getBytes))
             case _ =>

@@ -7,25 +7,27 @@ import com.collibra.plugin.avro.TestSchemas._
 import com.collibra.plugin.avro.implicits.RecordImplicits._
 import com.collibra.plugin.avro.matchers.{BodyItemMatchResult, BodyMismatch}
 import com.google.protobuf.struct.Value.Kind._
-import com.google.protobuf.struct.{ListValue => StructListValue, Struct, Value}
+import com.google.protobuf.struct.{Struct, Value}
 import org.apache.avro.generic.GenericData
 import org.scalatest.EitherValues
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
+import java.util
 import scala.jdk.CollectionConverters._
 
 class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValues {
+
   "GenericRecord" when {
-    "comparing Array fields with String values" should {
-      val schema = schemaWithField("""{"name": "names", "type": {"type": "array", "items": "string"}}""")
+    "comparing Map fields with String values" should {
+      val schema = schemaWithField("""{"name": "ages","type": { "type": "map", "values": "string"}}""")
       val pactConfiguration: Map[String, Value] = Map(
-        "names" -> Value(
-          ListValue(
-            StructListValue(
-              Seq(
-                Value(StringValue("matching(equalTo, 'name-1')")),
-                Value(StringValue("matching(equalTo, 'name-2')"))
+        "ages" -> Value(
+          StructValue(
+            Struct(
+              Map(
+                "first" -> Value(StringValue("matching(equalTo, 'name-1')")),
+                "second" -> Value(StringValue("matching(equalTo, 'name-2')"))
               )
             )
           )
@@ -36,40 +38,39 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
 
       val matchingRules: MatchingRuleCategory = avroRecord.matchingRules
       implicit val context: MatchingContext = new MatchingContext(matchingRules, false)
-
-      val expected = List("name-1", "name-2").asJava
+      val expected = Map("first" -> "name-1", "second" -> "name-2").asJava
 
       "return empty BodyMatch list for equal fields" in {
         val otherRecord = new GenericData.Record(schema)
-        otherRecord.put("names", expected)
+        otherRecord.put("ages", expected)
 
         val result = record.compare(List("$"), otherRecord).value
         result should have size 2
         result shouldBe List(
-          BodyItemMatchResult("$.names.0", List()),
-          BodyItemMatchResult("$.names.1", List())
+          BodyItemMatchResult("$.ages.first", List()),
+          BodyItemMatchResult("$.ages.second", List())
         )
       }
 
       "return a BodyMatch for unequal fields" in {
         val otherRecord = new GenericData.Record(schema)
-        val other = List("name-3", "name-4").asJava
-        otherRecord.put("names", other)
+        val other = Map("first" -> "name-3", "second" -> "name-4").asJava
+        otherRecord.put("ages", other)
 
         val result = record.compare(List("$"), otherRecord).value
         result should have size 2
         result shouldBe
           List(
             BodyItemMatchResult(
-              "$.names.0",
+              "$.ages.first",
               List(
-                BodyMismatch("name-1", "name-3", "Expected 'name-3' (String) to equal 'name-1' (String)", "$.names.0", "")
+                BodyMismatch("name-1", "name-3", "Expected 'name-3' (String) to equal 'name-1' (String)", "$.ages.first", "")
               )
             ),
             BodyItemMatchResult(
-              "$.names.1",
+              "$.ages.second",
               List(
-                BodyMismatch("name-2", "name-4", "Expected 'name-4' (String) to equal 'name-2' (String)", "$.names.1", "")
+                BodyMismatch("name-2", "name-4", "Expected 'name-4' (String) to equal 'name-2' (String)", "$.ages.second", "")
               )
             )
           )
@@ -81,24 +82,24 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
         result should have size 1
         result shouldBe List(
           BodyItemMatchResult(
-            "$.names",
+            "$.ages",
             List(
-              BodyMismatch(expected, null, s"Expected null (Null) to equal '$expected' (Array)", "$.names", null)
+              BodyMismatch(expected, null, s"Expected null (Null) to equal '$expected' (Map)", "$.ages", null)
             )
           )
         )
       }
     }
 
-    "comparing Array fields with Integer values" should {
-      val schema = schemaWithField("""{"name": "ids", "type": {"type": "array", "items": "int"}}""")
+    "comparing Map fields with Integer values" should {
+      val schema = schemaWithField("""{"name": "ids", "type": {"type": "map", "values": "int"}}""")
       val pactConfiguration: Map[String, Value] = Map(
         "ids" -> Value(
-          ListValue(
-            StructListValue(
-              Seq(
-                Value(StringValue("matching(equalTo, 1)")),
-                Value(StringValue("matching(equalTo, 2)"))
+          StructValue(
+            Struct(
+              Map(
+                "first" -> Value(StringValue("matching(equalTo, 1)")),
+                "second" -> Value(StringValue("matching(equalTo, 2)"))
               )
             )
           )
@@ -110,7 +111,7 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
       val matchingRules: MatchingRuleCategory = avroRecord.matchingRules
       implicit val context: MatchingContext = new MatchingContext(matchingRules, false)
 
-      val expected = List(1, 2).asJava
+      val expected: util.Map[String, Int] = Map("first" -> 1, "second" -> 2).asJava
 
       "return empty BodyMatch list for equal fields" in {
         val otherRecord = new GenericData.Record(schema)
@@ -119,14 +120,14 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
         val result = record.compare(List("$"), otherRecord).value
         result should have size 2
         result shouldBe List(
-          BodyItemMatchResult("$.ids.0", List()),
-          BodyItemMatchResult("$.ids.1", List())
+          BodyItemMatchResult("$.ids.first", List()),
+          BodyItemMatchResult("$.ids.second", List())
         )
       }
 
       "return a BodyMatch for unequal fields" in {
         val otherRecord = new GenericData.Record(schema)
-        val other = List(3, 4).asJava
+        val other = Map("first" -> 3, "second" -> 4).asJava
         otherRecord.put("ids", other)
 
         val result = record.compare(List("$"), otherRecord).value
@@ -134,15 +135,15 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
         result shouldBe
           List(
             BodyItemMatchResult(
-              "$.ids.0",
+              "$.ids.first",
               List(
-                BodyMismatch(1, 3, "Expected 3 (Integer) to equal 1 (Integer)", "$.ids.0", "")
+                BodyMismatch(1, 3, "Expected 3 (Integer) to equal 1 (Integer)", "$.ids.first", "")
               )
             ),
             BodyItemMatchResult(
-              "$.ids.1",
+              "$.ids.second",
               List(
-                BodyMismatch(2, 4, "Expected 4 (Integer) to equal 2 (Integer)", "$.ids.1", "")
+                BodyMismatch(2, 4, "Expected 4 (Integer) to equal 2 (Integer)", "$.ids.second", "")
               )
             )
           )
@@ -156,19 +157,19 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
           BodyItemMatchResult(
             "$.ids",
             List(
-              BodyMismatch(expected, null, s"Expected null (Null) to equal '$expected' (Array)", "$.ids", null)
+              BodyMismatch(expected, null, s"Expected null (Null) to equal '$expected' (Map)", "$.ids", null)
             )
           )
         )
       }
     }
 
-    "comparing Array fields with Record values" should {
+    "comparing Map fields with Record values" should {
       val schema = schemaWithField("""{
                                      |  "name": "addresses",
                                      |  "type": {
-                                     |    "type": "array",
-                                     |    "items": {
+                                     |    "type": "map",
+                                     |    "values": {
                                      |      "name": "address",
                                      |      "type": "record",
                                      |      "fields": [
@@ -179,10 +180,11 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
                                      |}""".stripMargin)
       val pactConfiguration: Map[String, Value] = Map(
         "addresses" -> Value(
-          ListValue(
-            StructListValue(
-              Seq(
-                Value(StructValue(Struct(Map("street" -> Value(StringValue("matching(equalTo, 'street name')"))))))
+          StructValue(
+            Struct(
+              Map(
+                "first" -> Value(StructValue(Struct(Map("street" -> Value(StringValue("matching(equalTo, 'first street')")))))),
+                "second" -> Value(StructValue(Struct(Map("street" -> Value(StringValue("matching(equalTo, 'second street')"))))))
               )
             )
           )
@@ -194,34 +196,45 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
       val matchingRules: MatchingRuleCategory = avroRecord.matchingRules
       implicit val context: MatchingContext = new MatchingContext(matchingRules, false)
 
-      val addressRecord = new GenericData.Record(schema.getField("addresses").schema().getElementType)
-      addressRecord.put("street", "street name")
-      val expected = List(addressRecord).asJava
+      val addressSchema = schema.getField("addresses").schema().getValueType
+      val firstAddressRecord = new GenericData.Record(addressSchema)
+      firstAddressRecord.put("street", "first street")
+      val secondAddressRecord = new GenericData.Record(addressSchema)
+      secondAddressRecord.put("street", "second street")
+      val expected: util.Map[String, GenericData.Record] = Map("first" -> firstAddressRecord, "second" -> secondAddressRecord).asJava
 
       "return empty BodyMatch list for equal fields" in {
         val otherRecord = new GenericData.Record(schema)
         otherRecord.put("addresses", expected)
 
         val result = record.compare(List("$"), otherRecord).value
-        result should have size 1
-        result shouldBe List(BodyItemMatchResult("$.addresses.0.street", List()))
+        result should have size 2
+        result shouldBe List(BodyItemMatchResult("$.addresses.first.street", List()), BodyItemMatchResult("$.addresses.second.street", List()))
       }
 
       "return a BodyMatch for unequal fields" in {
-        val otherAddressRecord = new GenericData.Record(schema.getField("addresses").schema().getElementType)
-        otherAddressRecord.put("street", "other")
-        val other = List(otherAddressRecord).asJava
+        val fourthAddressRecord = new GenericData.Record(addressSchema)
+        fourthAddressRecord.put("street", "fourth street")
+        val otherAddressRecord: util.Map[String, GenericData.Record] = Map("first" -> firstAddressRecord, "second" -> fourthAddressRecord).asJava
+
         val otherRecord = new GenericData.Record(schema)
-        otherRecord.put("addresses", other)
+        otherRecord.put("addresses", otherAddressRecord)
 
         val result = record.compare(List("$"), otherRecord).value
-        result should have size 1
+        result should have size 2
         result shouldBe
           List(
+            BodyItemMatchResult("$.addresses.first.street", List()),
             BodyItemMatchResult(
-              "$.addresses.0.street",
+              "$.addresses.second.street",
               List(
-                BodyMismatch("street name", "other", "Expected 'other' (String) to equal 'street name' (String)", "$.addresses.0.street", "")
+                BodyMismatch(
+                  "second street",
+                  "fourth street",
+                  "Expected 'fourth street' (String) to equal 'second street' (String)",
+                  "$.addresses.second.street",
+                  ""
+                )
               )
             )
           )
@@ -235,7 +248,7 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
           BodyItemMatchResult(
             "$.addresses",
             List(
-              BodyMismatch(expected, null, s"Expected null (Null) to equal '$expected' (Array)", "$.addresses", null)
+              BodyMismatch(expected, null, s"Expected null (Null) to equal '$expected' (Map)", "$.addresses", null)
             )
           )
         )

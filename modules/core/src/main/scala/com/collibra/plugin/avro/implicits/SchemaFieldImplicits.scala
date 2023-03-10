@@ -6,7 +6,7 @@ import com.collibra.plugin.avro.implicits.PathExpressionImplicits._
 import com.collibra.plugin.avro.implicits.RecordImplicits._
 import com.collibra.plugin.avro.implicits.SchemaTypeImplicits._
 import com.collibra.plugin.avro.matchers.{BodyItemMatchResult, BodyMismatch}
-import com.collibra.plugin.avro.utils.PluginError
+import com.collibra.plugin.avro.utils._
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.avro.Schema
 import org.apache.avro.Schema.Type._
@@ -37,7 +37,7 @@ object SchemaFieldImplicits extends StrictLogging {
               Right(compareValue(path, field, expected.valueOf[EnumSymbol](field.name()), actual.valueOf[EnumSymbol](field.name()), () => "", context))
             case FIXED  => Right(compareValue(path, field, expected.valueOf[Fixed](field.name()), actual.valueOf[Fixed](field.name()), () => "", context))
             case ARRAY  => Right(compareArrayField(path, expected, actual, context))
-            case MAP    => Right(List.empty)
+            case MAP    => Right(compareMapField(path, expected, actual, context))
             case RECORD => expected.compare(path, actual)
             case t =>
               logger.warn(s"Field.compare doesn't support type: $t")
@@ -81,20 +81,7 @@ object SchemaFieldImplicits extends StrictLogging {
       logger.debug(s">>> compareArrayField($path, $field, $expectedList)")
       Option(actual.get(field.name()).asInstanceOf[util.List[clazz.type]]) match {
         case Some(actualList) => compareArrayFieldValues[clazz.type](field, path, context, expectedList, actualList)
-        case None =>
-          List(
-            BodyItemMatchResult(
-              path.constructPath,
-              List(
-                BodyMismatch(
-                  expectedList,
-                  null,
-                  s"Expected null (Null) to equal '$expectedList' (Array)",
-                  path.constructPath
-                )
-              )
-            )
-          )
+        case None             => expectedNullMismatch(path, expectedList, "Array")
       }
     }
 
@@ -105,8 +92,23 @@ object SchemaFieldImplicits extends StrictLogging {
       expectedList: util.List[T],
       actualList: util.List[T]
     ): List[AvroBodyItemMatchResult] = {
-      val ruleGroup = context.selectBestMatcher(path.asJava)
-      if (context.matcherDefined(path.asJava)) {
+      if (expectedList.isEmpty && !actualList.isEmpty) {
+        List(
+          BodyItemMatchResult(
+            path.constructPath,
+            List(
+              BodyMismatch(
+                expectedList,
+                actualList,
+                s"Expected repeated field '${field.name}' to be empty but received $actualList",
+                path.constructPath,
+                null
+              )
+            )
+          )
+        )
+      } else if (context.matcherDefined(path.asJava)) {
+        val ruleGroup = context.selectBestMatcher(path.asJava)
         logger.debug(s"compareArrayField: Matcher defined for path $path")
         ruleGroup.getRules.asScala.flatMap { matcher =>
           Matchers.INSTANCE
@@ -122,63 +124,138 @@ object SchemaFieldImplicits extends StrictLogging {
             )
             .asScala
         }.toList
-      } else {
-        if (expectedList.isEmpty && !actualList.isEmpty) {
-          List(
-            BodyItemMatchResult(
-              path.constructPath,
-              List(
-                BodyMismatch(
-                  expectedList,
-                  actualList,
-                  s"Expected repeated field '${field.name}' to be empty but received $actualList",
-                  path.constructPath,
-                  null
-                )
-              )
-            )
-          )
-        } else {
-          List(
-            Matchers.INSTANCE
-              .compareListContent[T](
-                expectedList,
-                actualList,
-                path.asJava,
-                context,
-                () => "",
-                (p, expectedValue, actualValue, c) => {
-                  expectedValue match {
-                    case v: GenericRecord =>
-                      v.compare(p.asScala.toList, actualValue.asInstanceOf[GenericRecord])(c) match {
-                        case Left(_)      => List.empty.asJava
-                        case Right(value) => value.asJava
-                      }
-                    case _ =>
-                      compareValue(p.asScala.toList, field, expectedValue, actualValue, () => "", c).asJava
-                  }
+      } else
+        List(
+          Matchers.INSTANCE
+            .compareListContent[T](
+              expectedList,
+              actualList,
+              path.asJava,
+              context,
+              () => "",
+              (p, expectedValue, actualValue, c) => {
+                expectedValue match {
+                  case v: GenericRecord =>
+                    v.compare(p.asScala.toList, actualValue.asInstanceOf[GenericRecord])(c) match {
+                      case Left(_)      => List.empty.asJava
+                      case Right(value) => value.asJava
+                    }
+                  case _ =>
+                    compareValue(p.asScala.toList, field, expectedValue, actualValue, () => "", c).asJava
                 }
-              )
-              .asScala
-              .toList
-          ).flatten ++
-            (if (expectedList.size != actualList.size) {
-               List(
-                 BodyItemMatchResult(
-                   path.constructPath,
-                   List(
-                     BodyMismatch(
-                       expectedList,
-                       actualList,
-                       s"Expected repeated field '${field.name}' to have ${expectedList.size} values but received ${actualList.size} values",
-                       path.constructPath,
-                       null
-                     )
+              }
+            )
+            .asScala
+            .toList
+        ).flatten ++
+          (if (expectedList.size != actualList.size) {
+             List(
+               BodyItemMatchResult(
+                 path.constructPath,
+                 List(
+                   BodyMismatch(
+                     expectedList,
+                     actualList,
+                     s"Expected repeated field '${field.name}' to have ${expectedList.size} values but received ${actualList.size} values",
+                     path.constructPath,
+                     null
                    )
                  )
                )
-             } else Nil)
-        }
+             )
+           } else Nil)
+    }
+
+    private def compareMapField(
+      path: List[String],
+      expected: GenericRecord,
+      actual: GenericRecord,
+      context: MatchingContext
+    ): List[AvroBodyItemMatchResult] = {
+      val clazz: Class[_] = field.schema().getValueType.getType.asJava
+      val expectedEntries = expected.get(field.name()).asInstanceOf[util.Map[String, clazz.type]]
+      logger.debug(s">>> compareArrayField($path, $field, $expectedEntries)")
+      Option(actual.get(field.name()).asInstanceOf[util.Map[String, clazz.type]]) match {
+        case Some(actualList) if expectedEntries.isEmpty && !actualList.isEmpty =>
+          compareMapFieldValues[clazz.type](field, path, context, expectedEntries, actualList)
+        case Some(actualList) => compareMapFieldValues[clazz.type](field, path, context, expectedEntries, actualList)
+        case None             => expectedNullMismatch(path, expectedEntries, "Map")
+      }
+    }
+
+    private def compareMapFieldValues[V](
+      field: Schema.Field,
+      path: List[String],
+      context: MatchingContext,
+      expectedEntries: util.Map[String, V],
+      actualEntries: util.Map[String, V]
+    ): List[AvroBodyItemMatchResult] = {
+      if (expectedEntries.isEmpty && !actualEntries.isEmpty) {
+        List(
+          BodyItemMatchResult(
+            path.constructPath,
+            List(
+              BodyMismatch(
+                expectedEntries,
+                actualEntries,
+                s"Expected Map field '${field.name}' to be empty but received $actualEntries",
+                path.constructPath,
+                null
+              )
+            )
+          )
+        )
+      } else if (context.matcherDefined(path.asJava)) {
+        logger.debug(s"compareMapField: matcher defined for path $path")
+        context
+          .selectBestMatcher(path.asJava)
+          .getRules
+          .asScala
+          .flatMap { matcher =>
+            Matchers.INSTANCE
+              .compareMaps[V](
+                path.asJava,
+                matcher,
+                expectedEntries,
+                actualEntries,
+                context,
+                () => "",
+                (p, expected, actual) => compareValue(p.asScala.toList, field, expected, actual, () => "", context).asJava
+              )
+              .asScala
+          }
+          .toList
+      } else {
+        logger.debug(s"compareMapField: no matcher defined for path ${path.constructPath}")
+        logger.debug(s"                   expected keys ${expectedEntries.keySet()}")
+        logger.debug(s"                   actual keys ${actualEntries.keySet()}")
+        context.matchKeys(path.asJava, expectedEntries, actualEntries, () => "").asScala.toList ++
+          expectedEntries.asScala.flatMap {
+            case (key, value: GenericRecord) if actualEntries.containsKey(key) =>
+              value.compare(path :+ key, actualEntries.get(key).asInstanceOf[GenericRecord])(context) match {
+                case Right(result) => result
+                case Left(errors) =>
+                  errors.foreach {
+                    case PluginErrorMessage(value)       => logger.error(value)
+                    case PluginErrorMessages(values)     => values.foreach(v => logger.error(v))
+                    case PluginErrorException(exception) => logger.error("Failed to compare map field", exception)
+                  }
+                  Nil
+              }
+            case (key, value) if actualEntries.containsKey(key) =>
+              compareValue(path :+ key, field, value, actualEntries.get(key), () => "", context)
+            case (key, value) =>
+              List(
+                BodyItemMatchResult(
+                  path.constructPath,
+                  List(
+                    BodyMismatch
+                      .expectedNullMismatch[V](value, s"Expected map field '${field.name}' to have entry '$key', but was missing", path.constructPath, null)
+                  )
+                )
+              )
+
+          }
       }
     }
 
@@ -219,7 +296,7 @@ object SchemaFieldImplicits extends StrictLogging {
                 BodyMismatch(
                   expected,
                   actual,
-                  s"Expected '$expected' ($field) but received value '$actual'",
+                  s"Expected '$expected' (${field.schema().getType}) but received value '$actual'",
                   valuePath,
                   diffCallback()
                 )
@@ -230,4 +307,12 @@ object SchemaFieldImplicits extends StrictLogging {
       }
     }
   }
+
+  private def expectedNullMismatch[T](path: List[String], expected: T, valueType: String): List[AvroBodyItemMatchResult] =
+    List(
+      BodyItemMatchResult(
+        path.constructPath,
+        List(BodyMismatch.expectedNullMismatch[T](expected, s"Expected null (Null) to equal '$expected' ($valueType)", path.constructPath))
+      )
+    )
 }
