@@ -362,7 +362,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
     }
 
     "comparing Fixed fields" should {
-      val schema = schemaWithField("""{"name": "md5", "type": {"name": "md5", "type": "fixed", "size": 4}}""")
+      val schema = schemaWithField("""{"name": "md5", "type": {"name": "MD5", "type": "fixed", "size": 4}}""")
       val pactConfiguration: Map[String, Value] = Map("md5" -> Value(StringValue("matching(equalTo, '\\u0000\\u0001\\u0002\\u0003')")))
       val avroRecord = AvroRecord(schema, pactConfiguration).value
       val record = avroRecord.toGenericRecord(schema)

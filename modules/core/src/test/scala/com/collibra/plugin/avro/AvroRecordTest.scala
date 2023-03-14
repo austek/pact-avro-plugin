@@ -273,7 +273,7 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
 
   "Fixed field" when {
     "value provided" should provide {
-      val schema = schemaWithField("""{"name": "md5", "type": {"name": "md5", "type": "fixed", "size": 4}}""")
+      val schema = schemaWithField("""{"name": "md5", "type": {"name": "MD5", "type": "fixed", "size": 4}}""")
       val pactConfiguration: Map[String, Value] = Map("md5" -> Value(StringValue("matching(equalTo, '\\u0000\\u0001\\u0002\\u0003')")))
       val avroRecord = AvroRecord(schema, pactConfiguration).value
 
@@ -291,7 +291,7 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
     }
 
     "value not provided but has default" should provide {
-      val schema = schemaWithField("""{"name": "md5", "type": {"name": "md5", "type": "fixed", "size": 4}, "default": "\\u0000"}""")
+      val schema = schemaWithField("""{"name": "md5", "type": {"name": "MD5", "type": "fixed", "size": 4}, "default": "\\u0000"}""")
       val pactConfiguration: Map[String, Value] = Map()
       val avroRecord = AvroRecord(schema, pactConfiguration).value
 

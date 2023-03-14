@@ -1,6 +1,6 @@
 [
   {
-    "namespace": "com.example",
+    "namespace": "com.collibra.example",
     "type": "record",
     "name": "Item",
     "fields": [
@@ -15,21 +15,7 @@
     ]
   },
   {
-    "namespace": "com.example",
-    "type": "record",
-    "name": "Order",
-    "fields": [
-      {
-        "name": "items",
-        "type": {
-          "type": "array",
-          "items": "com.example.Item"
-        }
-      }
-    ]
-  },
-  {
-    "namespace": "com.example",
+    "namespace": "com.collibra.example",
     "type": "record",
     "name": "Complex",
     "fields": [
@@ -88,7 +74,7 @@
         "name": "address",
         "type": {
           "type": "record",
-          "name": "mailing_address",
+          "name": "MailAddress",
           "fields": [
             {
               "name": "street",
@@ -102,13 +88,13 @@
         "name": "items",
         "type": {
           "type": "array",
-          "items": "com.example.Item"
+          "items": "com.collibra.example.Item"
         }
       },
       {
         "name": "md5",
         "type": {
-          "name": "md5",
+          "name": "MD5",
           "type": "fixed",
           "size": 4
         }

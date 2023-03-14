@@ -3,35 +3,32 @@ import sbt._
 object Dependencies extends DependencyUtils {
 
   object Versions {
-    val akka = "2.7.0"
-    val akkaHttp = "10.4.0"
     val avro = "1.11.1"
     val logback = "1.2.11"
-    val pact = "4.5.0-beta.1"
+    val pact = "4.5.2"
+    val pulsar4sVersion = "2.9.0"
     val scalaTest = "3.2.15"
   }
 
-  val akka: ModuleID = "com.typesafe.akka"                      %% "akka-actor-typed"        % Versions.akka
-  val akkaStream: ModuleID = "com.typesafe.akka"                %% "akka-stream"             % Versions.akka
-  val auPacMatchers: ModuleID = "au.com.dius.pact.core"          % "matchers"                % "4.4.6"
-  val grpcStub: ModuleID = "io.grpc"                             % "grpc-stub"               % "1.49.0"
-  val logback: ModuleID = "ch.qos.logback"                       % "logback-classic"         % "1.4.5"
-  val pactCore: ModuleID = "io.pact.plugin.driver"               % "core"                    % "0.3.1"
-  val scalaLogging: ModuleID = "com.typesafe.scala-logging"     %% "scala-logging"           % "3.9.5"
+  val auPacMatchers: ModuleID = "au.com.dius.pact.core"      % "matchers"        % "4.5.2"
+  val grpcStub: ModuleID = "io.grpc"                         % "grpc-stub"       % "1.53.0"
+  val logback: ModuleID = "ch.qos.logback"                   % "logback-classic" % "1.4.5"
+  val pactCore: ModuleID = "io.pact.plugin.driver"           % "core"            % "0.3.1"
+  val scalaLogging: ModuleID = "com.typesafe.scala-logging" %% "scala-logging"   % "3.9.5"
+  val pureConfig: ModuleID = "com.github.pureconfig"        %% "pureconfig"      % "0.17.2"
 
   // Test dependencies
-  val akkaHttpAvro: ModuleID = "fr.davit"                      %% "akka-http-avro"                 % "0.1.3"
-  val akkaHttpTest: ModuleID = "com.typesafe.akka"             %% "akka-http-testkit"              % Versions.akkaHttp
-  val akkaStreamTest: ModuleID = "com.typesafe.akka"           %% "akka-stream-testkit"            % Versions.akka
   val apacheAvro: ModuleID = "org.apache.avro"                  % "avro"                           % Versions.avro
   val assertJCore: ModuleID = "org.assertj"                     % "assertj-core"                   % "3.24.2"
   val avroCompiler: ModuleID = "org.apache.avro"                % "avro-compiler"                  % Versions.avro
   val hamcrest: ModuleID = "org.hamcrest"                       % "hamcrest"                       % "2.2"
   val jUnitInterface: ModuleID = "net.aichler"                  % "jupiter-interface"              % "0.11.1"
-  val pact4sScalaTest: ModuleID = "io.github.jbwheatley"       %% "pact4s-scalatest"               % "0.8.0"
-  val pactConsumer: ModuleID = "au.com.dius.pact"               % "consumer"                       % Versions.pact
+  val pact4sScalaTest: ModuleID = "io.github.jbwheatley"       %% "pact4s-scalatest"               % "0.9.0"
   val pactConsumerJunit: ModuleID = "au.com.dius.pact.consumer" % "junit5"                         % Versions.pact
-  val pactProvider: ModuleID = "au.com.dius.pact"               % "provider"                       % Versions.pact
+  val pactProviderJunit: ModuleID = "au.com.dius.pact.provider" % "junit5"                         % Versions.pact
+  val pulsar4sAvro: ModuleID = "com.clever-cloud.pulsar4s"     %% "pulsar4s-avro"                  % Versions.pulsar4sVersion
+  val pulsar4sCore: ModuleID = "com.clever-cloud.pulsar4s"     %% "pulsar4s-core"                  % Versions.pulsar4sVersion
+  val scalacheck: ModuleID = "org.scalacheck"                  %% "scalacheck"                     % "1.17.0"
   val scalaTest: ModuleID = "org.scalatest"                    %% "scalatest"                      % Versions.scalaTest
   val testContainer: ModuleID = "com.dimafeng"                 %% "testcontainers-scala-scalatest" % "0.40.12"
 

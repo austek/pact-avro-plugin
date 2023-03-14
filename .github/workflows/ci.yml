@@ -22,7 +22,7 @@ jobs:
     name: Build and Test
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
         scala: [2.13.10]
         java: [temurin@11]
     runs-on: ${{ matrix.os }}
@@ -54,11 +54,23 @@ jobs:
       - name: Check that workflows are up to date
         run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
+      - name: Start containers
+        run: docker-compose -f docker-compose.yml up -d
+
       - name: Build project
-        run: 'sbt ++${{ matrix.scala }} ''; set core / Universal / stagingDirectory := file(s"${System.getProperty("user.home")}/.pact/plugins/avro-${version.value}")'' compile scalafmtCheckAll test'
+        run: sbt ++${{ matrix.scala }} compile scalafmtCheckAll core/test
+
+      - name: Test Consumer
+        run: sbt ++${{ matrix.scala }} consumer/test
+
+      - name: Upload Consumer Pact
+        run: ./pact-publish.sh
+
+      - name: Stop containers
+        run: docker-compose -f docker-compose.yml down
 
       - name: Compress target directories
-        run: tar cf targets.tar modules/examples/provider/target modules/examples/consumer/target modules/common/target target modules/core/target project/target
+        run: tar cf targets.tar target modules/core/target modules/examples/provider/target modules/examples/consumer/target project/target
 
       - name: Upload target directories
         uses: actions/upload-artifact@v2

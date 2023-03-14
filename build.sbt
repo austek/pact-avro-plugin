@@ -1,8 +1,6 @@
 import BuildSettings._
 import Dependencies._
 
-val setPluginStage = """; set core / Universal / stagingDirectory := file(s"${System.getProperty("user.home")}/.pact/plugins/avro-${version.value}")"""
-
 ThisBuild / version := {
   val orig = (ThisBuild / version).value
   if (orig.endsWith("-SNAPSHOT")) orig.split("""\+""").head + "-SNAPSHOT"
@@ -12,18 +10,35 @@ ThisBuild / scalaVersion := scala213 // scala-steward:off
 
 // sbt-github-actions
 ThisBuild / githubWorkflowBuild := Seq(
+  WorkflowStep.Run(
+    name = Some("Start containers"),
+    commands = List("docker-compose -f docker-compose.yml up -d")
+  ),
   WorkflowStep.Sbt(
     name = Some("Build project"),
-    commands = List(
-      setPluginStage,
-      "compile",
-      "scalafmtCheckAll",
-      "test"
-    )
+    commands = List("compile", "scalafmtCheckAll", "core/test")
+  ),
+  WorkflowStep.Sbt(
+    name = Some("Test Consumer"),
+    commands = List("consumer/test")
+  ),
+  WorkflowStep.Run(
+    name = Some("Upload Consumer Pact"),
+    commands = List("./pact-publish.sh")
+  ),
+  // TODO: Enable when https://github.com/pact-foundation/pact-jvm/issues/1678 is fixed
+//  WorkflowStep.Sbt(
+//    name = Some("Test Provider"),
+//    commands = List("provider/test")
+//  ),
+  WorkflowStep.Run(
+    name = Some("Stop containers"),
+    commands = List("docker-compose -f docker-compose.yml down")
   )
 )
 // Add windows-latest when https://github.com/sbt/sbt/issues/7082 is resolved
-ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest", "macos-latest")
+// Add macos-latest when step to install docker on it is done
+ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest")
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("11"))
 ThisBuild / githubWorkflowTargetBranches := Seq("main")
 ThisBuild / githubWorkflowTargetTags := Seq("v*")
@@ -42,16 +57,8 @@ ThisBuild / githubWorkflowPublish := Seq(
 
 val withExclusions: ModuleID => ModuleID = moduleId => moduleId.excludeAll(Dependencies.exclusions: _*)
 
-lazy val common = project
-  .in(file("modules/common"))
-  .settings(
-    publish / skip := false
-  )
-
 lazy val core = project
   .in(file("modules/core"))
-  .dependsOn(common % "test->test")
-  .configs(IntegrationTest)
   .enablePlugins(
     AkkaGrpcPlugin,
     DockerPlugin,
@@ -61,7 +68,6 @@ lazy val core = project
     name := "core",
     maintainer := "ali.ustek@collibra.com",
     basicSettings,
-    Defaults.itSettings,
     executableScriptName := "pact-avro-plugin",
     Compile / packageDoc / mappings := Seq(),
     inConfig(Universal) {
@@ -82,20 +88,24 @@ lazy val provider = project
   .in(file("modules/examples/provider"))
   .settings(
     basicSettings,
+    Test / sbt.Keys.test := (Test / sbt.Keys.test).dependsOn(core / Universal / stage).value,
+    Test / envVars := Map("PACT_PLUGIN_DIR" -> (core / Universal / stagingDirectory).value.absolutePath),
     libraryDependencies ++=
-      Dependencies.compile(akka, akkaHttpAvro, akkaStream, apacheAvro, avroCompiler, logback).map(withExclusions) ++
-        Dependencies.test(akkaHttpTest, akkaStreamTest, scalaTest).map(withExclusions),
+      Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, pureConfig, scalacheck).map(withExclusions) ++
+        Dependencies.test(assertJCore, jUnitInterface, pactProviderJunit).map(withExclusions),
     publish / skip := false
   )
 
 lazy val consumer = project
   .in(file("modules/examples/consumer"))
-  .dependsOn(common % "test->test", core, provider)
   .settings(
     basicSettings,
+    Compile / avroSource := (Compile / resourceDirectory).value / "avro",
     Test / sbt.Keys.test := (Test / sbt.Keys.test).dependsOn(core / Universal / stage).value,
+    Test / envVars := Map("PACT_PLUGIN_DIR" -> (core / Universal / stagingDirectory).value.absolutePath),
     libraryDependencies ++=
-      Dependencies.test(assertJCore, jUnitInterface, pactConsumerJunit).map(withExclusions),
+      Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, pureConfig, scalaLogging).map(withExclusions) ++
+        Dependencies.test(assertJCore, jUnitInterface, pactConsumerJunit).map(withExclusions),
     dependencyOverrides += Dependencies.pactCore,
     publish / skip := false
   )
@@ -108,9 +118,5 @@ lazy val `pact-avro-plugin` = (project in file("."))
   )
   .settings(
     basicSettings,
-    commands += Command.command("pactTest") { state =>
-      setPluginStage ::
-        "consumer/test" :: state
-    },
     publish / skip := false
   )

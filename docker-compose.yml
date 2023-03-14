@@ -1,8 +1,8 @@
-version: "3.9"
+version: "3"
 
 services:
   postgres:
-    image: postgres
+    image: postgres:15.2-alpine
     healthcheck:
       test: psql postgres --command "select 1" -U postgres
     environment:
@@ -10,11 +10,8 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: postgres
 
-  pact-broker-avro:
-#    image: pactfoundation/pact-broker:latest
-    build:
-      context: ../../../
-      dockerfile: Dockerfile
+  pact-broker:
+    image: pactfoundation/pact-broker:2
     ports:
       - "9292:9292"
     depends_on:
