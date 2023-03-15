@@ -1,0 +1,13 @@
+*
+!.nojekyll
+!*.css
+!*.js
+!*.html
+!*.png
+!*.svg
+!*.txt
+!*.woff
+!*.woff2
+!*.xml
+!CNAME
+!*/
