@@ -5,9 +5,9 @@ import au.com.dius.pact.core.model.Interaction;
 import au.com.dius.pact.core.model.Pact;
 import au.com.dius.pact.provider.MessageAndMetadata;
 import au.com.dius.pact.provider.PactVerifyProvider;
+import au.com.dius.pact.provider.junit5.MessageTestTarget;
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
-import au.com.dius.pact.provider.junit5.PluginTestTarget;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import com.github.austek.example.Item;
@@ -39,15 +39,10 @@ class PactPulsarProducerTest {
     void testTemplate(Pact pact, Interaction interaction, PactVerificationContext context) {
         context.verifyInteraction();
     }
+
     @BeforeEach
     void setupTest(PactVerificationContext context) {
-        context.setTarget(new PluginTestTarget(
-                Map.of(
-                        "host", "localhost",
-                        "port", "9292",
-                        "transport", "grpc"
-                )
-        ));
+        context.setTarget(new MessageTestTarget());
     }
 
     @PactVerifyProvider("Order Created")

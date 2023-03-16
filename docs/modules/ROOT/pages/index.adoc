@@ -1,0 +1,26 @@
+[#about]
+= About
+
+This plugin provides matching and verification of Avro serialised messages to the Pact contract testing framework. It requires a version of the Pact framework that supports the https://github.com/pact-foundation/pact-specification/tree/version-4[V4 Pact specification]
+as well as the https://github.com/pact-foundation/pact-plugins[Pact plugin framework].
+
+Supported Pact framework versions:
+
+- https://github.com/pact-foundation/pact-jvm[Pact-JVM v4.4.x]
+- https://github.com/pact-foundation/pact-reference/tree/master/rust/pact_consumer[Pact-Rust Consumer v0.9.x]
+- https://github.com/pact-foundation/pact-reference/tree/master/rust/pact_verifier_cli[Pact-Rust Verifier v0.9.x]
+- https://github.com/pact-foundation/pact-go[Pact-Go v2.0.0-beta]
+
+
+== Supported features
+
+TBD
+
+== Unsupported features
+
+TBD
+
+== Support
+
+Join us on slack image:https://slack.pact.io/badge.svg[slack,link=https://slack.pact.io] in the *#avro* channel
+

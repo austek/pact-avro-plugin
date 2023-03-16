@@ -1,0 +1,71 @@
+= Getting Started
+
+This plugin will register itself with the Pact framework for the `avro/binary`,`application/avro`, `application/*+avro` and `avro/bytes` content types.
+
+Using this plugin, you can write Pact tests that verify a single message (i.e. a message provider sends
+a message to a consumer).
+
+Tests are supported by using the V4 asynchronous message Pact format, and the service method calls use the V4 synchronous message Pact format.
+
+== Installation
+
+The executable binaries and plugin manifest file for the plugin can be downloaded from the project link:../releases[releases page].
+
+Plugin installation requires the plugin executable binary as well as the plugin manifest file to be unpacked/copied into a Pact plugin directory. By default, this will be `.pact/plugins/avro-<version>` in the home directory (i.e.
+`$HOME/.pact/plugins/avro-{version}` for version {version}).
+
+=== Automated
+
+The https://github.com/pact-foundation/pact-plugins/tree/main/cli[pact-plugin-cli] can be used to install the Avro plugin. See the https://github.com/pact-foundation/pact-plugins/tree/main/cli#installing[CLI installation] on how to install it.
+
+To install the latest version, run
+
+[source,shell]
+----
+pact-plugin-cli -y install https://github.com/austek/pact-avro-plugin/releases/latest
+----
+
+=== Manual
+
+Example installation of version {version} (replace with the actual version you are using):
+
+INFORMATION:: The default plugin directory (`$HOME/.pact/plugins`) can be changed by setting the `PACT_PLUGIN_DIR` environment variable.
+
+. Create the plugin directory if needed:
++
+[source,shell,subs=attributes]
+----
+mkdir -p ~/.pact/plugins/avro-{version}
+----
+
+. Download the plugin manifest into the directory:
++
+[source,shell,subs=attributes]
+----
+wget https://github.com/austek/pact-avro-plugin/releases/download/v-{version}/pact-plugin.json -O ~/.pact/plugins/avro-{version}/pact-plugin.json
+----
+
+. Download the plugin executable into the directory:
++
+[source,shell,subs=attributes]
+----
+wget https://github.com/austek/pact-avro-plugin/releases/download/v-{version}/pact-avro-plugin-{version}.tgz  -O ~/.pact/plugins/avro-{version}/pact-avro-plugin.tgz
+----
+
+. Unpack the plugin executable:
++
+[source,shell,subs=attributes]
+----
+gunzip -N ~/.pact/plugins/avro-{version}/pact-avro-plugin.gz
+----
+
+. Make the plugin executable:
++
+[source,shell,subs=attributes]
+----
+chmod +x ~/.pact/plugins/avro-{version}/pact-avro-plugin
+----
+
+NOTE:: The unpacked executable name must match the `entryPoint` value in the manifest file. By default, this is
+`pact-avro-plugin`.
+

@@ -1,0 +1,66 @@
+site:
+  title: Pact Avro Plugin
+  # features that depend on the site URL: https://docs.antora.org/antora/2.3/playbook/site-url/#when-should-the-site-url-be-set
+  url: https://austek.github.io/pact-avro-plugin/
+  start_page: pact-avro-plugin::index.adoc
+  robots: allow
+
+# see https://docs.antora.org/antora/2.3/playbook/configure-runtime/
+runtime:
+  cache_dir: ./.cache/antora
+  log:
+    # use pretty even on CI
+    format: pretty
+    # set to info to get details from the Antora extensions
+    level: info
+    # Antora exits with a non-zero exit code if an error is logged -> https://docs.antora.org/antora/latest/playbook/runtime-log-failure-level
+    failure_level: warn
+
+content:
+  sources:
+    - url: ./
+      branches:
+        - HEAD
+      start_path: docs
+
+ui:
+  bundle:
+    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/HEAD/raw/build/ui-bundle.zip?job=bundle-stable
+    snapshot: true
+  supplemental_files:
+    - path: ui.yml
+      contents: |
+        static_files:
+        - .nojekyll
+    - path: .nojekyll
+
+antora:
+  extensions:
+    - require: '@antora/lunr-extension'
+
+output:
+  clean: true
+
+asciidoc:
+  attributes:
+    idprefix: ''
+    idseparator: '-'
+    page-pagination: ''
+    experimental: ''
+    plantuml-server-url: https://www.plantuml.com/plantuml
+    # You can use the kroki-fetch-diagram option to download the images from Kroki at build time. In other words, while viewing pages you won't rely on Kroki anymore.
+    # However, in Antora, this is not currently compatible with inline SVG images.
+    kroki-fetch-diagram: true
+    # required for interactive diagram, but it is good idea in general
+    # use SVG unless otherwise specified
+    kroki-default-format: svg
+    # Make SVG inline so that we can get interactive (can be overridden by schema with "opts=none")
+    kroki-default-options: interactive
+  # Only enable for preview, we don't care for production and it can have performance impacts
+  # https://docs.antora.org/antora/latest/playbook/asciidoc-sourcemap/
+#  sourcemap: false
+  extensions:
+    - ./.tools/antora/inline-puml-link-macro.js
+    - '@asciidoctor/tabs'
+    - asciidoctor-kroki
+    - asciidoctor-plantuml
