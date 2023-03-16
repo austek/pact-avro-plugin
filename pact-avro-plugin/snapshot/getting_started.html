@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Getting Started :: Pact Avro Plugin</title>
+    <link rel="canonical" href="https://austek.github.io/pact-avro-plugin/pact-avro-plugin/snapshot/getting_started.html">
+    <link rel="prev" href="index.html">
+    <link rel="next" href="logging.html">
+    <meta name="generator" content="Antora 3.1.2">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script>var uiRootPath = '../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://austek.github.io/pact-avro-plugin">Pact Avro Plugin</a>
+      <div class="navbar-item search hide-for-print">
+        <div id="search-field" class="field">
+          <input id="search-input" type="text" placeholder="Search the docs">
+        </div>
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Products</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Product A</a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Services</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="pact-avro-plugin" data-version="snapshot">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html">Pact Avro Plugin</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">About</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="getting_started.html">Getting Started</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="logging.html">Logging</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="testing.html">Testing</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Pact Avro Plugin</span>
+    <span class="version">snapshot</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="index.html">Pact Avro Plugin</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="index.html">snapshot</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Pact Avro Plugin</a></li>
+    <li><a href="getting_started.html">Getting Started</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="file:///Users/ali.ustek/Workspace/pact/pact-avro-plugin/docs/modules/ROOT/pages/getting_started.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Getting Started</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This plugin will register itself with the Pact framework for the <code>avro/binary</code>,<code>application/avro</code>, <code>application/*+avro</code> and <code>avro/bytes</code> content types.</p>
+</div>
+<div class="paragraph">
+<p>Using this plugin, you can write Pact tests that verify a single message (i.e. a message provider sends
+a message to a consumer).</p>
+</div>
+<div class="paragraph">
+<p>Tests are supported by using the V4 asynchronous message Pact format, and the service method calls use the V4 synchronous message Pact format.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="installation"><a class="anchor" href="#installation"></a>Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The executable binaries and plugin manifest file for the plugin can be downloaded from the project <a href="../releases">releases page</a>.</p>
+</div>
+<div class="paragraph">
+<p>Plugin installation requires the plugin executable binary as well as the plugin manifest file to be unpacked/copied into a Pact plugin directory. By default, this will be <code>.pact/plugins/avro-&lt;version&gt;</code> in the home directory (i.e.
+<code>$HOME/.pact/plugins/avro-0.0.1</code> for version 0.0.1).</p>
+</div>
+<div class="sect2">
+<h3 id="automated"><a class="anchor" href="#automated"></a>Automated</h3>
+<div class="paragraph">
+<p>The <a href="https://github.com/pact-foundation/pact-plugins/tree/main/cli">pact-plugin-cli</a> can be used to install the Avro plugin. See the <a href="https://github.com/pact-foundation/pact-plugins/tree/main/cli#installing">CLI installation</a> on how to install it.</p>
+</div>
+<div class="paragraph">
+<p>To install the latest version, run</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">pact-plugin-cli -y install https://github.com/austek/pact-avro-plugin/releases/latest</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="manual"><a class="anchor" href="#manual"></a>Manual</h3>
+<div class="paragraph">
+<p>Example installation of version 0.0.1 (replace with the actual version you are using):</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">INFORMATION</dt>
+<dd>
+<p>The default plugin directory (<code>$HOME/.pact/plugins</code>) can be changed by setting the <code>PACT_PLUGIN_DIR</code> environment variable.</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create the plugin directory if needed:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">mkdir -p ~/.pact/plugins/avro-0.0.1</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Download the plugin manifest into the directory:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">wget https://github.com/austek/pact-avro-plugin/releases/download/v-0.0.1/pact-plugin.json -O ~/.pact/plugins/avro-0.0.1/pact-plugin.json</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Download the plugin executable into the directory:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">wget https://github.com/austek/pact-avro-plugin/releases/download/v-0.0.1/pact-avro-plugin-0.0.1.tgz  -O ~/.pact/plugins/avro-0.0.1/pact-avro-plugin.tgz</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Unpack the plugin executable:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">gunzip -N ~/.pact/plugins/avro-0.0.1/pact-avro-plugin.gz</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Make the plugin executable:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">chmod +x ~/.pact/plugins/avro-0.0.1/pact-avro-plugin</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</dd>
+<dt class="hdlist1">NOTE</dt>
+<dd>
+<p>The unpacked executable name must match the <code>entryPoint</code> value in the manifest file. By default, this is
+<code>pact-avro-plugin</code>.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="index.html">About</a></span>
+  <span class="next"><a href="logging.html">Logging</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+<script src="../../_/js/vendor/lunr.js"></script>
+<script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>
