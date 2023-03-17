@@ -1,0 +1,14 @@
+name: pact-avro-plugin
+title: Pact Avro Plugin
+version: snapshot
+asciidoc:
+  attributes:
+    icons: font
+    encoding: utf-8
+    lang: en
+    project-name: pact-avro-plugin
+    project-display-name: Pact Avro Plugin
+    version: 0.0.1
+
+nav:
+- modules/ROOT/nav.adoc

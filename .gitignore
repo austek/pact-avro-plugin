@@ -34,3 +34,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Docs ###
+node_modules/
+.cache/
+modules/plugin/src/site/

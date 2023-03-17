@@ -39,6 +39,7 @@ class PactPulsarConsumerTest {
 
     @Pact(consumer = "avro-consumer")
     V4Pact configureRecordWithDependantRecord(PactBuilder builder) {
+        // tag::configuration[]
         return builder
                 .usingPlugin("avro")
                 .expectsToReceive("Order Created", "core/interaction/message")
@@ -70,31 +71,16 @@ class PactPulsarConsumerTest {
                         )
                 ))
                 .toPact();
+        // end::configuration[]
     }
 
+    // tag::consumer_test[]
     @Test
     @PactTestFor(pactMethod = "configureRecordWithDependantRecord")
     void consumerRecordWithDependantRecord(V4Interaction.AsynchronousMessage message) throws IOException {
         MessageContents messageContents = message.getContents();
         List<Order> orders = arrayByteToAvroRecord(Order.class, messageContents.getContents().getValue());
-        assertThat(orders).hasSize(1);
-        Order order = orders.get(0);
-        assertThat(order.getId()).isEqualTo(100);
-        assertThat(order.getNames()).hasToString("name-1");
-        assertThat(order.getEnabled()).isTrue();
-        assertThat(order.getHeight()).isEqualTo(15.8F);
-        assertThat(order.getWidth()).isEqualTo(1.8D);
-        assertThat(order.getStatus()).isEqualTo(Status.CREATED);
-        assertThat(order.getAddress().getNo()).isEqualTo(121);
-        assertThat(order.getAddress().getStreet()).hasToString("street name");
-        assertThat(order.getAddress().getZipcode()).isNull();
-        assertThat(order.getItems()).hasSize(2);
-        Item item1 = order.getItems().get(0);
-        assertThat(item1.getName()).hasToString("Item-1");
-        assertThat(item1.getId()).isEqualTo(1L);
-        Item item2 = order.getItems().get(1);
-        assertThat(item2.getName()).hasToString("Item-2");
-        assertThat(item2.getId()).isEqualTo(2L);
+        Order order = assertFirstOrder(orders);
 
         assertThat(messageContents.getContents().getContentType()).hasToString("avro/binary; record=Order");
         assertThat(messageContents.getContents().getContentTypeHint()).isEqualTo(ContentTypeHint.BINARY);
@@ -122,5 +108,28 @@ class PactPulsarConsumerTest {
         }
 
         return records;
+    }
+    // end::consumer_test[]
+
+    private static Order assertFirstOrder(List<Order> orders) {
+        assertThat(orders).hasSize(1);
+        Order order = orders.get(0);
+        assertThat(order.getId()).isEqualTo(100);
+        assertThat(order.getNames()).hasToString("name-1");
+        assertThat(order.getEnabled()).isTrue();
+        assertThat(order.getHeight()).isEqualTo(15.8F);
+        assertThat(order.getWidth()).isEqualTo(1.8D);
+        assertThat(order.getStatus()).isEqualTo(Status.CREATED);
+        assertThat(order.getAddress().getNo()).isEqualTo(121);
+        assertThat(order.getAddress().getStreet()).hasToString("street name");
+        assertThat(order.getAddress().getZipcode()).isNull();
+        assertThat(order.getItems()).hasSize(2);
+        Item item1 = order.getItems().get(0);
+        assertThat(item1.getName()).hasToString("Item-1");
+        assertThat(item1.getId()).isEqualTo(1L);
+        Item item2 = order.getItems().get(1);
+        assertThat(item2.getName()).hasToString("Item-2");
+        assertThat(item2.getId()).isEqualTo(2L);
+        return order;
     }
 }
