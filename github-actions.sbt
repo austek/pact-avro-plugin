@@ -74,9 +74,13 @@ ThisBuild / githubWorkflowPublish := Seq(
       "tag" -> "${{ github.ref }}"
     )
   ),
-  WorkflowStep.Sbt(
+  WorkflowStep.Run(
     name = Some("Publish docs"),
-    commands = List("ghpagesPushSite"),
+    commands = List(
+      "git config --global user.name github-actions",
+      "git config --global user.email github-actions@github.com",
+      "sbt ++${{ matrix.scala }} ghpagesPushSite"
+    ),
     env = Map(
       "GITHUB_TOKEN" -> "${{ secrets.GITHUB_TOKEN }}"
     )
