@@ -8,7 +8,7 @@ asciidoc:
     lang: en
     project-name: pact-avro-plugin
     project-display-name: Pact Avro Plugin
-    version: 0.0.1
+    version: snapshot
 
 nav:
 - modules/ROOT/nav.adoc

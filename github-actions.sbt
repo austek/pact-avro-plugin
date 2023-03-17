@@ -14,7 +14,7 @@ ThisBuild / githubWorkflowBuild := Seq(
   ),
   WorkflowStep.Run(
     name = Some("Upload Consumer Pact"),
-    commands = List("./pact-publish.sh")
+    commands = List("./scripts/pact-publish.sh")
   ),
   // TODO: Enable when https://github.com/pact-foundation/pact-jvm/issues/1678 is fixed
   //  WorkflowStep.Sbt(
@@ -53,7 +53,7 @@ ThisBuild / githubWorkflowPublish := Seq(
   ),
   WorkflowStep.Run(
     name = Some("Doc - build"),
-    commands = List("npm run build")
+    commands = List("./scripts/docBuild.sh ${{ github.ref }}")
   ),
   WorkflowStep.Sbt(
     name = Some("Build package"),
@@ -61,7 +61,7 @@ ThisBuild / githubWorkflowPublish := Seq(
   ),
   WorkflowStep.Run(
     name = Some("Prepare Artifacts"),
-    commands = List("./prepArtifacts.sh ${{ github.ref }}")
+    commands = List("./scripts/prepArtifacts.sh ${{ github.ref }}")
   ),
   WorkflowStep.Use(
     UseRef.Public("svenstaro", "upload-release-action", "v2"),
