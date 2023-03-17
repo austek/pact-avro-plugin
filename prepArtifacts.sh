@@ -6,18 +6,19 @@ then
     exit
 fi
 
-set -e
+set -ex
 
 echo Building Release for "$1"
-NEXT=$(echo "$2" | cut -d\- -f2)
+NEXT=$(echo "$1" | cut -d/ -f3 | sed 's/v//')
 ART_DIR=modules/plugin/target/artifacts
 ART_NAME=pact-avro-plugin-"${NEXT}".tgz
 
-sbt clean
 mkdir -p ${ART_DIR}
 
+ls -la modules/plugin/target/universal/
+
 mv modules/plugin/target/universal/"${ART_NAME}" ${ART_DIR}
-openssl dgst -sha256 -r ${ART_DIR}/"${ART_NAME}" > target/artifacts/"${ART_NAME}".sha256
+openssl dgst -sha256 -r ${ART_DIR}/"${ART_NAME}" > ${ART_DIR}/"${ART_NAME}".sha256
 
 sed -e 's/VERSION_HERE/'"${NEXT}"'/' modules/plugin/install-plugin.sh > ${ART_DIR}/install-plugin.sh
 openssl dgst -sha256 -r ${ART_DIR}/install-plugin.sh > ${ART_DIR}/install-plugin.sh.sha256
