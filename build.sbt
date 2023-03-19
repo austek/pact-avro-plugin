@@ -10,7 +10,7 @@ lazy val plugin = project
   .enablePlugins(
     AkkaGrpcPlugin,
     DockerPlugin,
-    GhpagesPlugin,
+    GitHubPagesPlugin,
     GitVersioning,
     JavaAppPackaging
   )
@@ -19,11 +19,10 @@ lazy val plugin = project
     maintainer := "aliustek@gmail.com",
     basicSettings,
     executableScriptName := "pact-avro-plugin",
-    git.remoteRepo := "git@github.com:austek/pact-avro-plugin.git",
-    ghpagesNoJekyll := true,
-    siteSourceDirectory := (`pact-avro-plugin` / baseDirectory).value / "build" / "site",
-    makeSite / includeFilter := (makeSite / includeFilter).value || ("*.svg" | "*.txt" | "*.woff" | "*.woff2" | "*.xml"),
-    ghpagesCleanSite / excludeFilter := ".gitignore" || "CNAME",
+    gitHubPagesOrgName := "austek",
+    gitHubPagesRepoName := "pact-avro-plugin",
+    gitHubPagesSiteDir := (`pact-avro-plugin` / baseDirectory).value / "build" / "site",
+    gitHubPagesAcceptedTextExtensions := Set(".css", ".html", ".js", ".svg", ".txt", ".woff", ".woff2", ".xml"),
     Compile / packageDoc / mappings := Seq(),
     inConfig(Universal) {
       Seq(

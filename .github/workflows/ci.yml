@@ -181,7 +181,4 @@ jobs:
       - name: Publish docs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.name github-actions
-          git config --global user.email github-actions@github.com
-          sbt ++${{ matrix.scala }} ghpagesPushSite
+        run: sbt ++${{ matrix.scala }} publishToGitHubPages
