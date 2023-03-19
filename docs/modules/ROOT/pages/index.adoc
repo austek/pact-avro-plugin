@@ -1,5 +1,5 @@
-[#about]
-= About
+[#overview]
+= Overview
 
 This plugin provides matching and verification of Avro serialised messages to the Pact contract testing framework. It requires a version of the Pact framework that supports the https://github.com/pact-foundation/pact-specification/tree/version-4[V4 Pact specification]
 as well as the https://github.com/pact-foundation/pact-plugins[Pact plugin framework].

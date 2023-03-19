@@ -1,0 +1,35 @@
+<header class="header">
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="{{{or site.url siteRootPath}}}">{{site.title}}</a>
+            {{#if env.SITE_SEARCH_PROVIDER}}
+                <div class="navbar-item search hide-for-print">
+                    <div id="search-field" class="field">
+                        <input id="search-input" type="text" placeholder="Search the docs"{{#if page.home}}
+                               autofocus{{/if}}>
+                    </div>
+                </div>
+            {{/if}}
+            <button class="navbar-burger" data-target="topbar-nav">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+        <div id="topbar-nav" class="navbar-menu">
+            <div class="navbar-end">
+                <a class="navbar-item" href="https://docs.pact.io/consumer">Guides</a>
+                <a class="navbar-item" href="https://docs.pact.io">Pact Docs</a>
+                <a class="navbar-item" href="https://pact.io">
+                    <img src="{{{uiRootPath}}}/img/pact.svg" alt="Pact" width="20px" height="20px"/>
+                </a>
+                <a class="navbar-item" href="https://github.com/austek/pact-avro-plugin">
+                    <img src="{{{uiRootPath}}}/img/github.svg" alt="Github Repository"/>
+                </a>
+                <a class="navbar-item" href="https://pact-foundation.slack.com/archives/C03SFK0H789">
+                    <img src="{{{uiRootPath}}}/img/slack.svg" alt="Slack" width="20px" height="20px"/>
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>

@@ -27,12 +27,7 @@ ui:
   bundle:
     url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/HEAD/raw/build/ui-bundle.zip?job=bundle-stable
     snapshot: true
-  supplemental_files:
-    - path: ui.yml
-      contents: |
-        static_files:
-        - .nojekyll
-    - path: .nojekyll
+  supplemental_files: ./docs/supplemental-ui
 
 antora:
   extensions:
@@ -61,6 +56,5 @@ asciidoc:
 #  sourcemap: false
   extensions:
     - ./.tools/antora/inline-puml-link-macro.js
-    - '@asciidoctor/tabs'
     - asciidoctor-kroki
     - asciidoctor-plantuml

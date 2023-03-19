@@ -38,32 +38,18 @@ INFORMATION:: The default plugin directory (`$HOME/.pact/plugins`) can be change
 mkdir -p ~/.pact/plugins/avro-{version}
 ----
 
-. Download the plugin manifest into the directory:
-+
-[source,shell,subs=attributes]
-----
-wget https://github.com/austek/pact-avro-plugin/releases/download/v-{version}/pact-plugin.json -O ~/.pact/plugins/avro-{version}/pact-plugin.json
-----
-
 . Download the plugin executable into the directory:
 +
 [source,shell,subs=attributes]
 ----
-wget https://github.com/austek/pact-avro-plugin/releases/download/v-{version}/pact-avro-plugin-{version}.tgz  -O ~/.pact/plugins/avro-{version}/pact-avro-plugin.tgz
+wget -c https://github.com/austek/pact-avro-plugin/releases/download/v-{version}/pact-avro-plugin-{version}.tgz -O ~/.pact/plugins/avro-{version}/pact-avro-plugin.tgz
 ----
 
 . Unpack the plugin executable:
 +
 [source,shell,subs=attributes]
 ----
-gunzip -N ~/.pact/plugins/avro-{version}/pact-avro-plugin.gz
-----
-
-. Make the plugin executable:
-+
-[source,shell,subs=attributes]
-----
-chmod +x ~/.pact/plugins/avro-{version}/pact-avro-plugin
+tar -C ~/.pact/plugins/avro-${VERSION} -xzvf  ~/.pact/plugins/avro-{version}/pact-avro-plugin.tgz --strip-components 1
 ----
 
 NOTE:: The unpacked executable name must match the `entryPoint` value in the manifest file. By default, this is
