@@ -14,9 +14,11 @@ Supported Pact framework versions:
 
 == Supported features
 
-TBD
+* Avro over HTTP
 
 == Unsupported features
+
+* Avro over RPC
 
 TBD
 
