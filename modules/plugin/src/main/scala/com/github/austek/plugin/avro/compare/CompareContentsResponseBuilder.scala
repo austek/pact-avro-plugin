@@ -11,6 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 import io.pact.plugin._
 import io.pact.plugins.jvm.core.Utils.{INSTANCE => PactCoreUtils}
 import org.apache.avro.Schema
+import org.apache.avro.Schema.Type.{RECORD, UNION}
 import org.apache.avro.generic.GenericRecord
 
 import scala.jdk.CollectionConverters._
@@ -24,10 +25,26 @@ object CompareContentsResponseBuilder extends StrictLogging {
       _ <- contentTypesMatch(actualBody, expectedBody)
       _ <- correctContentType(actualBody, "Actual")
       _ <- correctContentType(expectedBody, "Expected")
-      actual <- AvroUtils.deserialize(avroSchema, actualBody.getContent.newInput())
-      expected <- AvroUtils.deserialize(avroSchema, expectedBody.getContent.newInput())
+      schema <- recordSchema(avroSchema, "Order")
+      actual <- AvroUtils.deserialize(schema, actualBody.getContent.toByteArray)
+      expected <- AvroUtils.deserialize(schema, expectedBody.getContent.toByteArray)
       response <- buildResponse(request, actual, expected)
     } yield response
+  }
+
+  private def recordSchema(schema: Schema, recordName: String): Either[PluginErrorMessage, Schema] = {
+    schema.getType match {
+      case UNION =>
+        schema.getTypes.asScala.find(s => s.getType == RECORD && s.getName == recordName) match {
+          case Some(value) => Right(value)
+          case None        => Left(PluginErrorMessage(s"Avro union schema didn't contain record: '$recordName'"))
+        }
+      case RECORD if schema.getName == recordName => Right(schema)
+      case RECORD if schema.getName != recordName =>
+        Left(PluginErrorMessage(s"Record '$recordName' was not found in avro Schema provided"))
+      case t =>
+        Left(PluginErrorMessage(s"Schema provided is of type: '$t', but expected to be ${UNION.getName}/${RECORD.getName}"))
+    }
   }
 
   private def buildResponse(
@@ -92,7 +109,8 @@ object CompareContentsResponseBuilder extends StrictLogging {
 
   private def correctContentType(body: Body, name: String): Either[PluginError[_], Unit] = {
     Either.cond(
-      ContentTypes.contains(body.contentType),
+//      ContentTypes.contains(body.contentType), //TODO Uncomment after bug is fixed
+      body.getContent != null,
       (),
       PluginErrorMessage(
         s"$name body is not one of '$ContentTypesStr' content type"

@@ -52,13 +52,41 @@ and this will need to be copied into the Pact plugin directory. See the installa
 
 === Running the tests
 
-You can run all tests by executing `sbt test`.
+.Unit tests
+[source,shell]
+----
+sbt plugin/test
+----
 
-There is a Pact test that verifies the plugin against the Pact file published to a local Pact broker. A docker compose file is provided, run the container
+.Consumer tests
+[source,shell]
+----
+sbt consumer/test
+----
 
+.Run Pact broker
 [source,shell]
 ----
 docker-compose -f docker-compose.yml up -d
 ----
+
+.Upload Consumer Pact
+[source,shell]
+----
+./scripts/pact-publish.sh
+----
+
+.Provider tests
+[source,shell]
+----
+sbt provider/test
+----
+
+.Stop Pact broker
+[source,shell]
+----
+docker-compose -f docker-compose.yml down
+----
+
 
 include::docs/README.adoc[]

@@ -1,5 +1,6 @@
 import BuildSettings._
 import Dependencies._
+import PublishSettings._
 
 ThisBuild / scalaVersion := scala213
 
@@ -18,21 +19,12 @@ lazy val plugin = project
     name := "plugin",
     maintainer := "aliustek@gmail.com",
     basicSettings,
+    publishSettings,
     executableScriptName := "pact-avro-plugin",
     gitHubPagesOrgName := "austek",
     gitHubPagesRepoName := "pact-avro-plugin",
     gitHubPagesSiteDir := (`pact-avro-plugin` / baseDirectory).value / "build" / "site",
     gitHubPagesAcceptedTextExtensions := Set(".css", ".html", ".js", ".svg", ".txt", ".woff", ".woff2", ".xml"),
-    Compile / packageDoc / mappings := Seq(),
-    inConfig(Universal) {
-      Seq(
-        packageName := s"pact-avro-plugin-${version.value}",
-        topLevelDirectory := Some(s"avro-${version.value}"),
-        mappings += {
-          baseDirectory.value / "pact-plugin.json" -> "pact-plugin.json"
-        }
-      )
-    },
     libraryDependencies ++=
       Dependencies.compile(apacheAvro, auPacMatchers, logback, pactCore, scalaLogging).map(withExclusions) ++
         Dependencies.test(scalaTest).map(withExclusions),
