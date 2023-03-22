@@ -9,6 +9,7 @@ object PublishSettings {
 
   lazy val publishSettings: Seq[Def.Setting[_]] =
     Seq(
+      executableScriptName := "pact-avro-plugin",
       Compile / doc / sources := Seq.empty,
       Compile / packageDoc / mappings := Seq.empty,
       Universal / mappings ++= Seq(

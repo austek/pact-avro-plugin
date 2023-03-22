@@ -15,17 +15,18 @@ import org.apache.avro.Schema.Type.{RECORD, UNION}
 import org.apache.avro.generic.GenericRecord
 
 import scala.jdk.CollectionConverters._
+import scala.util.matching.Regex
 
 object CompareContentsResponseBuilder extends StrictLogging {
+
+  private val ContentTypeRegex: Regex = raw"(\w+/\*?\+?\w+);\s*record=(\w+)".r
 
   def build(request: CompareContentsRequest, avroSchema: Schema): Either[PluginError[_], CompareContentsResponse] = {
     for {
       actualBody <- getBody(request.actual, "Actual body required")
       expectedBody <- getBody(request.expected, "Expected body required")
-      _ <- contentTypesMatch(actualBody, expectedBody)
-      _ <- correctContentType(actualBody, "Actual")
-      _ <- correctContentType(expectedBody, "Expected")
-      schema <- recordSchema(avroSchema, "Order")
+      recordName <- extractRecordName(actualBody, expectedBody)
+      schema <- recordSchema(avroSchema, recordName)
       actual <- AvroUtils.deserialize(schema, actualBody.getContent.toByteArray)
       expected <- AvroUtils.deserialize(schema, expectedBody.getContent.toByteArray)
       response <- buildResponse(request, actual, expected)
@@ -99,23 +100,30 @@ object CompareContentsResponseBuilder extends StrictLogging {
     )
   }
 
-  private def contentTypesMatch(actual: Body, expected: Body): Either[PluginError[_], Unit] = {
-    Either.cond(
-      actual.contentType == expected.contentType,
-      (),
-      PluginErrorMessage("Content types don't match")
-    )
-  }
+  private def extractRecordName(actual: Body, expected: Body): Either[PluginError[_], String] = {
+    def extract(body: Body, name: String): Either[PluginError[_], String] = {
+      body.contentType match {
+        case ContentTypeRegex(contentType, recordName) =>
+          Either.cond(
+            ContentTypes.contains(contentType),
+            recordName,
+            PluginErrorMessage(
+              s"$name body is not one of '$ContentTypesStr' content type"
+            )
+          )
+        case _ => Left(PluginErrorMessage(s"$name body content type didn't match expected template of 'content/type; record=NameOfRecord'"))
+      }
+    }
 
-  private def correctContentType(body: Body, name: String): Either[PluginError[_], Unit] = {
-    Either.cond(
-//      ContentTypes.contains(body.contentType), //TODO Uncomment after bug is fixed
-      body.getContent != null,
-      (),
-      PluginErrorMessage(
-        s"$name body is not one of '$ContentTypesStr' content type"
-      )
-    )
+    extract(actual, "Actual").flatMap { actualRecordName =>
+      extract(expected, "Expected").flatMap { expectedRecordName =>
+        if (actualRecordName == expectedRecordName) {
+          Right(expectedRecordName)
+        } else {
+          Left(PluginErrorMessage(s"Record names don't match, actual: '$actualRecordName' expected: '$expectedRecordName'"))
+        }
+      }
+    }
   }
 
   private def getBody(body: Option[Body], msg: String): Either[PluginError[_], Body] = {
