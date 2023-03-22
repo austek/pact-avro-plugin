@@ -10,7 +10,6 @@ lazy val plugin = project
   .in(file("modules/plugin"))
   .enablePlugins(
     AkkaGrpcPlugin,
-    DockerPlugin,
     GitHubPagesPlugin,
     GitVersioning,
     JavaAppPackaging
@@ -20,15 +19,14 @@ lazy val plugin = project
     maintainer := "aliustek@gmail.com",
     basicSettings,
     publishSettings,
-    executableScriptName := "pact-avro-plugin",
     gitHubPagesOrgName := "austek",
     gitHubPagesRepoName := "pact-avro-plugin",
     gitHubPagesSiteDir := (`pact-avro-plugin` / baseDirectory).value / "build" / "site",
     gitHubPagesAcceptedTextExtensions := Set(".css", ".html", ".js", ".svg", ".txt", ".woff", ".woff2", ".xml"),
     libraryDependencies ++=
-      Dependencies.compile(apacheAvro, auPacMatchers, logback, pactCore, scalaLogging).map(withExclusions) ++
+      Dependencies.compile(apacheAvro, auPactMatchers, logback, pactCore, scalaLogging).map(withExclusions) ++
         Dependencies.test(scalaTest).map(withExclusions),
-    dependencyOverrides += Dependencies.grpcStub
+    dependencyOverrides ++= Seq(grpcStub)
   )
 lazy val pluginRef = LocalProject("plugin")
 
@@ -40,7 +38,7 @@ lazy val provider = project
     Test / envVars := Map("PACT_PLUGIN_DIR" -> (pluginRef / Universal / stagingDirectory).value.absolutePath),
     libraryDependencies ++=
       Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, pureConfig, scalacheck).map(withExclusions) ++
-        Dependencies.test(assertJCore, jUnitInterface, pactProviderJunit).map(withExclusions),
+        Dependencies.test(assertJCore, jUnitInterface, pactProviderJunit, pactCore).map(withExclusions),
     publish / skip := false
   )
 
@@ -53,7 +51,7 @@ lazy val consumer = project
     Test / envVars := Map("PACT_PLUGIN_DIR" -> (pluginRef / Universal / stagingDirectory).value.absolutePath),
     libraryDependencies ++=
       Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, pureConfig, scalaLogging).map(withExclusions) ++
-        Dependencies.test(assertJCore, jUnitInterface, pactConsumerJunit).map(withExclusions),
+        Dependencies.test(assertJCore, jUnitInterface, pactConsumerJunit, pactCore).map(withExclusions),
     dependencyOverrides += Dependencies.pactCore,
     publish / skip := false
   )
