@@ -80,6 +80,9 @@ jobs:
       - name: Upload Consumer Pact
         run: ./scripts/pact-publish.sh
 
+      - name: Test Provider
+        run: sbt ++${{ matrix.scala }} provider/test
+
       - name: Stop containers
         if: always()
         run: docker-compose -f docker-compose.yml down

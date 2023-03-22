@@ -78,7 +78,9 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
       interactionConfig <- getConfiguration(request.getPluginConfiguration.interactionConfiguration, "Interaction configuration not found")
       schemaKey <- getConfigStringValue(interactionConfig.fields, SchemaKey, s"Plugin configuration item with key '$SchemaKey' is required")
       pactConfiguration <- getConfiguration(request.getPluginConfiguration.pactConfiguration, "Pact configuration not found")
-      avroSchemaString <- getConfigStringValue(pactConfiguration.fields, schemaKey, s"Plugin configuration item with key '$schemaKey' is required")
+      avroSchemaConfig <- getConfigValue(pactConfiguration.fields, schemaKey, s"Plugin Avro Schema configuration item with key '$schemaKey' is required")
+      avroSchemaString <-
+        getConfigStringValue(avroSchemaConfig.getStructValue.fields, AvroSchema, s"Avro Schema configuration item with key '$AvroSchema' is required")
       avroSchema <- AvroUtils.parseSchema(avroSchemaString)
       response <- CompareContentsResponseBuilder.build(request, avroSchema)
     } yield response) match {

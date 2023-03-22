@@ -71,7 +71,8 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
         )
       )
       .map { response =>
-        response.error shouldBe "non-existing.avsc (No such file or directory)"
+        response.error should startWith("Failed to parse avro schema from file:")
+        response.error should endWith("non-existing.avsc")
       }
   }
 
@@ -91,7 +92,8 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
         )
       )
       .map { response =>
-        response.error shouldBe "Type not supported: invalid"
+        response.error should startWith("Failed to parse avro schema from file:")
+        response.error should endWith("invalid.avsc")
       }
   }
 

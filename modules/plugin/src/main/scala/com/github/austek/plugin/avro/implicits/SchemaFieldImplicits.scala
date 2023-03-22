@@ -35,10 +35,12 @@ object SchemaFieldImplicits extends StrictLogging {
             case BOOLEAN => Right(compareValue(path, field, expected.valueOf[Boolean](field.name()), actual.valueOf[Boolean](field.name()), () => "", context))
             case ENUM =>
               Right(compareValue(path, field, expected.valueOf[EnumSymbol](field.name()), actual.valueOf[EnumSymbol](field.name()), () => "", context))
-            case FIXED  => Right(compareValue(path, field, expected.valueOf[Fixed](field.name()), actual.valueOf[Fixed](field.name()), () => "", context))
-            case ARRAY  => Right(compareArrayField(path, expected, actual, context))
-            case MAP    => Right(compareMapField(path, expected, actual, context))
-            case RECORD => expected.compare(path, actual)
+            case FIXED => Right(compareValue(path, field, expected.valueOf[Fixed](field.name()), actual.valueOf[Fixed](field.name()), () => "", context))
+            case ARRAY => Right(compareArrayField(path, expected, actual, context))
+            case MAP   => Right(compareMapField(path, expected, actual, context))
+            case RECORD =>
+              val fieldName = path.last
+              expected.get(fieldName).asInstanceOf[GenericRecord].compare(path, actual.get(fieldName).asInstanceOf[GenericRecord])
             case t =>
               logger.warn(s"Field.compare doesn't support type: $t")
               Right(List.empty)

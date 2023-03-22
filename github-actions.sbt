@@ -16,11 +16,10 @@ ThisBuild / githubWorkflowBuild := Seq(
     name = Some("Upload Consumer Pact"),
     commands = List("./scripts/pact-publish.sh")
   ),
-  // TODO: Enable when https://github.com/pact-foundation/pact-jvm/issues/1678 is fixed
-  //  WorkflowStep.Sbt(
-  //    name = Some("Test Provider"),
-  //    commands = List("provider/test")
-  //  ),
+  WorkflowStep.Sbt(
+    name = Some("Test Provider"),
+    commands = List("provider/test")
+  ),
   WorkflowStep.Run(
     cond = Some("always()"),
     name = Some("Stop containers"),
