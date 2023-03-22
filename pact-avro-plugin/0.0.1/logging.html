@@ -106,7 +106,23 @@
 <article class="doc">
 <h1 class="page">Logging</h1>
 <div class="paragraph">
-<p>The plugin will log to standard output. The log level will be set by the <code>LOG_LEVEL</code> environment variable that is passed into the plugin process (this should be set by the framework calling it).</p>
+<p>The plugin uses <a href="https://logback.qos.ch">Logback</a> to log to</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>standard output</p>
+</li>
+<li>
+<p><code>log/plugin.log</code> file in in the plugin directory.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The default log level is set to <code>ERROR</code> level and can be changed by the <code>LOG_LEVEL</code> environment variable that is passed into the plugin process (this should be set by the framework calling it).</p>
+</div>
+<div class="paragraph">
+<p>The default file logging is set to roll daily or whenever the file size reaches 50MB. Logger will keep 30 days' worth of logging history</p>
 </div>
 <nav class="pagination">
   <span class="prev"><a href="getting_started.html">Getting Started</a></span>
