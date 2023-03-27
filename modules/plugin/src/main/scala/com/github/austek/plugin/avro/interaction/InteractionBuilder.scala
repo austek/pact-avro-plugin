@@ -9,8 +9,8 @@ import com.github.austek.plugin.avro.utils.{PluginError, PluginErrorMessage}
 import com.google.protobuf.ByteString
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging
-import io.pact.plugin.Body.ContentTypeHint
-import io.pact.plugin._
+import io.pact.plugin.pact_plugin.Body.ContentTypeHint
+import io.pact.plugin.pact_plugin._
 import org.apache.avro.Schema
 import org.apache.avro.Schema.Type._
 

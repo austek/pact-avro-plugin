@@ -11,6 +11,4 @@ Pact plugin development board: https://github.com/pact-foundation/pact-plugins/p
 
 == License and Copyright
 
-This plugin is released under the *MIT License* and is copyright © 2021-22 https://pactflow.io[Pactflow].
-
-The Pactflow logos are copyright © https://pactflow.io[Pactflow] and may not be used without permission.
+This plugin is released under the *MIT License* and is copyright © 2021-23 Ali Ustek.

@@ -4,12 +4,9 @@ import PublishSettings._
 
 ThisBuild / scalaVersion := scala213
 
-val withExclusions: ModuleID => ModuleID = moduleId => moduleId.excludeAll(Dependencies.exclusions: _*)
-
 lazy val plugin = project
   .in(file("modules/plugin"))
   .enablePlugins(
-    AkkaGrpcPlugin,
     GitHubPagesPlugin,
     GitVersioning,
     JavaAppPackaging
@@ -23,10 +20,14 @@ lazy val plugin = project
     gitHubPagesRepoName := "pact-avro-plugin",
     gitHubPagesSiteDir := (`pact-avro-plugin` / baseDirectory).value / "build" / "site",
     gitHubPagesAcceptedTextExtensions := Set(".css", ".html", ".js", ".svg", ".txt", ".woff", ".woff2", ".xml"),
+    Compile / PB.targets := Seq(
+      scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
+    ),
     libraryDependencies ++=
-      Dependencies.compile(apacheAvro, auPactMatchers, logback, pactCore, scalaLogging).map(withExclusions) ++
-        Dependencies.test(scalaTest).map(withExclusions),
-    dependencyOverrides ++= Seq(grpcStub)
+      Dependencies.compile(apacheAvro, auPactMatchers, logback, pactCore, scalaLogging, scalaPBRuntime) ++
+        Dependencies.protobuf(scalaPB) ++
+        Dependencies.test(scalaTest),
+    dependencyOverrides ++= Seq(grpcApi, grpcCore, grpcNetty)
   )
 lazy val pluginRef = LocalProject("plugin")
 
@@ -37,8 +38,8 @@ lazy val provider = project
     Test / sbt.Keys.test := (Test / sbt.Keys.test).dependsOn(pluginRef / Universal / stage).value,
     Test / envVars := Map("PACT_PLUGIN_DIR" -> (pluginRef / Universal / stagingDirectory).value.absolutePath),
     libraryDependencies ++=
-      Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, pureConfig, scalacheck).map(withExclusions) ++
-        Dependencies.test(assertJCore, jUnitInterface, pactProviderJunit, pactCore).map(withExclusions),
+      Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, pureConfig, scalacheck) ++
+        Dependencies.test(assertJCore, jUnitInterface, pactProviderJunit, pactCore),
     publish / skip := false
   )
 
@@ -50,9 +51,8 @@ lazy val consumer = project
     Test / sbt.Keys.test := (Test / sbt.Keys.test).dependsOn(pluginRef / Universal / stage).value,
     Test / envVars := Map("PACT_PLUGIN_DIR" -> (pluginRef / Universal / stagingDirectory).value.absolutePath),
     libraryDependencies ++=
-      Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, pureConfig, scalaLogging).map(withExclusions) ++
-        Dependencies.test(assertJCore, jUnitInterface, pactConsumerJunit, pactCore).map(withExclusions),
-    dependencyOverrides += Dependencies.pactCore,
+      Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, pureConfig, scalaLogging) ++
+        Dependencies.test(assertJCore, jUnitInterface, pactConsumerJunit, pactCore),
     publish / skip := false
   )
 

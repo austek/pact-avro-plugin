@@ -11,7 +11,8 @@ import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging
 import io.grpc.Status.UNIMPLEMENTED
 import io.grpc.StatusException
-import io.pact.plugin.{MatchingRule => _, _}
+import io.pact.plugin.pact_plugin.PactPluginGrpc.PactPlugin
+import io.pact.plugin.pact_plugin.{MatchingRule => _, _}
 import org.apache.avro.Schema
 
 import java.nio.file.Path
