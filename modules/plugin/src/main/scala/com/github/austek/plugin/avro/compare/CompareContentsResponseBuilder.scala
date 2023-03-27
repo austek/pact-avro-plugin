@@ -8,7 +8,7 @@ import com.github.austek.plugin.avro.utils._
 import com.google.protobuf.ByteString
 import com.google.protobuf.struct.Struct.toJavaProto
 import com.typesafe.scalalogging.StrictLogging
-import io.pact.plugin._
+import io.pact.plugin.pact_plugin._
 import io.pact.plugins.jvm.core.Utils.{INSTANCE => PactCoreUtils}
 import org.apache.avro.Schema
 import org.apache.avro.Schema.Type.{RECORD, UNION}

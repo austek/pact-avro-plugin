@@ -1,4 +1,4 @@
-package com.github.austek.example;
+package com.github.austek.example.pulsar.avro;
 
 import au.com.dius.pact.consumer.dsl.PactBuilder;
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
@@ -14,7 +14,9 @@ import au.com.dius.pact.core.model.matchingrules.MatchingRuleCategory;
 import au.com.dius.pact.core.model.matchingrules.MatchingRuleGroup;
 import au.com.dius.pact.core.model.matchingrules.MatchingRulesImpl;
 import au.com.dius.pact.core.model.v4.MessageContents;
-import com.github.austek.example.pulsar.avro.OrderService;
+import com.github.austek.example.Item;
+import com.github.austek.example.Order;
+import com.github.austek.example.Status;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;

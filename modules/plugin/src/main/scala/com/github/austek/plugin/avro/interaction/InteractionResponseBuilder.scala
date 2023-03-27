@@ -5,7 +5,7 @@ import com.github.austek.plugin.avro.AvroSchemaBase16Hash
 import com.github.austek.plugin.avro.utils.{PluginErrorException, PluginErrorMessage, PluginErrorMessages}
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging
-import io.pact.plugin._
+import io.pact.plugin.pact_plugin._
 import org.apache.avro.Schema
 
 object InteractionResponseBuilder extends StrictLogging {

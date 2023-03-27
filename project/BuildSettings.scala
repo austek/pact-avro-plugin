@@ -29,6 +29,15 @@ object BuildSettings {
       val javaVersionFound = sys.props("java.specification.version").toDouble
       if (javaVersionFound < javaVersion)
         sys.error(s"Minimum Java $javaVersion is required for this project. Found $javaVersionFound instead")
-    }
+    },
+    // Configures eviction reports
+    evicted / evictionWarningOptions := EvictionWarningOptions.default
+      .withWarnDirectEvictions(true)
+      .withWarnEvictionSummary(true)
+      .withWarnScalaVersionEviction(true)
+      .withWarnTransitiveEvictions(true)
+      .withShowCallers(true),
+    // Checks evictions on resolving dependencies
+    update := update.dependsOn(evicted).value,
   )
 }

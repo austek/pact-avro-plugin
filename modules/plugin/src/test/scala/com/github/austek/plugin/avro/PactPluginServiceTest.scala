@@ -5,7 +5,7 @@ import com.github.austek.plugin.avro.utils.StringUtils._
 import com.github.austek.plugin.avro.utils.AvroUtils
 import com.google.protobuf.struct.Value.Kind._
 import com.google.protobuf.struct.{ListValue => StructListValue, Struct, Value}
-import io.pact.plugin._
+import io.pact.plugin.pact_plugin._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AsyncFlatSpecLike
 import org.scalatest.matchers.should.Matchers
