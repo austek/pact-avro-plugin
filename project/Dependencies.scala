@@ -44,9 +44,7 @@ object Dependencies extends DependencyUtils {
   val scalaTest: ModuleID = "org.scalatest"                    %% "scalatest"         % Versions.scalaTest
 
   // Overrides
-  val grpcApi = "io.grpc"            % "grpc-api"      % Versions.grpc
-  val grpcCore = "io.grpc"           % "grpc-core"     % Versions.grpc
-  val grpcNetty = "io.grpc"          % "grpc-netty"    % Versions.grpc
-  val grpcProtobuf = "io.grpc"       % "grpc-protobuf" % Versions.grpc
-  val grpcStub: ModuleID = "io.grpc" % "grpc-stub"     % Versions.grpc
+  val grpcApi: ModuleID = "io.grpc"   % "grpc-api"   % Versions.grpc
+  val grpcCore: ModuleID = "io.grpc"  % "grpc-core"  % Versions.grpc
+  val grpcNetty: ModuleID = "io.grpc" % "grpc-netty" % Versions.grpc
 }
