@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Testing :: Pact Avro Plugin</title>
-    <link rel="canonical" href="https://austek.github.io/pact-avro-plugin/pact-avro-plugin/0.0.1/testing.html">
+    <link rel="canonical" href="https://austek.github.io/pact-avro-plugin/pact-avro-plugin/0.0.2/testing.html">
     <link rel="prev" href="logging.html">
     <meta name="generator" content="Antora 3.1.2">
     <link rel="stylesheet" href="../../_/css/site.css">
@@ -44,7 +44,7 @@
     </nav>
 </header>
 <div class="body">
-<div class="nav-container" data-component="pact-avro-plugin" data-version="0.0.1">
+<div class="nav-container" data-component="pact-avro-plugin" data-version="0.0.2">
   <aside class="nav">
     <div class="panels">
 <div class="nav-panel-menu is-active" data-panel="menu">
@@ -70,14 +70,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Pact Avro Plugin</span>
-    <span class="version">0.0.1</span>
+    <span class="version">0.0.2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Pact Avro Plugin</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.0.1</a>
+          <a href="index.html">0.0.2</a>
         </li>
       </ul>
     </li>
@@ -227,6 +227,16 @@ a matching definition as the value. For documentation on the matching definition
           "type": "array",
           "items": "com.github.austek.example.Item"
         }
+      },
+      {
+        "name": "userId",
+        "type": [
+          "null",
+          {
+            "type": "string",
+            "logicalType": "uuid"
+          }
+        ]
       }
     ]
   }
@@ -238,76 +248,85 @@ a matching definition as the value. For documentation on the matching definition
 <div class="listingblock">
 <div class="title">Consumer configuration</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">        return builder
-                .usingPlugin("avro")
-                .expectsToReceive("Order Created", "core/interaction/message")
-                .with(Map.of(
-                        "message.contents", Map.ofEntries(
-                                Map.entry("pact:avro", schemasPath),
-                                Map.entry("pact:record-name", "Order"),
-                                Map.entry("pact:content-type", "avro/binary"),
-                                Map.entry("id", "notEmpty('100')"),
-                                Map.entry("names", "notEmpty('name-1')"),
-                                Map.entry("enabled", "matching(boolean, true)"),
-                                Map.entry("height", "matching(decimal, 15.8)"),
-                                Map.entry("width", "matching(decimal, 1.8)"),
-                                Map.entry("status", "matching(equalTo, 'CREATED')"),
-                                Map.entry("address", Map.of(
-                                        "no", "matching(integer, 121)",
-                                        "street", "matching(equalTo, 'street name')"
-                                )),
-                                Map.entry("items", List.of(
-                                        Map.of(
-                                                "name", "notEmpty('Item-1')",
-                                                "id", "notEmpty('1')"
-                                        ),
-                                        Map.of(
-                                                "name", "notEmpty('Item-2')",
-                                                "id", "notEmpty('2')"
-                                        )
-                                ))
-                        )
-                ))
-                .toPact();</code></pre>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    return builder
+        .usingPlugin("avro")
+        .expectsToReceive("Order Created", "core/interaction/message")
+        .with(
+            Map.of(
+                "message.contents",
+                Map.ofEntries(
+                    Map.entry("pact:avro", schemasPath),
+                    Map.entry("pact:record-name", "Order"),
+                    Map.entry("pact:content-type", "avro/binary"),
+                    Map.entry("id", "notEmpty('100')"),
+                    Map.entry("names", "notEmpty('name-1')"),
+                    Map.entry("enabled", "matching(boolean, true)"),
+                    Map.entry("height", "matching(decimal, 15.8)"),
+                    Map.entry("width", "matching(decimal, 1.8)"),
+                    Map.entry("status", "matching(equalTo, 'CREATED')"),
+                    Map.entry(
+                        "address",
+                        Map.of(
+                            "no", "matching(integer, 121)",
+                            "street", "matching(equalTo, 'street name')")),
+                    Map.entry(
+                        "items",
+                        List.of(
+                            Map.of(
+                                "name", "notEmpty('Item-1')",
+                                "id", "notEmpty('1')"),
+                            Map.of(
+                                "name", "notEmpty('Item-2')",
+                                "id", "notEmpty('2')"))),
+                    Map.entry("userId", "notEmpty('20bef962-8cbd-4b8c-8337-97ae385ac45d')"))))
+        .toPact();</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Java example consumer test</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    @Test
-    @PactTestFor(pactMethod = "configureRecordWithDependantRecord")
-    void consumerRecordWithDependantRecord(V4Interaction.AsynchronousMessage message) throws IOException {
-        MessageContents messageContents = message.getContents();
-        List&lt;Order&gt; orders = arrayByteToAvroRecord(Order.class, messageContents.getContents().getValue());
-        Order order = assertFirstOrder(orders);
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">  @Test
+  @PactTestFor(pactMethod = "configureRecordWithDependantRecord")
+  void consumerRecordWithDependantRecord(V4Interaction.AsynchronousMessage message)
+      throws IOException {
+    MessageContents messageContents = message.getContents();
+    List&lt;Order&gt; orders =
+        arrayByteToAvroRecord(Order.class, messageContents.getContents().getValue());
+    Order order = assertFirstOrder(orders);
 
-        assertThat(messageContents.getContents().getContentType()).hasToString("avro/binary; record=Order");
-        assertThat(messageContents.getContents().getContentTypeHint()).isEqualTo(ContentTypeHint.BINARY);
+    assertThat(messageContents.getContents().getContentType())
+        .hasToString("avro/binary; record=Order");
+    assertThat(messageContents.getContents().getContentTypeHint())
+        .isEqualTo(ContentTypeHint.BINARY);
 
-        Map&lt;String, MatchingRuleCategory&gt; ruleCategoryMap = ((MatchingRulesImpl) messageContents.getMatchingRules()).getRules();
-        assertThat(ruleCategoryMap).hasSize(1);
-        Map&lt;String, MatchingRuleGroup&gt; rules = ruleCategoryMap.get("body").getMatchingRules();
-        List&lt;MatchingRule&gt; idRules = rules.get("$.id").getRules();
-        assertThat(idRules).hasSize(1);
-        assertThat(idRules.get(0)).extracting("name").isEqualTo("not-empty");
-        List&lt;MatchingRule&gt; name0Rules = rules.get("$.names").getRules();
-        assertThat(name0Rules).hasSize(1);
-        assertThat(name0Rules.get(0)).extracting("name").isEqualTo("not-empty");
+    Map&lt;String, MatchingRuleCategory&gt; ruleCategoryMap =
+        ((MatchingRulesImpl) messageContents.getMatchingRules()).getRules();
+    assertThat(ruleCategoryMap).hasSize(1);
+    Map&lt;String, MatchingRuleGroup&gt; rules = ruleCategoryMap.get("body").getMatchingRules();
+    List&lt;MatchingRule&gt; idRules = rules.get("$.id").getRules();
+    assertThat(idRules).hasSize(1);
+    assertThat(idRules.get(0)).extracting("name").isEqualTo("not-empty");
+    List&lt;MatchingRule&gt; name0Rules = rules.get("$.names").getRules();
+    assertThat(name0Rules).hasSize(1);
+    assertThat(name0Rules.get(0)).extracting("name").isEqualTo("not-empty");
 
-        assertDoesNotThrow(() -&gt; orderService.process(order));
+    assertThat(order.getUserId())
+        .isEqualTo(UUID.fromString("20bef962-8cbd-4b8c-8337-97ae385ac45d"));
+
+    assertDoesNotThrow(() -&gt; orderService.process(order));
+  }
+
+  public static &lt;T&gt; List&lt;T&gt; arrayByteToAvroRecord(Class&lt;T&gt; c, byte[] bytes) throws IOException {
+    SpecificDatumReader&lt;T&gt; datumReader = new SpecificDatumReader&lt;&gt;(c);
+    List&lt;T&gt; records = new ArrayList&lt;&gt;();
+
+    try (ByteArrayInputStream in = new ByteArrayInputStream(bytes)) {
+      BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(in, null);
+      while (!decoder.isEnd()) records.add(datumReader.read(null, decoder));
     }
 
-    private &lt;T&gt; List&lt;T&gt; arrayByteToAvroRecord(Class&lt;T&gt; c, byte[] bytes) throws IOException {
-        SpecificDatumReader&lt;T&gt; datumReader = new SpecificDatumReader&lt;&gt;(c);
-        List&lt;T&gt; records = new ArrayList&lt;&gt;();
-
-        try (ByteArrayInputStream in = new ByteArrayInputStream(bytes)) {
-            BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(in, null);
-            while (!decoder.isEnd()) records.add(datumReader.read(null, decoder));
-        }
-
-        return records;
-    }</code></pre>
+    return records;
+  }</code></pre>
 </div>
 </div>
 </div>
@@ -337,8 +356,6 @@ from the consumer. There are two main ways of verifying the provider:</p>
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.github.austek.example.pulsar.avro;
 
 import au.com.dius.pact.core.model.ContentTypeHint;
-import au.com.dius.pact.core.model.Interaction;
-import au.com.dius.pact.core.model.Pact;
 import au.com.dius.pact.provider.MessageAndMetadata;
 import au.com.dius.pact.provider.PactVerifyProvider;
 import au.com.dius.pact.provider.junit5.MessageTestTarget;
@@ -350,6 +367,11 @@ import com.github.austek.example.Item;
 import com.github.austek.example.MailAddress;
 import com.github.austek.example.Order;
 import com.github.austek.example.Status;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumWriter;
@@ -357,62 +379,56 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
 @Provider("order-provider")
 @PactBroker(url = "http://localhost:9292")
 class PactPulsarProducerTest {
-    private static final String AVRO_CONTENT_TYPE = "avro/binary; record=Order";
-    private static final String KEY_CONTENT_TYPE = "contentType";
-    private static final String KEY_CONTENT_TYPE_HINT = "contentTypeHint";
-    private static final ContentTypeHint CONTENT_TYPE_HINT = ContentTypeHint.BINARY;
+  private static final String AVRO_CONTENT_TYPE = "avro/binary; record=Order";
+  private static final String KEY_CONTENT_TYPE = "contentType";
+  private static final String KEY_CONTENT_TYPE_HINT = "contentTypeHint";
+  private static final ContentTypeHint CONTENT_TYPE_HINT = ContentTypeHint.BINARY;
 
-    @TestTemplate
-    @ExtendWith(PactVerificationInvocationContextProvider.class)
-    void testTemplate(Pact pact, Interaction interaction, PactVerificationContext context) {
-        context.verifyInteraction();
+  @TestTemplate
+  @ExtendWith(PactVerificationInvocationContextProvider.class)
+  void testTemplate(PactVerificationContext context) {
+    context.verifyInteraction();
+  }
+
+  @SuppressWarnings("JUnitMalformedDeclaration")
+  @BeforeEach
+  void setupTest(PactVerificationContext context) {
+    context.setTarget(new MessageTestTarget());
+  }
+
+  @PactVerifyProvider("Order Created")
+  public MessageAndMetadata orderCreatedEvent() throws IOException {
+    Order order =
+        new Order(
+            100L,
+            "name-1",
+            true,
+            15.8F,
+            1.8D,
+            Status.CREATED,
+            new MailAddress(121, "street name", null),
+            List.of(new Item("Item-1", 1L), new Item("Item-2", 2L)),
+            UUID.fromString("20bef962-8cbd-4b8c-8337-97ae385ac45d"));
+
+    return new MessageAndMetadata(
+        serialise(order),
+        Map.of(
+            KEY_CONTENT_TYPE, AVRO_CONTENT_TYPE,
+            KEY_CONTENT_TYPE_HINT, CONTENT_TYPE_HINT));
+  }
+
+  private byte[] serialise(Order record) throws IOException {
+    SpecificDatumWriter&lt;Order&gt; writer = new SpecificDatumWriter&lt;&gt;(Order.class);
+    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+      BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(outputStream, null);
+      writer.write(record, encoder);
+      encoder.flush();
+      return outputStream.toByteArray();
     }
-
-    @BeforeEach
-    void setupTest(PactVerificationContext context) {
-        context.setTarget(new MessageTestTarget());
-    }
-
-    @PactVerifyProvider("Order Created")
-    public MessageAndMetadata orderCreatedEvent() throws IOException {
-        Order order = new Order(
-                100L,
-                "name-1",
-                true,
-                15.8F,
-                1.8D, Status.CREATED, new MailAddress(121, "street name", null),
-                List.of(
-                        new Item("Item-1", 1L),
-                        new Item("Item-2", 2L)
-                )
-        );
-
-        return new MessageAndMetadata(
-                serialise(order),
-                Map.of(
-                        KEY_CONTENT_TYPE, AVRO_CONTENT_TYPE,
-                        KEY_CONTENT_TYPE_HINT, CONTENT_TYPE_HINT
-                )
-        );
-    }
-
-    private byte[] serialise(Order record) throws IOException {
-        SpecificDatumWriter&lt;Order&gt; writer = new SpecificDatumWriter&lt;&gt;(Order.class);
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(outputStream, null);
-            writer.write(record, encoder);
-            encoder.flush();
-            return outputStream.toByteArray();
-        }
-    }
+  }
 }</code></pre>
 </div>
 </div>

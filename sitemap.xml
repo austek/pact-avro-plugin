@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
-<loc>https://austek.github.io/pact-avro-plugin/pact-avro-plugin/0.0.1/getting_started.html</loc>
-<lastmod>2023-03-22T16:07:51.688Z</lastmod>
+<loc>https://austek.github.io/pact-avro-plugin/pact-avro-plugin/0.0.2/getting_started.html</loc>
+<lastmod>2023-04-06T23:08:28.563Z</lastmod>
 </url>
 <url>
-<loc>https://austek.github.io/pact-avro-plugin/pact-avro-plugin/0.0.1/index.html</loc>
-<lastmod>2023-03-22T16:07:51.688Z</lastmod>
+<loc>https://austek.github.io/pact-avro-plugin/pact-avro-plugin/0.0.2/index.html</loc>
+<lastmod>2023-04-06T23:08:28.563Z</lastmod>
 </url>
 <url>
-<loc>https://austek.github.io/pact-avro-plugin/pact-avro-plugin/0.0.1/logging.html</loc>
-<lastmod>2023-03-22T16:07:51.688Z</lastmod>
+<loc>https://austek.github.io/pact-avro-plugin/pact-avro-plugin/0.0.2/logging.html</loc>
+<lastmod>2023-04-06T23:08:28.563Z</lastmod>
 </url>
 <url>
-<loc>https://austek.github.io/pact-avro-plugin/pact-avro-plugin/0.0.1/testing.html</loc>
-<lastmod>2023-03-22T16:07:51.688Z</lastmod>
+<loc>https://austek.github.io/pact-avro-plugin/pact-avro-plugin/0.0.2/testing.html</loc>
+<lastmod>2023-04-06T23:08:28.563Z</lastmod>
 </url>
 </urlset>
