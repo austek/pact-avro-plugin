@@ -32,14 +32,14 @@ include::example$consumer/src/main/resources/avro/orders.avsc[]
 .Consumer configuration
 [source,java]
 ----
-include::example$consumer/src/test/java/com/github/austek/example/PactPulsarConsumerTest.java[tags=configuration]
+include::example$consumer/src/test/java/com/github/austek/example/pulsar/avro/PactPulsarConsumerTest.java[tags=configuration]
 ----
 
 
 .Java example consumer test
 [source,java]
 ----
-include::example$consumer/src/test/java/com/github/austek/example/PactPulsarConsumerTest.java[tags=consumer_test]
+include::example$consumer/src/test/java/com/github/austek/example/pulsar/avro/PactPulsarConsumerTest.java[tags=consumer_test]
 ----
 
 == Provider
