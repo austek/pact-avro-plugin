@@ -6,7 +6,6 @@ import io.pact.plugin.pact_plugin.PactPluginGrpc
 import java.util.UUID
 import java.util.UUID.randomUUID
 import scala.concurrent.ExecutionContext
-import scala.sys.ShutdownHookThread
 
 object PactAvroPluginServer {
   def main(args: Array[String]): Unit = {
@@ -24,7 +23,7 @@ class PactAvroPluginServer(
 
   private[this] var server: Option[Server] = None
 
-  private def start(): ShutdownHookThread = {
+  private def start(): Unit = {
     server = Option(
       ServerBuilder
         .forPort(port)
@@ -33,7 +32,7 @@ class PactAvroPluginServer(
         .start
     )
     println(s"""{\"port":$port, "serverKey":"$serverKey"}""")
-    sys.addShutdownHook {
+    val _ = sys.addShutdownHook {
       System.err.println("*** shutting down gRPC server since JVM is shutting down")
       self.stop()
       System.err.println("*** server shut down")

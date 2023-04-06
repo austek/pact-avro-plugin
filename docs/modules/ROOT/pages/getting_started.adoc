@@ -42,7 +42,7 @@ mkdir -p ~/.pact/plugins/avro-{version}
 +
 [source,shell,subs=attributes]
 ----
-wget -c https://github.com/austek/pact-avro-plugin/releases/download/v-{version}/pact-avro-plugin-{version}.tgz -O ~/.pact/plugins/avro-{version}/pact-avro-plugin.tgz
+wget -c https://github.com/austek/pact-avro-plugin/releases/download/v{version}/pact-avro-plugin-{version}.tgz -O ~/.pact/plugins/avro-{version}/pact-avro-plugin.tgz
 ----
 
 . Unpack the plugin executable:
