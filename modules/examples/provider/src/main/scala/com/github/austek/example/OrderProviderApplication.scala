@@ -11,13 +11,11 @@ object OrderProviderApplication {
 
   private val controller = new OrderProducerController(config)
 
-  sys.addShutdownHook {
-    println("Closing producer and pulsar client..")
-    controller.close()
-  }
-
   def main(args: Array[String]): Unit = {
-    controller.producerOrders(config.orderProducer.numberOfOrders)
-    ()
+    val _ = sys.addShutdownHook {
+      println("Closing producer and pulsar client..")
+      controller.close()
+    }
+    val _ = controller.producerOrders(config.orderProducer.numberOfOrders)
   }
 }

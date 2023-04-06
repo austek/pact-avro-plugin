@@ -72,7 +72,7 @@ jobs:
         run: docker-compose -f docker-compose.yml up -d
 
       - name: Build project
-        run: sbt ++${{ matrix.scala }} compile scalafmtCheckAll plugin/test
+        run: sbt ++${{ matrix.scala }} compile scalafmtCheckAll javafmtCheckAll plugin/test
 
       - name: Test Consumer
         run: sbt ++${{ matrix.scala }} consumer/test

@@ -5,9 +5,8 @@ object Dependencies extends DependencyUtils {
 
   object Versions {
     val avro = "1.11.1"
-    val grpc = "1.53.0"
     val logback = "1.2.11"
-    val pact = "4.5.4"
+    val pact = "4.5.5"
     val pulsar4sVersion = "2.9.0"
     val scalaTest = "3.2.15"
   }
@@ -44,7 +43,7 @@ object Dependencies extends DependencyUtils {
   val scalaTest: ModuleID = "org.scalatest"                    %% "scalatest"         % Versions.scalaTest
 
   // Overrides
-  val grpcApi: ModuleID = "io.grpc"   % "grpc-api"   % Versions.grpc
-  val grpcCore: ModuleID = "io.grpc"  % "grpc-core"  % Versions.grpc
-  val grpcNetty: ModuleID = "io.grpc" % "grpc-netty" % Versions.grpc
+  val grpcApi: ModuleID = "io.grpc"   % "grpc-api"   % scalapb.compiler.Version.grpcJavaVersion
+  val grpcCore: ModuleID = "io.grpc"  % "grpc-core"  % scalapb.compiler.Version.grpcJavaVersion
+  val grpcNetty: ModuleID = "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion
 }

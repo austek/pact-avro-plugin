@@ -5,6 +5,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import util.randomization.Randomization._
 
 import java.nio.ByteBuffer
+import java.util.UUID
 import scala.jdk.CollectionConverters._
 
 object OrderRandomization {
@@ -38,7 +39,8 @@ object OrderRandomization {
         randomDouble,
         random[Status],
         random[MailAddress],
-        random[Item](2).asJava
+        random[Item](2).asJava,
+        random[UUID]
       )
     }
 

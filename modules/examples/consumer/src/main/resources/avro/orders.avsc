@@ -82,6 +82,16 @@
           "type": "array",
           "items": "com.github.austek.example.Item"
         }
+      },
+      {
+        "name": "userId",
+        "type": [
+          "null",
+          {
+            "type": "string",
+            "logicalType": "uuid"
+          }
+        ]
       }
     ]
   }

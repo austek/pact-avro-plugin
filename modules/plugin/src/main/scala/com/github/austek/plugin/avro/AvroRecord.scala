@@ -17,6 +17,7 @@ import org.apache.avro.io.EncoderFactory
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.util
+import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try, Using}
 
@@ -118,11 +119,12 @@ object Avro {
             case LONG   => Try(AvroLong(path, fieldName, fieldValue.asInstanceOf[Long], rules)).toEither
             case NULL   => Right(AvroNull(path, fieldName))
             case STRING => Try(AvroString(path, fieldName, fieldValue.asInstanceOf[String], rules)).toEither
-            case ARRAY  => Left(new UnsupportedOperationException(s"'ARRAY' not support as AvroValue: '$fieldValue'"))
-            case MAP    => Left(new UnsupportedOperationException(s"'MAP' not support as AvroValue: '$fieldValue'"))
-            case RECORD => Left(new UnsupportedOperationException(s"'RECORD' not support as AvroValue: '$fieldValue'"))
-            case UNION  => Left(new UnsupportedOperationException(s"'UNION' not support as AvroValue: '$fieldValue'"))
-            case t      => Left(new UnsupportedOperationException(s"Unknown type '$t' not support as AvroValue: '$fieldValue'"))
+            case ARRAY  => Left(new UnsupportedOperationException(s"'ARRAY' type is not supported for field: '${fieldName.value}' with value: '$fieldValue'"))
+            case MAP    => Left(new UnsupportedOperationException(s"'MAP' type is not supported for field: '${fieldName.value}' with value: '$fieldValue'"))
+            case RECORD => Left(new UnsupportedOperationException(s"'RECORD' type is not supported for field: '${fieldName.value}' with value: '$fieldValue'"))
+            case UNION  => Left(new UnsupportedOperationException(s"'UNION' type is not supported for field: '${fieldName.value}' with value: '$fieldValue'"))
+            case t =>
+              Left(new UnsupportedOperationException(s"Unknown type '$t' type is not supported for field: '${fieldName.value}' with value: '$fieldValue'"))
           }).left.map(e => PluginErrorException(e))
       }
     }
@@ -145,11 +147,11 @@ object Avro {
         case LONG    => Try(fieldValue.toLong).map(v => AvroLong(path, fieldName, v, rules)).toEither
         case NULL    => Right(AvroNull(path, fieldName))
         case STRING  => Right(AvroString(path, fieldName, fieldValue, rules))
-        case ARRAY   => Left(new UnsupportedOperationException(s"'ARRAY' not support as AvroValue: '$fieldValue'"))
-        case MAP     => Left(new UnsupportedOperationException(s"'MAP' not support as AvroValue: '$fieldValue'"))
-        case RECORD  => Left(new UnsupportedOperationException(s"'RECORD' not support as AvroValue: '$fieldValue'"))
-        case UNION   => Left(new UnsupportedOperationException(s"'UNION' not support as AvroValue: '$fieldValue'"))
-        case t       => Left(new UnsupportedOperationException(s"Unknown type '$t' not support as AvroValue: '$fieldValue'"))
+        case ARRAY   => Left(new UnsupportedOperationException(s"'ARRAY' type is not supported for field: '${fieldName.value}' with value: '$fieldValue'"))
+        case MAP     => Left(new UnsupportedOperationException(s"'MAP' type is not supported for field: '${fieldName.value}' with value: '$fieldValue'"))
+        case RECORD  => Left(new UnsupportedOperationException(s"'RECORD' type is not supported for field: '${fieldName.value}' with value: '$fieldValue'"))
+        case UNION   => Left(new UnsupportedOperationException(s"'UNION' type is not supported for field: '${fieldName.value}' with value: '$fieldValue'"))
+        case t => Left(new UnsupportedOperationException(s"Unknown type '$t' type is not supported for field: '${fieldName.value}' with value: '$fieldValue'"))
       }).left.map(e => PluginErrorException(e))
     }
   }
@@ -212,8 +214,7 @@ object Avro {
   }
 
   object AvroArray {
-    def apply(rootPath: PactFieldPath, schemaField: Schema.Field, inValue: Value): Either[Seq[PluginError[_]], AvroArray] = {
-      val fieldName = AvroFieldName(schemaField.name())
+    def apply(rootPath: PactFieldPath, fieldName: AvroFieldName, schema: Schema, inValue: Value): Either[Seq[PluginError[_]], AvroArray] = {
       inValue.kind match {
         case Empty        => Right(AvroArray(rootPath, fieldName))
         case NullValue(_) => Right(AvroArray(rootPath, fieldName))
@@ -221,10 +222,10 @@ object Avro {
           val arrayBasePath = rootPath :+ fieldName
           listValue.values.zipWithIndex
             .map { case (singleValue, index) =>
-              schemaField.schema().getElementType.getType match {
-                case RECORD => AvroValue(arrayBasePath :+ index, fieldName, schemaField.schema(), singleValue, appendPath = false)
+              schema.getElementType.getType match {
+                case RECORD => AvroValue(arrayBasePath :+ index, fieldName, schema, singleValue, appendPath = false)
                 case _ =>
-                  AvroValue(rootPath, fieldName, schemaField.schema(), singleValue).map {
+                  AvroValue(rootPath, fieldName, schema, singleValue).map {
                     case v: AvroNull    => v.copy(path = v.path :+ index)
                     case v: AvroString  => v.copy(path = v.path :+ index)
                     case v: AvroEnum    => v.copy(path = v.path :+ index)
@@ -272,21 +273,21 @@ object Avro {
   }
 
   object AvroMap {
-    def apply(rootPath: PactFieldPath, schemaField: Schema.Field, inValue: Value): Either[Seq[PluginError[_]], AvroMap] = {
-      val fieldName = AvroFieldName(schemaField.name())
+    def apply(rootPath: PactFieldPath, fieldName: AvroFieldName, schema: Schema, inValue: Value): Either[Seq[PluginError[_]], AvroMap] = {
+      val path = rootPath :+ fieldName
       inValue.kind match {
-        case Empty        => Right(AvroMap(rootPath, fieldName))
-        case NullValue(_) => Right(AvroMap(rootPath, fieldName))
+        case Empty        => Right(AvroMap(path, fieldName))
+        case NullValue(_) => Right(AvroMap(path, fieldName))
         case StructValue(structValue) =>
           structValue.fields
             .map { case (key, singleValue) =>
-              AvroValue(rootPath, key.toFieldName, schemaField.schema(), singleValue).map { v =>
+              AvroValue(path, key.toFieldName, schema, singleValue).map { v =>
                 key.toPactPath -> v
               }
             }
             .partitionMap(identity) match {
             case (errors, _) if errors.nonEmpty => Left(errors.toSeq.flatten)
-            case (_, fields)                    => Right(AvroMap(rootPath, fieldName, fields.toMap))
+            case (_, fields)                    => Right(AvroMap(path, fieldName, fields.toMap))
           }
         case _ => Left(Seq(PluginErrorMessage(s"Expected map value for field '${fieldName.value}' but got '${inValue.kind}'")))
       }
@@ -328,43 +329,50 @@ object Avro {
         if (null != value) {
           val field = schema.getField(key)
           val fieldSchema = field.schema()
-          fieldSchema.getType match {
-            case ENUM =>
-              record.put(key, new GenericData.EnumSymbol(fieldSchema, value))
-            case ARRAY if fieldSchema.getElementType.getType == RECORD =>
-              record.put(
-                key,
-                value
-                  .asInstanceOf[java.util.List[AvroRecord]]
-                  .asScala
-                  .map { item =>
-                    item.toGenericRecord(fieldSchema.getElementType)
-                  }
-                  .asJava
-              )
-            case MAP if fieldSchema.getValueType.getType == RECORD =>
-              record.put(
-                key,
-                value
-                  .asInstanceOf[util.Map[String, AvroRecord]]
-                  .asScala
-                  .map { case (key, item) =>
-                    key -> item.toGenericRecord(fieldSchema.getValueType)
-                  }
-                  .asJava
-              )
-            case RECORD =>
-              record.put(key, value.asInstanceOf[AvroRecord].toGenericRecord(fieldSchema))
-            case FIXED =>
-              record.put(key, new GenericData.Fixed(fieldSchema, value.asInstanceOf[String].getBytes))
-            case _ =>
-              record.put(key, value)
-          }
+          fieldToRecord(record, key, value, fieldSchema)
         } else {
           record.put(key, value)
         }
       }
       record
+    }
+
+    @tailrec
+    private def fieldToRecord(record: GenericRecord, key: String, value: Any, fieldSchema: Schema): Unit = {
+      fieldSchema.getType match {
+        case ENUM =>
+          record.put(key, new GenericData.EnumSymbol(fieldSchema, value))
+        case ARRAY if fieldSchema.getElementType.getType == RECORD =>
+          record.put(
+            key,
+            value
+              .asInstanceOf[util.List[AvroRecord]]
+              .asScala
+              .map { item =>
+                item.toGenericRecord(fieldSchema.getElementType)
+              }
+              .asJava
+          )
+        case MAP if fieldSchema.getValueType.getType == RECORD =>
+          record.put(
+            key,
+            value
+              .asInstanceOf[util.Map[String, AvroRecord]]
+              .asScala
+              .map { case (key, item) =>
+                key -> item.toGenericRecord(fieldSchema.getValueType)
+              }
+              .asJava
+          )
+        case RECORD =>
+          record.put(key, value.asInstanceOf[AvroRecord].toGenericRecord(fieldSchema))
+        case FIXED =>
+          record.put(key, new GenericData.Fixed(fieldSchema, value.asInstanceOf[String].getBytes))
+        case UNION =>
+          fieldToRecord(record, key, value, fieldSchema.getTypes.asScala.filterNot(_.getType == NULL).head)
+        case _ =>
+          record.put(key, value)
+      }
     }
 
     def toByteString(schema: Schema): Either[PluginErrorException, ByteString] = {
@@ -396,23 +404,7 @@ object Avro {
           val fieldName = AvroFieldName(schemaField.name())
           configFields.get(schemaField.name()) match {
             case Some(configValue) =>
-              schemaField.schema().getType match {
-                case STRING  => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
-                case INT     => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
-                case LONG    => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
-                case FLOAT   => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
-                case DOUBLE  => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
-                case BOOLEAN => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
-                case ENUM    => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
-                case FIXED   => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
-                case BYTES   => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
-                case NULL    => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
-                case RECORD  => AvroRecord(rootPath :+ schemaField.name(), fieldName, schemaField.schema(), configValue.getStructValue.fields)
-                case ARRAY   => AvroArray(rootPath, schemaField, configValue)
-                case MAP     => AvroMap(rootPath :+ schemaField.name(), schemaField, configValue)
-                case UNION   => Left(Seq(PluginErrorException(new UnsupportedOperationException("'UNION' not support as AvroValue"))))
-                case t       => Left(Seq(PluginErrorException(new UnsupportedOperationException(s"Unknown type '$t' not support as AvroValue"))))
-              }
+              selectField(rootPath, schemaField, fieldName, configValue)
             case None =>
               if (schemaField.hasDefaultValue) {
                 AvroValue(rootPath :+ fieldName, fieldName, schemaField.schema().getType, schemaField.defaultVal(), Seq.empty).left.map(e => Seq(e))
@@ -429,5 +421,87 @@ object Avro {
       }
     }
 
+    private def selectField(
+      rootPath: PactFieldPath,
+      schemaField: Schema.Field,
+      fieldName: AvroFieldName,
+      configValue: Value
+    ): Either[Seq[PluginError[_]], AvroValue] = {
+      schemaField.schema().getType match {
+        case STRING  => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+        case INT     => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+        case LONG    => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+        case FLOAT   => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+        case DOUBLE  => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+        case BOOLEAN => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+        case ENUM    => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+        case FIXED   => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+        case BYTES   => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+        case NULL    => AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
+        case RECORD  => AvroRecord(rootPath :+ fieldName, fieldName, schemaField.schema(), configValue.getStructValue.fields)
+        case ARRAY   => AvroArray(rootPath, fieldName, schemaField.schema(), configValue)
+        case MAP     => AvroMap(rootPath, fieldName, schemaField.schema(), configValue)
+        case UNION =>
+          val subTypes = schemaField.schema().getTypes.asScala
+          if (subTypes.size == 2 && subTypes.exists(_.getType == NULL)) {
+            subTypes.filterNot(_.getType == NULL).headOption match {
+              case Some(schema) => selectNullableField(rootPath, fieldName, configValue, schema)
+              case None =>
+                Left(
+                  Seq(
+                    PluginErrorException(
+                      new UnsupportedOperationException(s"A valid schema wasn't find for field: '${fieldName.value}' with value: '$configValue'")
+                    )
+                  )
+                )
+            }
+          } else {
+            Left(
+              Seq(
+                PluginErrorException(
+                  new UnsupportedOperationException(
+                    s"'UNION' type is only supported to make field nullable, field: '${fieldName.value}' with value: '$configValue'"
+                  )
+                )
+              )
+            )
+          }
+        case t =>
+          Left(
+            Seq(
+              PluginErrorException(
+                new UnsupportedOperationException(s"Unknown type '$t' type is not supported for field: '${fieldName.value}' with value: '$configValue'")
+              )
+            )
+          )
+      }
+    }
+
+    private def selectNullableField(rootPath: PactFieldPath, fieldName: AvroFieldName, configValue: Value, schema: Schema) = {
+      schema.getType match {
+        case STRING  => AvroValue(rootPath, fieldName, schema, configValue)
+        case INT     => AvroValue(rootPath, fieldName, schema, configValue)
+        case LONG    => AvroValue(rootPath, fieldName, schema, configValue)
+        case FLOAT   => AvroValue(rootPath, fieldName, schema, configValue)
+        case DOUBLE  => AvroValue(rootPath, fieldName, schema, configValue)
+        case BOOLEAN => AvroValue(rootPath, fieldName, schema, configValue)
+        case ENUM    => AvroValue(rootPath, fieldName, schema, configValue)
+        case FIXED   => AvroValue(rootPath, fieldName, schema, configValue)
+        case BYTES   => AvroValue(rootPath, fieldName, schema, configValue)
+        case NULL    => AvroValue(rootPath, fieldName, schema, configValue)
+        case RECORD  => AvroRecord(rootPath :+ fieldName, fieldName, schema, configValue.getStructValue.fields)
+        case ARRAY =>
+          AvroArray(rootPath, fieldName, schema, configValue)
+        case MAP => AvroMap(rootPath, fieldName, schema, configValue)
+        case t =>
+          Left(
+            Seq(
+              PluginErrorException(
+                new UnsupportedOperationException(s"$t is not a supported type for field: '${fieldName.value}' with value: '$configValue'")
+              )
+            )
+          )
+      }
+    }
   }
 }

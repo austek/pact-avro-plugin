@@ -6,7 +6,7 @@ ThisBuild / githubWorkflowBuild := Seq(
   ),
   WorkflowStep.Sbt(
     name = Some("Build project"),
-    commands = List("compile", "scalafmtCheckAll", "plugin/test")
+    commands = List("compile", "scalafmtCheckAll", "javafmtCheckAll", "plugin/test")
   ),
   WorkflowStep.Sbt(
     name = Some("Test Consumer"),

@@ -16,7 +16,11 @@ object BuildSettings {
     scalaVersion := scala213,
     resolvers += Resolver.mavenLocal,
     resolvers ++= Resolver.sonatypeOssRepos("releases"),
-    javacOptions ++= Seq("-encoding", "UTF-8"),
+    javacOptions ++= Seq(
+      "-encoding", "UTF-8",
+      "-source", s"$javaVersion",
+      "-target", s"$javaVersion"
+    ),
     Test / fork := true,
     scalacOptions --= {
       if (sys.env.contains("CI"))
@@ -24,6 +28,12 @@ object BuildSettings {
       else
         Seq("-Xfatal-warnings")
     },
+    scalacOptions ++= Seq(
+      "-Wconf:src=src_managed/.*:silent"
+    ),
+    Test / scalacOptions := Seq(
+      "-Ywarn-value-discard"
+    ),
     initialize := {
       val _ = initialize.value
       val javaVersionFound = sys.props("java.specification.version").toDouble
