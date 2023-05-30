@@ -4,7 +4,7 @@ import sbt._
 import java.util
 
 object BuildSettings {
-  private val javaVersion = 11
+  private val javaVersion = 17
   private val env: util.Map[String, String] = System.getenv()
   val scala213 = "2.13.10"
 
