@@ -12,9 +12,14 @@ object PublishSettings {
       executableScriptName := "pact-avro-plugin",
       Compile / doc / sources := Seq.empty,
       Compile / packageDoc / mappings := Seq.empty,
+      Compile / resourceGenerators += Def.task {
+        val file = (Compile / resourceManaged).value / "pact-plugin.json"
+        IO.write(file, PactPluginJson.json(version.value))
+        Seq(file)
+      },
       Universal / mappings ++= Seq(
         sourceDirectory.value / "main" / "resources" / "logback.xml" -> "conf/logback.xml",
-        baseDirectory.value / "pact-plugin.json" -> "pact-plugin.json"
+        (Compile / resourceManaged).value / "pact-plugin.json" -> "pact-plugin.json"
       ),
       Universal / javaOptions ++= Seq(
         "-Dfile.encoding=UTF-8",
