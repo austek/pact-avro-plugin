@@ -27,6 +27,6 @@ object PublishSettings {
       ),
       Universal / packageName := s"pact-avro-plugin-${version.value}",
       Universal / topLevelDirectory := Some(s"avro-${version.value}")
-    ) ++ makeDeploymentSettings(Universal, Universal / packageZipTarball, "tgz")
+    )
 
 }
