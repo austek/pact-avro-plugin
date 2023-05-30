@@ -59,7 +59,7 @@ ThisBuild / githubWorkflowPublish := Seq(
   ),
   WorkflowStep.Run(
     name = Some("Prepare Artifacts"),
-    commands = List("./scripts/prepArtifacts.sh ${{ github.ref }}")
+    commands = List("./scripts/prepArtifacts.sh")
   ),
   WorkflowStep.Use(
     UseRef.Public("svenstaro", "upload-release-action", "v2"),

@@ -156,7 +156,7 @@ jobs:
         run: 'sbt ++${{ matrix.scala }} universal:packageBin'
 
       - name: Prepare Artifacts
-        run: ./scripts/prepArtifacts.sh ${{ github.ref }}
+        run: ./scripts/prepArtifacts.sh
 
       - name: Upload Release Assets
         id: upload-release-asset
