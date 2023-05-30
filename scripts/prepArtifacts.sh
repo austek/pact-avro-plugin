@@ -12,7 +12,7 @@ VERSION=$(echo "$1" | cut -d/ -f3 | sed 's/v//')
 echo Building Release for "$VERSION"
 
 ART_DIR=target/artifacts/
-ART_NAME=pact-avro-plugin-"${VERSION}".tgz
+ART_NAME=pact-avro-plugin-"${VERSION}".zip
 
 mkdir -p ${ART_DIR}
 

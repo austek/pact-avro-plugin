@@ -55,7 +55,7 @@ ThisBuild / githubWorkflowPublish := Seq(
   ),
   WorkflowStep.Sbt(
     name = Some("Build package"),
-    commands = List("universal:packageZipTarball")
+    commands = List("universal:packageBin")
   ),
   WorkflowStep.Run(
     name = Some("Prepare Artifacts"),
