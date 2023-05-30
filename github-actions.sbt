@@ -30,9 +30,8 @@ ThisBuild / githubWorkflowBuild := Seq(
 // Add macos-latest when step to install docker on it is done
 ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest")
 ThisBuild / githubWorkflowJavaVersions := Seq(
-  JavaSpec.temurin("11"),
   JavaSpec.temurin("17"),
-  JavaSpec.temurin("19")
+  JavaSpec.temurin("20")
 )
 ThisBuild / githubWorkflowTargetBranches := Seq("main")
 ThisBuild / githubWorkflowTargetTags := Seq("v*")
