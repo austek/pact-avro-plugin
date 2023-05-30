@@ -16,6 +16,8 @@ ART_NAME=pact-avro-plugin-"${VERSION}".tgz
 
 mkdir -p ${ART_DIR}
 
+cp modules/plugin/target/scala-2.13/resource_managed/main/pact-plugin.json ${ART_DIR}
+
 mv modules/plugin/target/universal/"${ART_NAME}" ${ART_DIR}
 openssl dgst -sha256 -r ${ART_DIR}/"${ART_NAME}" > ${ART_DIR}/"${ART_NAME}".sha256
 
