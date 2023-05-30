@@ -1,25 +1,9 @@
 #!/bin/bash
+set -e
 
-if [ $# -lt 1 ]
-then
-    echo "Usage : $0 <version tag>"
-    exit
-fi
-
-set -ex
-
-VERSION=$(echo "$1" | cut -d/ -f3 | sed 's/v//')
-echo Building Release for "$VERSION"
+echo Generates checksums
 
 ART_DIR=target/artifacts/
-ART_NAME=pact-avro-plugin-"${VERSION}".zip
 
-mkdir -p ${ART_DIR}
-
-cp modules/plugin/target/scala-2.13/resource_managed/main/pact-plugin.json ${ART_DIR}
-
-mv modules/plugin/target/universal/"${ART_NAME}" ${ART_DIR}
-openssl dgst -sha256 -r ${ART_DIR}/"${ART_NAME}" > ${ART_DIR}/"${ART_NAME}".sha256
-
-sed -e 's/VERSION_HERE/'"${VERSION}"'/' modules/plugin/install-plugin.sh > ${ART_DIR}/install-plugin.sh
+openssl dgst -sha256 -r ${ART_DIR}/pact-avro-plugin.zip > ${ART_DIR}/pact-avro-plugin.zip.sha256
 openssl dgst -sha256 -r ${ART_DIR}/install-plugin.sh > ${ART_DIR}/install-plugin.sh.sha256

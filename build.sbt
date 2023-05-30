@@ -64,5 +64,6 @@ lazy val `pact-avro-plugin` = (project in file("."))
   )
   .settings(
     basicSettings,
+    installationFilesSettings,
     publish / skip := false
   )
