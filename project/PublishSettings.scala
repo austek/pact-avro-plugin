@@ -28,19 +28,8 @@ object PublishSettings {
         "-Dlogback.configurationFile=conf/logback.xml"
       ),
       Universal / packageName := s"pact-avro-plugin",
-      Universal / topLevelDirectory := Some(s"avro-${version.value}")
+      Universal / topLevelDirectory := None
     )
-
-//  lazy val installationFilesSettings: Seq[Def.Setting[?]] =
-//    Seq(
-//      Compile / resourceGenerators += Def.task {
-//        val artifactDir: File = (root / target).value / "artifacts"
-//        Seq(
-//          generatePactPluginJson(artifactDir, version.value),
-//          generateInstallPluginSh(artifactDir, version.value)
-//        )
-//      }
-//    )
 
   private def generatePactPluginJson(artifactDir: sbt.File, version: String): sbt.File = {
     val file = artifactDir / "pact-plugin.json"
