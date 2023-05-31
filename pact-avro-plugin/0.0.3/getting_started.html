@@ -164,10 +164,18 @@ a message to a consumer).</p>
 </div>
 </li>
 <li>
+<p>Download the plugin manifest into the directory:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">wget https://github.com/austek/pact-avro-plugin/releases/download/v-0.0.3/pact-plugin.json -O ~/.pact/plugins/avro-0.0.3/pact-plugin.json</code></pre>
+</div>
+</div>
+</li>
+<li>
 <p>Download the plugin executable into the directory:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">wget -c https://github.com/austek/pact-avro-plugin/releases/download/v0.0.3/pact-avro-plugin-0.0.3.tgz -O ~/.pact/plugins/avro-0.0.3/pact-avro-plugin.tgz</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">wget -c https://github.com/austek/pact-avro-plugin/releases/download/v0.0.3/pact-avro-plugin.zip -O ~/.pact/plugins/avro-0.0.3/pact-avro-plugin.zip</code></pre>
 </div>
 </div>
 </li>
@@ -175,7 +183,15 @@ a message to a consumer).</p>
 <p>Unpack the plugin executable:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">tar -C ~/.pact/plugins/avro-$0.0.3 -xzvf  ~/.pact/plugins/avro-0.0.3/pact-avro-plugin.tgz --strip-components 1</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cd ~/.pact/plugins/avro-$0.0.3 && unzip pact-avro-plugin.zip</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Make the plugin executable:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">chmod +x ~/.pact/plugins/avro-0.0.3/bin/pact-avro-plugin</code></pre>
 </div>
 </div>
 </li>
@@ -185,7 +201,7 @@ a message to a consumer).</p>
 <dt class="hdlist1">NOTE</dt>
 <dd>
 <p>The unpacked executable name must match the <code>entryPoint</code> value in the manifest file. By default, this is
-<code>pact-avro-plugin</code>.</p>
+<code>pact-avro-plugin</code> on unix* and <code>pact-avro-plugin.bat</code> on Windows.</p>
 </dd>
 </dl>
 </div>
