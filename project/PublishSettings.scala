@@ -5,11 +5,21 @@ import sbt.{Def, *}
 
 object PublishSettings {
 
-  lazy val publishSettings: Seq[Def.Setting[_]] =
+  val universalStageDir = settingKey[File]("Universal staging directory")
+  val root = project in file("..")
+
+  lazy val publishSettings: Seq[Def.Setting[?]] =
     Seq(
       executableScriptName := "pact-avro-plugin",
       Compile / doc / sources := Seq.empty,
       Compile / packageDoc / mappings := Seq.empty,
+      Compile / resourceGenerators += Def.task {
+        val artifactDir: File = target.value / "artifacts"
+        Seq(
+          generatePactPluginJson(artifactDir, version.value),
+          generateInstallPluginSh(artifactDir, version.value)
+        )
+      },
       Universal / mappings ++= Seq(
         sourceDirectory.value / "main" / "resources" / "logback.xml" -> "conf/logback.xml"
       ),
@@ -17,23 +27,20 @@ object PublishSettings {
         "-Dfile.encoding=UTF-8",
         "-Dlogback.configurationFile=conf/logback.xml"
       ),
-      Universal / target := baseDirectory.value.getParentFile.getParentFile / "target/artifacts",
       Universal / packageName := s"pact-avro-plugin",
       Universal / topLevelDirectory := Some(s"avro-${version.value}")
     )
 
-  lazy val installationFilesSettings: Seq[Def.Setting[_]] =
-    Seq(
-      Compile / resourceGenerators += generateInstallationFiles
-    )
-
-  private lazy val generateInstallationFiles: Def.Initialize[Task[Seq[File]]] = Def.task {
-    val artifactDir: File = baseDirectory.value / "target/artifacts"
-    Seq(
-      generatePactPluginJson(artifactDir, version.value),
-      generateInstallPluginSh(artifactDir, version.value)
-    )
-  }
+//  lazy val installationFilesSettings: Seq[Def.Setting[?]] =
+//    Seq(
+//      Compile / resourceGenerators += Def.task {
+//        val artifactDir: File = (root / target).value / "artifacts"
+//        Seq(
+//          generatePactPluginJson(artifactDir, version.value),
+//          generateInstallPluginSh(artifactDir, version.value)
+//        )
+//      }
+//    )
 
   private def generatePactPluginJson(artifactDir: sbt.File, version: String): sbt.File = {
     val file = artifactDir / "pact-plugin.json"

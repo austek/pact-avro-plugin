@@ -1,9 +1,17 @@
 #!/bin/bash
 set -e
 
-echo Generates checksums
+echo Prepare release artifacts
 
-ART_DIR=target/artifacts/
+PLUGIN_TARGET=modules/plugin/target
+ART_DIR=target/artifacts
+ART_NAME=pact-avro-plugin.zip
 
-openssl dgst -sha256 -r ${ART_DIR}/pact-avro-plugin.zip > ${ART_DIR}/pact-avro-plugin.zip.sha256
+mkdir -p ${ART_DIR}
+
+cp ${PLUGIN_TARGET}/universal/"${ART_NAME}" ${ART_DIR}/
+openssl dgst -sha256 -r ${ART_DIR}/"${ART_NAME}" > ${ART_DIR}/"${ART_NAME}".sha256
+
+cp ${PLUGIN_TARGET}/artifacts/* ${ART_DIR}/
+
 openssl dgst -sha256 -r ${ART_DIR}/install-plugin.sh > ${ART_DIR}/install-plugin.sh.sha256

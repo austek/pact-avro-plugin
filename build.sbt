@@ -1,6 +1,7 @@
-import BuildSettings._
-import Dependencies._
-import PublishSettings._
+import BuildSettings.*
+import Dependencies.*
+import PublishSettings.*
+import TestEnvironment.*
 
 ThisBuild / scalaVersion := scala213
 
@@ -16,6 +17,7 @@ lazy val plugin = project
     maintainer := "aliustek@gmail.com",
     basicSettings,
     publishSettings,
+    testEnvSettings,
     gitHubPagesOrgName := "austek",
     gitHubPagesRepoName := "pact-avro-plugin",
     gitHubPagesSiteDir := (`pact-avro-plugin` / baseDirectory).value / "build" / "site",
@@ -35,8 +37,8 @@ lazy val provider = project
   .in(file("modules/examples/provider"))
   .settings(
     basicSettings,
-    Test / sbt.Keys.test := (Test / sbt.Keys.test).dependsOn(pluginRef / Universal / stage).value,
-    Test / envVars := Map("PACT_PLUGIN_DIR" -> (pluginRef / Universal / stagingDirectory).value.absolutePath),
+    Test / sbt.Keys.test := (Test / sbt.Keys.test).dependsOn(pluginRef / buildTestPluginDir).value,
+    Test / envVars := Map("PACT_PLUGIN_DIR" -> ((pluginRef / target).value / "plugin").absolutePath),
     libraryDependencies ++=
       Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, pureConfig, scalacheck) ++
         Dependencies.test(assertJCore, jUnitInterface, pactProviderJunit, pactCore),
@@ -48,8 +50,8 @@ lazy val consumer = project
   .settings(
     basicSettings,
     Compile / avroSource := (Compile / resourceDirectory).value / "avro",
-    Test / sbt.Keys.test := (Test / sbt.Keys.test).dependsOn(pluginRef / Universal / stage).value,
-    Test / envVars := Map("PACT_PLUGIN_DIR" -> (pluginRef / Universal / stagingDirectory).value.absolutePath),
+    Test / sbt.Keys.test := (Test / sbt.Keys.test).dependsOn(pluginRef / buildTestPluginDir).value,
+    Test / envVars := Map("PACT_PLUGIN_DIR" -> ((pluginRef / target).value / "plugin").absolutePath),
     libraryDependencies ++=
       Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, pureConfig, scalaLogging) ++
         Dependencies.test(assertJCore, jUnitInterface, pactConsumerJunit, pactCore),
@@ -64,6 +66,5 @@ lazy val `pact-avro-plugin` = (project in file("."))
   )
   .settings(
     basicSettings,
-    installationFilesSettings,
     publish / skip := false
   )
