@@ -2,6 +2,7 @@ package com.github.austek.plugin.avro.compare
 
 import au.com.dius.pact.core.matchers.MatchingContext
 import au.com.dius.pact.core.model.matchingrules.{MatchingRule, MatchingRuleCategory, MatchingRuleGroup}
+import au.com.dius.pact.core.support.json.JsonValue
 import com.github.austek.plugin.avro.AvroPluginConstants.MatchingRuleCategoryName
 import com.github.austek.plugin.avro.ContentTypeConstants._
 import com.github.austek.plugin.avro.utils._
@@ -14,6 +15,7 @@ import org.apache.avro.Schema
 import org.apache.avro.Schema.Type.{RECORD, UNION}
 import org.apache.avro.generic.GenericRecord
 
+import java.util
 import scala.jdk.CollectionConverters._
 import scala.util.matching.Regex
 
@@ -90,7 +92,13 @@ object CompareContentsResponseBuilder extends StrictLogging {
           key -> new MatchingRuleGroup(
             rules.rule.flatMap { matchingRule =>
               matchingRule.values.map { struct =>
-                MatchingRule.fromJson(PactCoreUtils.structToJson(toJavaProto(struct)))
+                var json = PactCoreUtils.structToJson(toJavaProto(struct))
+                if (0 == json.size() && matchingRule.`type`.nonEmpty) {
+                  val map = new util.HashMap[String, JsonValue]()
+                  map.put("match", new JsonValue.StringValue(matchingRule.`type`))
+                  json = new JsonValue.Object(map)
+                }
+                MatchingRule.fromJson(json)
               }
             }.asJava
           )
