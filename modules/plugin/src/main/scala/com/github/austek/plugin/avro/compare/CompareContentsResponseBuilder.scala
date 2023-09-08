@@ -91,16 +91,13 @@ object CompareContentsResponseBuilder extends StrictLogging {
           key -> new MatchingRuleGroup(
             rules.rule.flatMap { matchingRule =>
               matchingRule.values.map { struct =>
-                val json = PactCoreUtils.structToJson(toJavaProto(struct))
-                if (json.size() > 0 || matchingRule.`type`.isEmpty) {
-                  MatchingRule.fromJson(json)
-                } else {
-                  MatchingRule.fromJson(
-                    Json.toJson(
-                      Map("match" -> matchingRule.`type`).asJava
-                    )
-                  )
-                }
+                                MatchingRule.fromJson(
+                  Option(PactCoreUtils.structToJson(toJavaProto(struct)))
+                    .filterNot(ruleJson => ruleJson.size() == 0 && matchingRule.`type`.nonEmpty) match {
+                    case Some(value) => value
+                    case None => Json.toJson(Map("match" -> matchingRule.`type`).asJava)
+                  }
+                )
               }
             }.asJava
           )
