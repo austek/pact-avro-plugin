@@ -12,6 +12,7 @@ import org.apache.avro.Schema
 import org.apache.avro.Schema.Type._
 import org.apache.avro.generic.GenericData.{EnumSymbol, Fixed}
 import org.apache.avro.generic.GenericRecord
+import org.apache.avro.util.Utf8
 
 import java.util
 import scala.jdk.CollectionConverters._
@@ -273,14 +274,24 @@ object SchemaFieldImplicits extends StrictLogging {
       logger.debug(s">>> compareValue($path, $field, $expected, $actual, $context)")
       if (context.matcherDefined(path.asJava)) {
         logger.debug(s"compareValue: Matcher defined for path $path")
+
+        val expectedJava = expected match {
+          case s: Utf8 => s.toString
+          case _       => expected
+        }
+        val actualJava = actual match {
+          case s: Utf8 => s.toString
+          case _       => actual
+        }
+
         List(
           new AvroBodyItemMatchResult(
             valuePath,
             Matchers.domatch(
               context,
               path.asJava,
-              expected,
-              actual,
+              expectedJava,
+              actualJava,
               (expected: Any, actual: Any, message: String, path: java.util.List[String]) =>
                 BodyMismatch(expected, actual, message, constructPath(path), diffCallback())
             )

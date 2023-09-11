@@ -5,6 +5,7 @@ import com.github.austek.plugin.avro.utils.StringUtils._
 import com.github.austek.plugin.avro.utils.AvroUtils
 import com.google.protobuf.struct.Value.Kind._
 import com.google.protobuf.struct.{ListValue => StructListValue, Struct, Value}
+import io.pact.plugin.pact_plugin.Body.ContentTypeHint.BINARY
 import io.pact.plugin.pact_plugin._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AsyncFlatSpecLike
@@ -283,5 +284,107 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     content.getContent shouldBe bytes
 
     interaction.rules should have size 18
+  }
+
+  it should "return successful result when comparing to matching content" in {
+    val url = getClass.getResource("/item.avsc")
+    val schema = AvroUtils.parseSchema(Path.of(url.getPath).toFile).value
+    val expectedBytes =
+      AvroRecord(
+        "$".toPactPath,
+        ".".toFieldName,
+        Map(
+          "$.name".toPactPath -> AvroString("$.name".toPactPath, "name".toFieldName, "Item-100"),
+          "$.id".toPactPath -> AvroInt("$.id".toPactPath, "id".toFieldName, 100)
+        )
+      ).toByteString(schema).value
+    val actualBytes =
+      AvroRecord(
+        "$".toPactPath,
+        ".".toFieldName,
+        Map(
+          "$.name".toPactPath -> AvroString("$.name".toPactPath, "name".toFieldName, "Item-42"),
+          "$.id".toPactPath -> AvroInt("$.id".toPactPath, "id".toFieldName, 42)
+        )
+      ).toByteString(schema).value
+
+    val eventualResponse = new PactAvroPluginService()
+      .compareContents(
+        CompareContentsRequest(
+          expected = Some(
+            Body(
+              contentType = "avro/binary; record=Item",
+              content = Some(expectedBytes),
+              contentTypeHint = BINARY
+            )
+          ),
+          actual = Some(
+            Body(
+              contentType = "avro/binary; record=Item",
+              content = Some(actualBytes),
+              contentTypeHint = BINARY
+            )
+          ),
+          allowUnexpectedKeys = true,
+          rules = Map(
+            "$.name" -> MatchingRules(
+              rule = Seq(
+                MatchingRule(
+                  `type` = "regex",
+                  values = Some(
+                    Struct(
+                      Map(
+                        "regex" -> Value(StringValue("^Item-.*$"))
+                      )
+                    )
+                  )
+                )
+              )
+            ),
+            "$.id" -> MatchingRules(
+              rule = Seq(
+                MatchingRule(
+                  `type` = "number",
+                  values = Some(Struct())
+                )
+              )
+            )
+          ),
+          pluginConfiguration = Some(
+            PluginConfiguration(
+              interactionConfiguration = Some(
+                Struct(
+                  Map(
+                    "record" -> Value(StringValue("Item")),
+                    "schemaKey" -> Value(StringValue("someschemakey"))
+                  )
+                )
+              ),
+              pactConfiguration = Some(
+                Struct(
+                  Map(
+                    "someschemakey" -> Value(
+                      StructValue(
+                        Struct(
+                          Map(
+                            "avroSchema" -> Value(StringValue(schema.toString))
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+
+    val response = eventualResponse.futureValue
+
+    response.results should have size 2
+    response.results.get("$.id").value.mismatches should have size 0
+    response.results.get("$.name").value.mismatches should have size 0
+    response.error should equal("")
   }
 }
