@@ -1,12 +1,12 @@
 package com.github.austek.plugin.avro.compare
 
-import au.com.dius.pact.core.matchers._
+import au.com.dius.pact.core.matchers.*
 import com.github.austek.plugin.avro.error.PluginError
-import com.github.austek.plugin.avro.implicits.RecordImplicits._
+import com.github.austek.plugin.avro.implicits.RecordImplicits.*
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.avro.generic.GenericRecord
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object AvroContentMatcher extends StrictLogging {
 

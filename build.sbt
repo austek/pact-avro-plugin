@@ -3,7 +3,7 @@ import Dependencies.*
 import PublishSettings.*
 import TestEnvironment.*
 
-ThisBuild / scalaVersion := scala213
+ThisBuild / scalaVersion := scalaV
 
 lazy val plugin = project
   .in(file("modules/plugin"))

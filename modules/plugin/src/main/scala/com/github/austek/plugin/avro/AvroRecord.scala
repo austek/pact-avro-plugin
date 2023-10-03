@@ -3,22 +3,22 @@ package com.github.austek.plugin.avro
 import au.com.dius.pact.core.model.matchingrules.{MatchingRule, MatchingRuleCategory}
 import com.github.austek.pact.RuleParser.parseRules
 import com.github.austek.plugin.avro.AvroPluginConstants.MatchingRuleCategoryName
-import com.github.austek.plugin.avro.error._
+import com.github.austek.plugin.avro.error.*
 import com.github.austek.plugin.avro.utils.StringUtils._
 import com.google.protobuf.ByteString
 import com.google.protobuf.struct.Value
-import com.google.protobuf.struct.Value.Kind._
+import com.google.protobuf.struct.Value.Kind.*
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.avro.Schema
-import org.apache.avro.Schema.Type._
-import org.apache.avro.generic._
+import org.apache.avro.Schema.Type.*
+import org.apache.avro.generic.*
 import org.apache.avro.io.EncoderFactory
 
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.util
 import scala.annotation.tailrec
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try, Using}
 
 case class AvroFieldName(value: String)
@@ -400,7 +400,6 @@ object Avro {
         case ARRAY  => AvroArray(rootPath, fieldName, schemaField.schema(), configValue)
         case MAP    => AvroMap(rootPath, fieldName, schemaField.schema(), configValue)
         case UNION  => handleAvroUnion(rootPath, schemaField, fieldName, configValue)
-        case t      => Left(Seq(PluginErrorException(FieldUnsupportedTypeException(t, fieldName, configValue))))
       }
     }
 

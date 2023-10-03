@@ -1,11 +1,11 @@
 package com.github.austek.example.pulsar.avro
 
-import OrderRandomization._
+import OrderRandomization.*
 import com.github.austek.example.Order
 import com.github.austek.example.config.ProviderAppConfig
-import com.sksamuel.pulsar4s._
+import com.sksamuel.pulsar4s.*
 import org.apache.pulsar.client.api.Schema
-import util.randomization.Randomization._
+import util.randomization.Randomization.*
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

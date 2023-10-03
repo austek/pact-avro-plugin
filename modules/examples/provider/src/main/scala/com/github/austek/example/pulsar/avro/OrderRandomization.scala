@@ -1,12 +1,12 @@
 package com.github.austek.example.pulsar.avro
 
-import com.github.austek.example._
+import com.github.austek.example.*
 import org.scalacheck.{Arbitrary, Gen}
-import util.randomization.Randomization._
+import util.randomization.Randomization.*
 
 import java.nio.ByteBuffer
 import java.util.UUID
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object OrderRandomization {
 

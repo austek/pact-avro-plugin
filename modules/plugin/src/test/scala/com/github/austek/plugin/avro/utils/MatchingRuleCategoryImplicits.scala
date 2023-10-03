@@ -3,13 +3,16 @@ package com.github.austek.plugin.avro.utils
 import au.com.dius.pact.core.model.matchingrules.{MatchingRule, MatchingRuleCategory, MatchingRuleGroup}
 import org.scalatest.enablers.Size
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 object MatchingRuleCategoryImplicits {
 
-  implicit val sizeOfMatchingRuleCategory: Size[MatchingRuleCategory] =
-    (rules: MatchingRuleCategory) => rules.getMatchingRules.size.toLong
+  given timeout: Int = 10
 
-  implicit class RichMatchingRuleCategory(rules: MatchingRuleCategory) {
+  given sizeOfMatchingRuleCategory: Size[MatchingRuleCategory] = new Size[MatchingRuleCategory] {
+    def sizeOf(rules: MatchingRuleCategory): Long = rules.getMatchingRules.size.toLong
+  }
+
+  extension (rules: MatchingRuleCategory) {
     def get(path: String): MatchingRuleGroup = rules.getMatchingRules.get(path)
     def getRules(path: String): List[MatchingRule] = rules.getMatchingRules.get(path).getRules.asScala.toList
   }

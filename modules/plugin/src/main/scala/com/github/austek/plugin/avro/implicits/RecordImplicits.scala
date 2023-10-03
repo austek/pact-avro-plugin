@@ -1,8 +1,8 @@
 package com.github.austek.plugin.avro.implicits
 
-import au.com.dius.pact.core.matchers._
+import au.com.dius.pact.core.matchers.*
 import com.github.austek.plugin.avro.error.{PluginError, PluginErrorException}
-import com.github.austek.plugin.avro.implicits.PathExpressionImplicits._
+import com.github.austek.plugin.avro.implicits.PathExpressionImplicits.*
 import com.github.austek.plugin.avro.matchers
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.avro.generic.{GenericDatumWriter, GenericRecord}
@@ -10,8 +10,8 @@ import org.apache.avro.io.EncoderFactory
 
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
-import scala.jdk.CollectionConverters._
-import scala.util._
+import scala.jdk.CollectionConverters.*
+import scala.util.*
 
 object RecordImplicits extends StrictLogging {
 
@@ -54,7 +54,7 @@ object RecordImplicits extends StrictLogging {
       path: List[String],
       other: GenericRecord
     )(implicit context: MatchingContext): Either[Seq[PluginError[_]], List[BodyItemMatchResult]] = {
-      import SchemaFieldImplicits._
+      import SchemaFieldImplicits.*
 
       logger.debug(s">>> Record.compare($path, $record, $other)")
       if (record.getSchema.getName == other.getSchema.getName) {

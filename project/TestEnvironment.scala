@@ -7,7 +7,6 @@ object TestEnvironment {
 
   lazy val buildTestPluginDir = taskKey[Unit]("Build plugin directory for testing purposes")
 
-
   lazy val testEnvSettings: Seq[Def.Setting[?]] =
     Seq(
       buildTestPluginDir := {

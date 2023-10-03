@@ -3,7 +3,7 @@ package com.github.austek.plugin.avro.utils
 import au.com.dius.pact.core.support.json.JsonValue
 import com.google.protobuf.struct.{ListValue, NullValue, Struct, Value}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 object Util {
 
   def jsonToValue(json: JsonValue): Value = {

@@ -4,19 +4,19 @@ import au.com.dius.pact.core.matchers.MatchingContext
 import au.com.dius.pact.core.model.matchingrules.{MatchingRule, MatchingRuleCategory, MatchingRuleGroup}
 import au.com.dius.pact.core.support.Json
 import com.github.austek.plugin.avro.AvroPluginConstants.MatchingRuleCategoryName
-import com.github.austek.plugin.avro.ContentTypeConstants._
+import com.github.austek.plugin.avro.ContentTypeConstants.*
 import com.github.austek.plugin.avro.error.{PluginError, PluginErrorException, PluginErrorMessage, PluginErrorMessages}
-import com.github.austek.plugin.avro.utils._
+import com.github.austek.plugin.avro.utils.*
 import com.google.protobuf.ByteString
 import com.google.protobuf.struct.Struct.toJavaProto
 import com.typesafe.scalalogging.StrictLogging
-import io.pact.plugin.pact_plugin._
+import io.pact.plugin.pact_plugin.*
 import io.pact.plugins.jvm.core.Utils.{INSTANCE => PactCoreUtils}
 import org.apache.avro.Schema
 import org.apache.avro.Schema.Type.{RECORD, UNION}
 import org.apache.avro.generic.GenericRecord
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.matching.Regex
 
 object CompareContentsResponseBuilder extends StrictLogging {

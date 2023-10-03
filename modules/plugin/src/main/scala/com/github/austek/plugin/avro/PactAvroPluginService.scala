@@ -1,12 +1,12 @@
 package com.github.austek.plugin.avro
 
-import com.github.austek.plugin.avro.AvroPactConstants._
-import com.github.austek.plugin.avro.AvroPluginConstants._
-import com.github.austek.plugin.avro.ContentTypeConstants._
+import com.github.austek.plugin.avro.AvroPactConstants.*
+import com.github.austek.plugin.avro.AvroPluginConstants.*
+import com.github.austek.plugin.avro.ContentTypeConstants.*
 import com.github.austek.plugin.avro.compare.CompareContentsResponseBuilder
 import com.github.austek.plugin.avro.error.{PluginError, PluginErrorException, PluginErrorMessage, PluginErrorMessages}
 import com.github.austek.plugin.avro.interaction.InteractionResponseBuilder
-import com.github.austek.plugin.avro.utils._
+import com.github.austek.plugin.avro.utils.*
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging
