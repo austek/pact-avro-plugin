@@ -1,4 +1,4 @@
-package com.github.austek.plugin.avro.utils
+package com.github.austek.plugin.avro.error
 
 sealed trait PluginError[T] {
   def value: T

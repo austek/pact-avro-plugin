@@ -1,9 +1,9 @@
 package com.github.austek.plugin.avro.implicits
 
 import au.com.dius.pact.core.matchers._
+import com.github.austek.plugin.avro.error.{PluginError, PluginErrorException}
 import com.github.austek.plugin.avro.implicits.PathExpressionImplicits._
 import com.github.austek.plugin.avro.matchers
-import com.github.austek.plugin.avro.utils.{PluginError, PluginErrorException}
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.avro.generic.{GenericDatumWriter, GenericRecord}
 import org.apache.avro.io.EncoderFactory

@@ -1,5 +1,6 @@
 package com.github.austek.plugin.avro.utils
 
+import com.github.austek.plugin.avro.error.PluginErrorMessage
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.avro.Schema
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}

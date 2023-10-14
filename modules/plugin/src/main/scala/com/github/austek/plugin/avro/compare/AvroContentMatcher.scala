@@ -1,8 +1,8 @@
 package com.github.austek.plugin.avro.compare
 
 import au.com.dius.pact.core.matchers._
+import com.github.austek.plugin.avro.error.PluginError
 import com.github.austek.plugin.avro.implicits.RecordImplicits._
-import com.github.austek.plugin.avro.utils.PluginError
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.avro.generic.GenericRecord
 

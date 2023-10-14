@@ -1,8 +1,8 @@
 package com.github.austek.plugin.avro.matchers
 
 import au.com.dius.pact.core.matchers.{BodyItemMatchResult => AvroBodyItemMatchResult, BodyMismatch}
+import com.github.austek.plugin.avro.error.{PluginError, PluginErrorException}
 import com.github.austek.plugin.avro.implicits.RecordImplicits._
-import com.github.austek.plugin.avro.utils.{PluginError, PluginErrorException}
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 
