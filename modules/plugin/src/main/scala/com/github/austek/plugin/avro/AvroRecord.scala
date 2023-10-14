@@ -54,6 +54,7 @@ object Avro {
     protected[Avro] def addRules(matchingRules: MatchingRuleCategory): Unit = matchingRules.addRules(path.toJsonPath, rules.asJava)
   }
 
+  // noinspection ScalaWeakerAccess
   object AvroValue extends StrictLogging {
 
     def apply(
@@ -83,12 +84,10 @@ object Avro {
         case ListValue(_)   => Left(Seq(PluginErrorMessage(s"List kind value for field is not supported")))
         case NumberValue(_) => Left(Seq(PluginErrorMessage(s"Number kind value for field is not supported")))
         case BoolValue(_)   => Left(Seq(PluginErrorMessage(s"Bool kind value for field is not supported")))
+        case StructValue(_) if valueSchema.getType == RECORD =>
+          AvroRecord(path, fieldName, valueSchema, inValue.getStructValue.fields)
         case StructValue(_) =>
-          if (valueSchema.getType == RECORD) {
-            AvroRecord(path, fieldName, valueSchema, inValue.getStructValue.fields)
-          } else {
-            Left(Seq(PluginErrorMessage(s"Struct kind value for field is not supported")))
-          }
+          Left(Seq(PluginErrorMessage(s"Struct kind value for field is not supported")))
       }
     }
 
@@ -104,16 +103,12 @@ object Avro {
         case _ =>
           (schemaType match {
             case BOOLEAN => Try(AvroBoolean(path, fieldName, fieldValue.asInstanceOf[Boolean], rules)).toEither
-            case BYTES =>
+            case BYTES | FIXED =>
               Right(
                 AvroString(path, fieldName, new String(fieldValue.asInstanceOf[Array[Byte]], StandardCharsets.UTF_8), rules)
               )
             case DOUBLE => Try(AvroDouble(path, fieldName, fieldValue.asInstanceOf[Double], rules)).toEither
             case ENUM   => Try(AvroEnum(path, fieldName, fieldValue.asInstanceOf[String])).toEither
-            case FIXED =>
-              Right(
-                AvroString(path, fieldName, new String(fieldValue.asInstanceOf[Array[Byte]], StandardCharsets.UTF_8), rules)
-              )
             case FLOAT  => Try(AvroFloat(path, fieldName, fieldValue.asInstanceOf[Float], rules)).toEither
             case INT    => Try(AvroInt(path, fieldName, fieldValue.asInstanceOf[Int], rules)).toEither
             case LONG   => Try(AvroLong(path, fieldName, fieldValue.asInstanceOf[Long], rules)).toEither
@@ -147,6 +142,7 @@ object Avro {
     }
   }
 
+  // noinspection ScalaWeakerAccess
   case class AvroNull(override val path: PactFieldPath, override val name: AvroFieldName, override val value: Unit = (), rules: Seq[MatchingRule] = Seq.empty)
       extends AvroValue {
     override type AvroValueType = Unit
