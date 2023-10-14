@@ -8,10 +8,8 @@ import java.security.MessageDigest
 case class AvroSchemaBase16Hash(value: String)
 
 object AvroSchemaBase16Hash {
-  def apply(avroSchema: Schema): AvroSchemaBase16Hash = {
-    val digest: MessageDigest = MessageDigest.getInstance("MD5")
-    digest.update(avroSchema.toString.getBytes)
-    val avroSchemaHash: String = BaseEncoding.base16().lowerCase().encode(digest.digest())
-    AvroSchemaBase16Hash(avroSchemaHash)
-  }
+  private val digest: MessageDigest = MessageDigest.getInstance("MD5")
+
+  def apply(avroSchema: Schema): AvroSchemaBase16Hash =
+    AvroSchemaBase16Hash(BaseEncoding.base16().lowerCase().encode(digest.digest(avroSchema.toString.getBytes)))
 }
