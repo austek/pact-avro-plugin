@@ -1,15 +1,15 @@
-import sbt.Keys._
-import sbt._
+import io.github.davidgregory084.TpolecatPlugin.autoImport.*
+import sbt.Keys.*
+import sbt.*
 
 import java.util
 
 object BuildSettings {
   private val javaVersion = 17
   private val env: util.Map[String, String] = System.getenv()
-  val scala213 = "2.13.10"
+  val scala213 = "2.13.12"
 
-
-  lazy val basicSettings: Seq[Def.Setting[_]] = Seq(
+  lazy val basicSettings: Seq[Def.Setting[?]] = Seq(
     homepage := Some(new URL("https://github.com/austek/pact-avro-plugin")),
     organization := "io.pact",
     description := "Pact Avro Plugin",
@@ -31,9 +31,7 @@ object BuildSettings {
     scalacOptions ++= Seq(
       "-Wconf:src=src_managed/.*:silent"
     ),
-    Test / scalacOptions := Seq(
-      "-Ywarn-value-discard"
-    ),
+    Test / tpolecatExcludeOptions += ScalacOptions.warnNonUnitStatement,
     initialize := {
       val _ = initialize.value
       val javaVersionFound = sys.props("java.specification.version").toDouble

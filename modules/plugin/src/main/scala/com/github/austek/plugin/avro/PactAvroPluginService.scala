@@ -4,6 +4,7 @@ import com.github.austek.plugin.avro.AvroPactTestConstants._
 import com.github.austek.plugin.avro.AvroPluginConstants._
 import com.github.austek.plugin.avro.ContentTypeConstants._
 import com.github.austek.plugin.avro.compare.CompareContentsResponseBuilder
+import com.github.austek.plugin.avro.error.{PluginError, PluginErrorException, PluginErrorMessage, PluginErrorMessages}
 import com.github.austek.plugin.avro.interaction.InteractionResponseBuilder
 import com.github.austek.plugin.avro.utils._
 import com.google.protobuf.empty.Empty

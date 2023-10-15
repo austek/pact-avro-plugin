@@ -5,6 +5,7 @@ import au.com.dius.pact.core.model.matchingrules.{MatchingRule, MatchingRuleCate
 import au.com.dius.pact.core.support.Json
 import com.github.austek.plugin.avro.AvroPluginConstants.MatchingRuleCategoryName
 import com.github.austek.plugin.avro.ContentTypeConstants._
+import com.github.austek.plugin.avro.error.{PluginError, PluginErrorException, PluginErrorMessage, PluginErrorMessages}
 import com.github.austek.plugin.avro.utils._
 import com.google.protobuf.ByteString
 import com.google.protobuf.struct.Struct.toJavaProto

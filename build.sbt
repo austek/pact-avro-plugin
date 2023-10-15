@@ -40,7 +40,7 @@ lazy val provider = project
     Test / sbt.Keys.test := (Test / sbt.Keys.test).dependsOn(pluginRef / buildTestPluginDir).value,
     Test / envVars := Map("PACT_PLUGIN_DIR" -> ((pluginRef / target).value / "plugin").absolutePath),
     libraryDependencies ++=
-      Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, pureConfig, scalacheck) ++
+      Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, scalacheck) ++
         Dependencies.test(assertJCore, jUnitInterface, pactProviderJunit, pactCore),
     publish / skip := false
   )
@@ -53,7 +53,7 @@ lazy val consumer = project
     Test / sbt.Keys.test := (Test / sbt.Keys.test).dependsOn(pluginRef / buildTestPluginDir).value,
     Test / envVars := Map("PACT_PLUGIN_DIR" -> ((pluginRef / target).value / "plugin").absolutePath),
     libraryDependencies ++=
-      Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, pureConfig, scalaLogging) ++
+      Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, scalaLogging) ++
         Dependencies.test(assertJCore, jUnitInterface, pactConsumerJunit, pactCore),
     publish / skip := false
   )

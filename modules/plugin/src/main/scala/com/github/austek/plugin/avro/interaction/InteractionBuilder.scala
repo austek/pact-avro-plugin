@@ -4,8 +4,8 @@ import au.com.dius.pact.core.model.matchingrules.{MatchingRule => _, MatchingRul
 import com.github.austek.plugin.avro.Avro.AvroRecord
 import com.github.austek.plugin.avro.AvroPluginConstants._
 import com.github.austek.plugin.avro.AvroSchemaBase16Hash
+import com.github.austek.plugin.avro.error.{PluginError, PluginErrorMessage}
 import com.github.austek.plugin.avro.utils.Util._
-import com.github.austek.plugin.avro.utils.{PluginError, PluginErrorMessage}
 import com.google.protobuf.ByteString
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging

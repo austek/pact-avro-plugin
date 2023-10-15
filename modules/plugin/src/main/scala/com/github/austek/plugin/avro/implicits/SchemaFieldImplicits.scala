@@ -2,11 +2,11 @@ package com.github.austek.plugin.avro.implicits
 
 import au.com.dius.pact.core.matchers.{BodyItemMatchResult => AvroBodyItemMatchResult, _}
 import au.com.dius.pact.core.model.PathExpressionsKt._
+import com.github.austek.plugin.avro.error.{PluginError, PluginErrorException, PluginErrorMessage, PluginErrorMessages}
 import com.github.austek.plugin.avro.implicits.PathExpressionImplicits._
 import com.github.austek.plugin.avro.implicits.RecordImplicits._
 import com.github.austek.plugin.avro.implicits.SchemaTypeImplicits._
 import com.github.austek.plugin.avro.matchers.{BodyItemMatchResult, BodyMismatch}
-import com.github.austek.plugin.avro.utils.{PluginError, PluginErrorException, PluginErrorMessage, PluginErrorMessages}
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.avro.Schema
 import org.apache.avro.Schema.Type._

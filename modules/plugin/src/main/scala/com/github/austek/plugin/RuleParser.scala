@@ -2,8 +2,8 @@ package com.github.austek.plugin
 
 import au.com.dius.pact.core.model.matchingrules.MatchingRule
 import au.com.dius.pact.core.model.matchingrules.expressions.MatchingRuleDefinition
+import com.github.austek.plugin.avro.error.{PluginError, PluginErrorMessage, PluginErrorMessages}
 import com.github.austek.plugin.avro.implicits.AvroSupportImplicits.{fromPactEither, fromPactResult}
-import com.github.austek.plugin.avro.utils.{PluginError, PluginErrorMessage, PluginErrorMessages}
 import com.google.protobuf.struct.Value
 import com.google.protobuf.struct.Value.Kind.StringValue
 

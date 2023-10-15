@@ -1,14 +1,14 @@
-import sbt._
+import sbt.*
 import sbt.librarymanagement.syntax.ExclusionRule
 
 object Dependencies extends DependencyUtils {
 
   object Versions {
-    val avro = "1.11.1"
-    val logback = "1.2.11"
+    val avro = "1.11.3"
+    val logback = "1.4.11"
     val pact = "4.6.0"
     val pulsar4sVersion = "2.9.0"
-    val scalaTest = "3.2.16"
+    val scalaTest = "3.2.17"
   }
 
   // protobuf Dependencies
@@ -21,15 +21,14 @@ object Dependencies extends DependencyUtils {
     ExclusionRule("io.pact.plugin.driver"),
     ExclusionRule("org.slf4j")
   )
-  val logback: ModuleID = "ch.qos.logback"         % "logback-classic" % "1.4.7"
-  val pactCore: ModuleID = "io.pact.plugin.driver" % "core"            % "0.4.0" excludeAll (
+  val logback: ModuleID = "ch.qos.logback"         % "logback-classic" % Versions.logback
+  val pactCore: ModuleID = "io.pact.plugin.driver" % "core"            % "0.4.1" excludeAll (
     ExclusionRule("au.com.dius.pact.core"),
     ExclusionRule("org.slf4j")
   )
   val scalaLogging: ModuleID = "com.typesafe.scala-logging" %% "scala-logging"        % "3.9.5" excludeAll ExclusionRule("org.slf4j")
   val scalaPBRuntime = "com.thesamet.scalapb"               %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
   val slf4jApi: ModuleID = "org.slf4j"                      %% "slf4j-api"            % "2.0.6"
-  val pureConfig: ModuleID = "com.github.pureconfig"        %% "pureconfig"           % "0.17.4"
 
   // Test dependencies
   val assertJCore: ModuleID = "org.assertj"                     % "assertj-core"      % "3.24.2"
