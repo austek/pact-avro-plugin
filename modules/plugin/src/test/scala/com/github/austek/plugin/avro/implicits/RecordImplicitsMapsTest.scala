@@ -64,13 +64,13 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
             BodyItemMatchResult(
               "$.ages.first",
               List(
-                BodyMismatch("name-1", "name-3", "Expected 'name-3' (String) to equal 'name-1' (String)", "$.ages.first", "")
+                BodyMismatch("name-1", "name-3", "Expected 'name-3' (String) to be equal to 'name-1' (String)", "$.ages.first", "")
               )
             ),
             BodyItemMatchResult(
               "$.ages.second",
               List(
-                BodyMismatch("name-2", "name-4", "Expected 'name-4' (String) to equal 'name-2' (String)", "$.ages.second", "")
+                BodyMismatch("name-2", "name-4", "Expected 'name-4' (String) to be equal to 'name-2' (String)", "$.ages.second", "")
               )
             )
           )
@@ -84,7 +84,7 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
           BodyItemMatchResult(
             "$.ages",
             List(
-              BodyMismatch(expected, null, s"Expected null (Null) to equal '$expected' (Map)", "$.ages", null)
+              BodyMismatch(expected, null, s"Expected null (Null) to be equal to '$expected' (Map)", "$.ages", null)
             )
           )
         )
@@ -137,13 +137,13 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
             BodyItemMatchResult(
               "$.ids.first",
               List(
-                BodyMismatch(1, 3, "Expected 3 (Integer) to equal 1 (Integer)", "$.ids.first", "")
+                BodyMismatch(1, 3, "Expected 3 (Integer) to be equal to 1 (Integer)", "$.ids.first", "")
               )
             ),
             BodyItemMatchResult(
               "$.ids.second",
               List(
-                BodyMismatch(2, 4, "Expected 4 (Integer) to equal 2 (Integer)", "$.ids.second", "")
+                BodyMismatch(2, 4, "Expected 4 (Integer) to be equal to 2 (Integer)", "$.ids.second", "")
               )
             )
           )
@@ -157,7 +157,7 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
           BodyItemMatchResult(
             "$.ids",
             List(
-              BodyMismatch(expected, null, s"Expected null (Null) to equal '$expected' (Map)", "$.ids", null)
+              BodyMismatch(expected, null, s"Expected null (Null) to be equal to '$expected' (Map)", "$.ids", null)
             )
           )
         )
@@ -231,7 +231,7 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
                 BodyMismatch(
                   "second street",
                   "fourth street",
-                  "Expected 'fourth street' (String) to equal 'second street' (String)",
+                  "Expected 'fourth street' (String) to be equal to 'second street' (String)",
                   "$.addresses.second.street",
                   ""
                 )
@@ -248,7 +248,7 @@ class RecordImplicitsMapsTest extends AnyWordSpec with Matchers with EitherValue
           BodyItemMatchResult(
             "$.addresses",
             List(
-              BodyMismatch(expected, null, s"Expected null (Null) to equal '$expected' (Map)", "$.addresses", null)
+              BodyMismatch(expected, null, s"Expected null (Null) to be equal to '$expected' (Map)", "$.addresses", null)
             )
           )
         )

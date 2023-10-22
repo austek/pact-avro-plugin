@@ -45,8 +45,8 @@ class RecordImplicitsArraysTest extends AnyWordSpec with Matchers with EitherVal
         val result = record.compare(List("$"), otherRecord).value
         result should have size 2
         result shouldBe List(
-          BodyItemMatchResult("$.names.0", List()),
-          BodyItemMatchResult("$.names.1", List())
+          BodyItemMatchResult("$.names[0]", List()),
+          BodyItemMatchResult("$.names[1]", List())
         )
       }
 
@@ -60,15 +60,15 @@ class RecordImplicitsArraysTest extends AnyWordSpec with Matchers with EitherVal
         result shouldBe
           List(
             BodyItemMatchResult(
-              "$.names.0",
+              "$.names[0]",
               List(
-                BodyMismatch("name-1", "name-3", "Expected 'name-3' (String) to equal 'name-1' (String)", "$.names.0", "")
+                BodyMismatch("name-1", "name-3", "Expected 'name-3' (String) to be equal to 'name-1' (String)", "$.names[0]", "")
               )
             ),
             BodyItemMatchResult(
-              "$.names.1",
+              "$.names[1]",
               List(
-                BodyMismatch("name-2", "name-4", "Expected 'name-4' (String) to equal 'name-2' (String)", "$.names.1", "")
+                BodyMismatch("name-2", "name-4", "Expected 'name-4' (String) to be equal to 'name-2' (String)", "$.names[1]", "")
               )
             )
           )
@@ -82,7 +82,7 @@ class RecordImplicitsArraysTest extends AnyWordSpec with Matchers with EitherVal
           BodyItemMatchResult(
             "$.names",
             List(
-              BodyMismatch(expected, null, s"Expected null (Null) to equal '$expected' (Array)", "$.names", null)
+              BodyMismatch(expected, null, s"Expected null (Null) to be equal to '$expected' (Array)", "$.names", null)
             )
           )
         )
@@ -118,8 +118,8 @@ class RecordImplicitsArraysTest extends AnyWordSpec with Matchers with EitherVal
         val result = record.compare(List("$"), otherRecord).value
         result should have size 2
         result shouldBe List(
-          BodyItemMatchResult("$.ids.0", List()),
-          BodyItemMatchResult("$.ids.1", List())
+          BodyItemMatchResult("$.ids[0]", List()),
+          BodyItemMatchResult("$.ids[1]", List())
         )
       }
 
@@ -133,15 +133,15 @@ class RecordImplicitsArraysTest extends AnyWordSpec with Matchers with EitherVal
         result shouldBe
           List(
             BodyItemMatchResult(
-              "$.ids.0",
+              "$.ids[0]",
               List(
-                BodyMismatch(1, 3, "Expected 3 (Integer) to equal 1 (Integer)", "$.ids.0", "")
+                BodyMismatch(1, 3, "Expected 3 (Integer) to be equal to 1 (Integer)", "$.ids[0]", "")
               )
             ),
             BodyItemMatchResult(
-              "$.ids.1",
+              "$.ids[1]",
               List(
-                BodyMismatch(2, 4, "Expected 4 (Integer) to equal 2 (Integer)", "$.ids.1", "")
+                BodyMismatch(2, 4, "Expected 4 (Integer) to be equal to 2 (Integer)", "$.ids[1]", "")
               )
             )
           )
@@ -155,7 +155,7 @@ class RecordImplicitsArraysTest extends AnyWordSpec with Matchers with EitherVal
           BodyItemMatchResult(
             "$.ids",
             List(
-              BodyMismatch(expected, null, s"Expected null (Null) to equal '$expected' (Array)", "$.ids", null)
+              BodyMismatch(expected, null, s"Expected null (Null) to be equal to '$expected' (Array)", "$.ids", null)
             )
           )
         )
@@ -203,7 +203,7 @@ class RecordImplicitsArraysTest extends AnyWordSpec with Matchers with EitherVal
 
         val result = record.compare(List("$"), otherRecord).value
         result should have size 1
-        result shouldBe List(BodyItemMatchResult("$.addresses.0.street", List()))
+        result shouldBe List(BodyItemMatchResult("$.addresses[0].street", List()))
       }
 
       "return a BodyMatch for unequal fields" in {
@@ -218,9 +218,9 @@ class RecordImplicitsArraysTest extends AnyWordSpec with Matchers with EitherVal
         result shouldBe
           List(
             BodyItemMatchResult(
-              "$.addresses.0.street",
+              "$.addresses[0].street",
               List(
-                BodyMismatch("street name", "other", "Expected 'other' (String) to equal 'street name' (String)", "$.addresses.0.street", "")
+                BodyMismatch("street name", "other", "Expected 'other' (String) to be equal to 'street name' (String)", "$.addresses[0].street", "")
               )
             )
           )
@@ -234,7 +234,7 @@ class RecordImplicitsArraysTest extends AnyWordSpec with Matchers with EitherVal
           BodyItemMatchResult(
             "$.addresses",
             List(
-              BodyMismatch(expected, null, s"Expected null (Null) to equal '$expected' (Array)", "$.addresses", null)
+              BodyMismatch(expected, null, s"Expected null (Null) to be equal to '$expected' (Array)", "$.addresses", null)
             )
           )
         )

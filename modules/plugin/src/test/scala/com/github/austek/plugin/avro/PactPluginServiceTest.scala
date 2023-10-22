@@ -197,7 +197,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
                   )
                 ),
                 "color" -> Value(StringValue("matching(equalTo, 'GREEN')")),
-                "md5" -> Value(StringValue("matching(equalTo, '\\u0000\\u0001\\u0002\\u0003')")),
+                "md5" -> Value(StringValue("matching(equalTo, '\\\u0000\\\u0001\\\u0002\\\u0003')")),
                 "address" -> Value(StructValue(Struct(Map("street" -> Value(StringValue("notEmpty('street name')")))))),
                 "items" -> Value(
                   ListValue(
@@ -248,7 +248,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
           )
         ),
         "$.no".toPactPath -> AvroInt("$.no".toPactPath, "no".toFieldName, 121),
-        "$.md5".toPactPath -> AvroString("$.md5".toPactPath, "md5".toFieldName, "\\u0000\\u0001\\u0002\\u0003"),
+        "$.md5".toPactPath -> AvroString("$.md5".toPactPath, "md5".toFieldName, "\\\u0000\\\u0001\\\u0002\\\u0003"),
         "$.address".toPactPath -> AvroRecord(
           "$.address".toPactPath,
           "address".toFieldName,
