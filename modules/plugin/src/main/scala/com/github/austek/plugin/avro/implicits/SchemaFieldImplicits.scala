@@ -223,7 +223,7 @@ object SchemaFieldImplicits extends StrictLogging {
                 actualEntries,
                 context,
                 () => "",
-                (p, expected, actual) => compareValue(p.asScala.toList, field, expected, actual, () => "", context).asJava
+                (p, expected, actual, c) => compareValue(p.asScala.toList, field, expected, actual, () => "", c).asJava
               )
               .asScala
           }
@@ -325,7 +325,7 @@ object SchemaFieldImplicits extends StrictLogging {
     List(
       BodyItemMatchResult(
         path.constructPath,
-        List(BodyMismatch.expectedNullMismatch[T](expected, s"Expected null (Null) to equal '$expected' ($valueType)", path.constructPath))
+        List(BodyMismatch.expectedNullMismatch[T](expected, s"Expected null (Null) to be equal to '$expected' ($valueType)", path.constructPath))
       )
     )
 }

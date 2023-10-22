@@ -44,7 +44,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.street",
             List(
-              new BodyMismatch("hello", "other", "Expected 'other' (String) to equal 'hello' (String)", "$.street", "")
+              new BodyMismatch("hello", "other", "Expected 'other' (String) to be equal to 'hello' (String)", "$.street", "")
             )
           )
         )
@@ -58,7 +58,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.street",
             List(
-              new BodyMismatch("hello", null, "Expected null (Null) to equal 'hello' (String)", "$.street", "")
+              new BodyMismatch("hello", null, "Expected null (Null) to be equal to 'hello' (String)", "$.street", "")
             )
           )
         )
@@ -93,7 +93,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.no",
             List(
-              new BodyMismatch(121, 3, "Expected 3 (Integer) to equal 121 (Integer)", "$.no", "")
+              new BodyMismatch(121, 3, "Expected 3 (Integer) to be equal to 121 (Integer)", "$.no", "")
             )
           )
         )
@@ -107,7 +107,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.no",
             List(
-              new BodyMismatch(121, null, "Expected null (Null) to equal 121 (Integer)", "$.no", "")
+              new BodyMismatch(121, null, "Expected null (Null) to be equal to 121 (Integer)", "$.no", "")
             )
           )
         )
@@ -142,7 +142,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.id",
             List(
-              new BodyMismatch(121L, 3L, "Expected 3 (Long) to equal 121 (Long)", "$.id", "")
+              new BodyMismatch(121L, 3L, "Expected 3 (Long) to be equal to 121 (Long)", "$.id", "")
             )
           )
         )
@@ -156,7 +156,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.id",
             List(
-              new BodyMismatch(121L, null, "Expected null (Null) to equal 121 (Long)", "$.id", "")
+              new BodyMismatch(121L, null, "Expected null (Null) to be equal to 121 (Long)", "$.id", "")
             )
           )
         )
@@ -191,7 +191,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.width",
             List(
-              new BodyMismatch(1.8d, 3d, "Expected 3.0 (Double) to equal 1.8 (Double)", "$.width", "")
+              new BodyMismatch(1.8d, 3d, "Expected 3.0 (Double) to be equal to 1.8 (Double)", "$.width", "")
             )
           )
         )
@@ -205,7 +205,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.width",
             List(
-              new BodyMismatch(1.8d, null, "Expected null (Null) to equal 1.8 (Double)", "$.width", "")
+              new BodyMismatch(1.8d, null, "Expected null (Null) to be equal to 1.8 (Double)", "$.width", "")
             )
           )
         )
@@ -240,7 +240,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.height",
             List(
-              new BodyMismatch(1.8f, 3f, "Expected 3.0 (Float) to equal 1.8 (Float)", "$.height", "")
+              new BodyMismatch(1.8f, 3f, "Expected 3.0 (Float) to be equal to 1.8 (Float)", "$.height", "")
             )
           )
         )
@@ -254,7 +254,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.height",
             List(
-              new BodyMismatch(1.8f, null, "Expected null (Null) to equal 1.8 (Float)", "$.height", "")
+              new BodyMismatch(1.8f, null, "Expected null (Null) to be equal to 1.8 (Float)", "$.height", "")
             )
           )
         )
@@ -289,7 +289,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.enabled",
             List(
-              new BodyMismatch(true, false, "Expected false (Boolean) to equal true (Boolean)", "$.enabled", "")
+              new BodyMismatch(true, false, "Expected false (Boolean) to be equal to true (Boolean)", "$.enabled", "")
             )
           )
         )
@@ -303,7 +303,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.enabled",
             List(
-              new BodyMismatch(true, null, "Expected null (Null) to equal true (Boolean)", "$.enabled", "")
+              new BodyMismatch(true, null, "Expected null (Null) to be equal to true (Boolean)", "$.enabled", "")
             )
           )
         )
@@ -340,7 +340,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.color",
             List(
-              new BodyMismatch(green, red, "Expected RED (EnumSymbol) to equal GREEN (EnumSymbol)", "$.color", "")
+              new BodyMismatch(green, red, "Expected RED (EnumSymbol) to be equal to GREEN (EnumSymbol)", "$.color", "")
             )
           )
         )
@@ -354,7 +354,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.color",
             List(
-              new BodyMismatch(green, null, "Expected null (Null) to equal GREEN (EnumSymbol)", "$.color", "")
+              new BodyMismatch(green, null, "Expected null (Null) to be equal to GREEN (EnumSymbol)", "$.color", "")
             )
           )
         )
@@ -363,13 +363,13 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
 
     "comparing Fixed fields" should {
       val schema = schemaWithField("""{"name": "md5", "type": {"name": "MD5", "type": "fixed", "size": 4}}""")
-      val pactConfiguration: Map[String, Value] = Map("md5" -> Value(StringValue("matching(equalTo, '\\u0000\\u0001\\u0002\\u0003')")))
+      val pactConfiguration: Map[String, Value] = Map("md5" -> Value(StringValue("matching(equalTo, '\\\u0000\\\u0001\\\u0002\\\u0003')")))
       val avroRecord = AvroRecord(schema, pactConfiguration).value
       val record = avroRecord.toGenericRecord(schema)
 
       val matchingRules: MatchingRuleCategory = avroRecord.matchingRules
       implicit val context: MatchingContext = new MatchingContext(matchingRules, false)
-      val fixed = new GenericData.Fixed(schema.getField("md5").schema(), "\\u0000\\u0001\\u0002\\u0003".getBytes)
+      val fixed = new GenericData.Fixed(schema.getField("md5").schema(), "\\\u0000\\\u0001\\\u0002\\\u0003".getBytes)
 
       "return empty BodyMatch list for equal fields" in {
         val otherRecord = new GenericData.Record(schema)
@@ -382,7 +382,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
 
       "return a BodyMatch for unequal fields" in {
         val otherRecord = new GenericData.Record(schema)
-        val red = new GenericData.Fixed(schema.getField("md5").schema(), "\\u0000\\u0001\\u0002".getBytes)
+        val red = new GenericData.Fixed(schema.getField("md5").schema(), "\\\u0000\\\u0001\\\u0002".getBytes)
         otherRecord.put("md5", red)
 
         val result = record.compare(List("$"), otherRecord).value
@@ -391,7 +391,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.md5",
             List(
-              new BodyMismatch(fixed, red, s"Expected $red (Fixed) to equal $fixed (Fixed)", "$.md5", "")
+              new BodyMismatch(fixed, red, s"Expected $red (Fixed) to be equal to $fixed (Fixed)", "$.md5", "")
             )
           )
         )
@@ -405,7 +405,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.md5",
             List(
-              new BodyMismatch(fixed, null, s"Expected null (Null) to equal $fixed (Fixed)", "$.md5", "")
+              new BodyMismatch(fixed, null, s"Expected null (Null) to be equal to $fixed (Fixed)", "$.md5", "")
             )
           )
         )
@@ -414,7 +414,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
 
     "comparing Bytes fields" should {
       val schema = schemaWithField("""{"name": "MAC", "type": "bytes"}""")
-      val pactConfiguration: Map[String, Value] = Map("MAC" -> Value(StringValue("matching(equalTo, '\\u0000')")))
+      val pactConfiguration: Map[String, Value] = Map("MAC" -> Value(StringValue("matching(equalTo, '\\\u0000')")))
       val avroRecord = AvroRecord(schema, pactConfiguration).value
       val record = avroRecord.toGenericRecord(schema)
 
@@ -423,7 +423,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
 
       "return empty BodyMatch list for equal fields" in {
         val otherRecord = new GenericData.Record(schema)
-        otherRecord.put("MAC", "\\u0000")
+        otherRecord.put("MAC", "\\\u0000")
 
         val result = record.compare(List("$"), otherRecord).value
         result should have size 1
@@ -432,7 +432,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
 
       "return a BodyMatch for unequal fields" in {
         val otherRecord = new GenericData.Record(schema)
-        otherRecord.put("MAC", "\\u0001")
+        otherRecord.put("MAC", "\\\u0001")
 
         val result = record.compare(List("$"), otherRecord).value
         result should have size 1
@@ -440,7 +440,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.MAC",
             List(
-              new BodyMismatch("\\u0000", "\\u0001", "Expected '\\u0001' (String) to equal '\\u0000' (String)", "$.MAC", "")
+              new BodyMismatch("\\\u0000", "\\\u0001", "Expected '\\\u0001' (String) to be equal to '\\\u0000' (String)", "$.MAC", "")
             )
           )
         )
@@ -454,7 +454,7 @@ class RecordImplicitsTest extends AnyWordSpec with Matchers with EitherValues {
           BodyItemMatchResult(
             "$.MAC",
             List(
-              new BodyMismatch("\\u0000", null, "Expected null (Null) to equal '\\u0000' (String)", "$.MAC", "")
+              new BodyMismatch("\\\u0000", null, "Expected null (Null) to be equal to '\\\u0000' (String)", "$.MAC", "")
             )
           )
         )

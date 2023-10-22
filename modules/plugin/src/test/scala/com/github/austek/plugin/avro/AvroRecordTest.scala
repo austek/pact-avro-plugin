@@ -274,13 +274,13 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
   "Fixed field" when {
     "value provided" should provide {
       val schema = schemaWithField("""{"name": "md5", "type": {"name": "MD5", "type": "fixed", "size": 4}}""")
-      val pactConfiguration: Map[String, Value] = Map("md5" -> Value(StringValue("matching(equalTo, '\\u0000\\u0001\\u0002\\u0003')")))
+      val pactConfiguration: Map[String, Value] = Map("md5" -> Value(StringValue("matching(equalTo, '\\\u0000\\\u0001\\\u0002\\\u0003')")))
       val avroRecord = AvroRecord(schema, pactConfiguration).value
 
       "a method," which {
         "returns GenericRecord with field" in {
           val genericRecord = avroRecord.toGenericRecord(schema)
-          genericRecord.get("md5") shouldBe new GenericData.Fixed(schema.getField("md5").schema(), "\\u0000\\u0001\\u0002\\u0003".getBytes)
+          genericRecord.get("md5") shouldBe new GenericData.Fixed(schema.getField("md5").schema(), "\\\u0000\\\u0001\\\u0002\\\u0003".getBytes)
         }
         "returns matching rules using JsonPath" in {
           avroRecord.matchingRules should have size 1
@@ -311,14 +311,14 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
     "value provided" should provide {
       val schema = schemaWithField("""{"name": "MAC", "type": "bytes"}""")
       val pactConfiguration: Map[String, Value] = Map(
-        "MAC" -> Value(StringValue("matching(equalTo, '\\u0000\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007')"))
+        "MAC" -> Value(StringValue("matching(equalTo, '\\\u0000\\\u0001\\\u0002\\\u0003\\\u0004\\\u0005\\\u0006\\\u0007')"))
       )
       val avroRecord = AvroRecord(schema, pactConfiguration).value
 
       "a method," which {
         "returns GenericRecord with field" in {
           val genericRecord = avroRecord.toGenericRecord(schema)
-          genericRecord.get("MAC") shouldBe "\\u0000\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007"
+          genericRecord.get("MAC") shouldBe "\\\u0000\\\u0001\\\u0002\\\u0003\\\u0004\\\u0005\\\u0006\\\u0007"
         }
         "returns matching rules using JsonPath" in {
           avroRecord.matchingRules should have size 1

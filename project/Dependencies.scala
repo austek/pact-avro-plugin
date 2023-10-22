@@ -6,7 +6,7 @@ object Dependencies extends DependencyUtils {
   object Versions {
     val avro = "1.11.3"
     val logback = "1.4.11"
-    val pact = "4.6.0"
+    val pact = "4.6.3"
     val pulsar4sVersion = "2.9.0"
     val scalaTest = "3.2.17"
   }
