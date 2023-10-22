@@ -1,4 +1,4 @@
-package com.github.austek.plugin
+package com.github.austek.pact
 
 import au.com.dius.pact.core.model.matchingrules.MatchingRule
 import au.com.dius.pact.core.model.matchingrules.expressions.MatchingRuleDefinition

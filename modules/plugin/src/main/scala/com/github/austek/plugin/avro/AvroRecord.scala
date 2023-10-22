@@ -1,7 +1,7 @@
 package com.github.austek.plugin.avro
 
 import au.com.dius.pact.core.model.matchingrules.{MatchingRule, MatchingRuleCategory}
-import com.github.austek.plugin.RuleParser.parseRules
+import com.github.austek.pact.RuleParser.parseRules
 import com.github.austek.plugin.avro.AvroPluginConstants.MatchingRuleCategoryName
 import com.github.austek.plugin.avro.error._
 import com.github.austek.plugin.avro.utils.StringUtils._
@@ -64,13 +64,14 @@ object Avro {
       inValue: Value,
       appendPath: Boolean = true
     ): Either[Seq[PluginError[_]], AvroValue] = {
-      val path = if (appendPath) rootPath :+ fieldName else rootPath
-      logger.debug(s">>> buildFieldValue($path, $fieldName, $inValue)")
-      val valueSchema = schema.getType match {
+      def valueSchema = schema.getType match {
         case ARRAY => schema.getElementType
         case MAP   => schema.getValueType
         case _     => schema
       }
+
+      val path = if (appendPath) rootPath :+ fieldName else rootPath
+      logger.debug(s">>> buildFieldValue($path, $fieldName, $inValue)")
       inValue.kind match {
         case Empty        => Right(AvroNull(path, fieldName))
         case NullValue(_) => Right(AvroNull(path, fieldName))
@@ -81,13 +82,9 @@ object Avro {
             }
             .left
             .map(e => Seq(e))
-        case ListValue(_)   => Left(Seq(PluginErrorMessage(s"List kind value for field is not supported")))
-        case NumberValue(_) => Left(Seq(PluginErrorMessage(s"Number kind value for field is not supported")))
-        case BoolValue(_)   => Left(Seq(PluginErrorMessage(s"Bool kind value for field is not supported")))
         case StructValue(_) if valueSchema.getType == RECORD =>
           AvroRecord(path, fieldName, valueSchema, inValue.getStructValue.fields)
-        case StructValue(_) =>
-          Left(Seq(PluginErrorMessage(s"Struct kind value for field is not supported")))
+        case _ => Left(Seq(PluginErrorMessage(s"${inValue.kind.getClass.getSimpleName} kind value for field is not supported")))
       }
     }
 
@@ -103,18 +100,18 @@ object Avro {
         case _ =>
           (schemaType match {
             case BOOLEAN => Try(AvroBoolean(path, fieldName, fieldValue.asInstanceOf[Boolean], rules)).toEither
+            case DOUBLE  => Try(AvroDouble(path, fieldName, fieldValue.asInstanceOf[Double], rules)).toEither
+            case ENUM    => Try(AvroEnum(path, fieldName, fieldValue.asInstanceOf[String])).toEither
+            case FLOAT   => Try(AvroFloat(path, fieldName, fieldValue.asInstanceOf[Float], rules)).toEither
+            case INT     => Try(AvroInt(path, fieldName, fieldValue.asInstanceOf[Int], rules)).toEither
+            case LONG    => Try(AvroLong(path, fieldName, fieldValue.asInstanceOf[Long], rules)).toEither
+            case NULL    => Right(AvroNull(path, fieldName))
+            case STRING  => Try(AvroString(path, fieldName, fieldValue.asInstanceOf[String], rules)).toEither
             case BYTES | FIXED =>
               Right(
                 AvroString(path, fieldName, new String(fieldValue.asInstanceOf[Array[Byte]], StandardCharsets.UTF_8), rules)
               )
-            case DOUBLE => Try(AvroDouble(path, fieldName, fieldValue.asInstanceOf[Double], rules)).toEither
-            case ENUM   => Try(AvroEnum(path, fieldName, fieldValue.asInstanceOf[String])).toEither
-            case FLOAT  => Try(AvroFloat(path, fieldName, fieldValue.asInstanceOf[Float], rules)).toEither
-            case INT    => Try(AvroInt(path, fieldName, fieldValue.asInstanceOf[Int], rules)).toEither
-            case LONG   => Try(AvroLong(path, fieldName, fieldValue.asInstanceOf[Long], rules)).toEither
-            case NULL   => Right(AvroNull(path, fieldName))
-            case STRING => Try(AvroString(path, fieldName, fieldValue.asInstanceOf[String], rules)).toEither
-            case t      => Left(FieldUnsupportedTypeException(t, fieldName, fieldValue))
+            case t => Left(FieldUnsupportedTypeException(t, fieldName, fieldValue))
           }).left.map(e => PluginErrorException(e))
       }
     }
@@ -348,14 +345,10 @@ object Avro {
               }
               .asJava
           )
-        case RECORD =>
-          record.put(key, value.asInstanceOf[AvroRecord].toGenericRecord(fieldSchema))
-        case FIXED =>
-          record.put(key, new GenericData.Fixed(fieldSchema, value.asInstanceOf[String].getBytes))
-        case UNION =>
-          fieldToRecord(record, key, value, fieldSchema.getTypes.asScala.filterNot(_.getType == NULL).head)
-        case _ =>
-          record.put(key, value)
+        case RECORD => record.put(key, value.asInstanceOf[AvroRecord].toGenericRecord(fieldSchema))
+        case FIXED  => record.put(key, new GenericData.Fixed(fieldSchema, value.asInstanceOf[String].getBytes))
+        case UNION  => fieldToRecord(record, key, value, fieldSchema.getTypes.asScala.filterNot(_.getType == NULL).head)
+        case _      => record.put(key, value)
       }
     }
 

@@ -25,21 +25,20 @@ object InteractionBuilder extends StrictLogging {
     configuration: Struct
   ): Either[Seq[PluginError[_]], InteractionResponse] = {
     schema.getType match {
-      case UNION =>
-        schema.getTypes.asScala.find(s => s.getType == RECORD && s.getName == recordName) match {
-          case Some(value) => buildResponse(value, recordName, avroSchemaHash, configuration)
-          case None        => Left(Seq(PluginErrorMessage(s"Avro union schema didn't contain record: '$recordName'")))
-        }
-      case RECORD if schema.getName == recordName =>
-        buildResponse(schema, recordName, avroSchemaHash, configuration)
-      case RECORD if schema.getName != recordName =>
-        Left(Seq(PluginErrorMessage(s"Record '$recordName' was not found in avro Schema provided")))
-      case t =>
-        Left(Seq(PluginErrorMessage(s"Schema provided is of type: '$t', but expected to be ${UNION.getName}/${RECORD.getName}")))
+      case UNION                                  => buildUnionResponse(schema, recordName, avroSchemaHash, configuration)
+      case RECORD if schema.getName == recordName => buildRecordResponse(schema, recordName, avroSchemaHash, configuration)
+      case RECORD if schema.getName != recordName => Left(Seq(PluginErrorMessage(s"Record '$recordName' was not found in avro Schema provided")))
+      case t => Left(Seq(PluginErrorMessage(s"Schema provided is of type: '$t', but expected to be ${UNION.getName}/${RECORD.getName}")))
     }
   }
 
-  private def buildResponse(
+  private def buildUnionResponse(schema: Schema, recordName: String, avroSchemaHash: AvroSchemaBase16Hash, configuration: Struct) =
+    schema.getTypes.asScala.find(s => s.getType == RECORD && s.getName == recordName) match {
+      case Some(value) => buildRecordResponse(value, recordName, avroSchemaHash, configuration)
+      case None        => Left(Seq(PluginErrorMessage(s"Avro union schema didn't contain record: '$recordName'")))
+    }
+
+  private def buildRecordResponse(
     schema: Schema,
     recordName: String,
     avroSchemaHash: AvroSchemaBase16Hash,

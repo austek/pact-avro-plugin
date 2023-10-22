@@ -1,6 +1,6 @@
 package com.github.austek.plugin.avro
 
-import com.github.austek.plugin.avro.AvroPactTestConstants._
+import com.github.austek.plugin.avro.AvroPactConstants._
 import com.github.austek.plugin.avro.AvroPluginConstants._
 import com.github.austek.plugin.avro.ContentTypeConstants._
 import com.github.austek.plugin.avro.compare.CompareContentsResponseBuilder
