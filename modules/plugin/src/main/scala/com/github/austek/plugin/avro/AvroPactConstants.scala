@@ -1,5 +1,5 @@
 package com.github.austek.plugin.avro
 
-object AvroPactTestConstants {
+object AvroPactConstants {
   val RecordName = "record-name"
 }
