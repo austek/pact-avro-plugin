@@ -2,7 +2,7 @@ package com.github.austek.example.pulsar.avro
 
 import com.github.austek.example.Order
 import com.github.austek.example.config.ConsumerAppConfig
-import com.sksamuel.pulsar4s._
+import com.sksamuel.pulsar4s.*
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.pulsar.client.api.{Schema, SubscriptionInitialPosition, SubscriptionType}
 

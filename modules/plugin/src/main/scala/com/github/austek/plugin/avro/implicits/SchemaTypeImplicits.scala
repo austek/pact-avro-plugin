@@ -1,7 +1,7 @@
 package com.github.austek.plugin.avro.implicits
 
 import org.apache.avro.Schema.Type
-import org.apache.avro.Schema.Type._
+import org.apache.avro.Schema.Type.*
 import org.apache.avro.generic.GenericRecord
 
 object SchemaTypeImplicits {

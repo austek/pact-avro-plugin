@@ -24,6 +24,7 @@ object PublishSettings {
         sourceDirectory.value / "main" / "resources" / "logback.xml" -> "conf/logback.xml"
       ),
       Universal / javaOptions ++= Seq(
+        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005",
         "-Dfile.encoding=UTF-8",
         "-Dlogback.configurationFile=conf/logback.xml"
       ),

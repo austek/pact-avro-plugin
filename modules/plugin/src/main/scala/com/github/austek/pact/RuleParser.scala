@@ -7,7 +7,7 @@ import com.github.austek.plugin.avro.implicits.AvroSupportImplicits.{fromPactEit
 import com.google.protobuf.struct.Value
 import com.google.protobuf.struct.Value.Kind.StringValue
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 case class FieldRule(value: String, rules: Seq[MatchingRule])
 

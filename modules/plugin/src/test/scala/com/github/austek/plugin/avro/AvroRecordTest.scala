@@ -1,11 +1,11 @@
 package com.github.austek.plugin.avro
 
 import au.com.dius.pact.core.model.matchingrules.NumberTypeMatcher.NumberType
-import au.com.dius.pact.core.model.matchingrules._
-import Avro.AvroRecord
-import TestSchemas._
-import com.github.austek.plugin.avro.utils.MatchingRuleCategoryImplicits._
-import com.google.protobuf.struct.Value.Kind._
+import au.com.dius.pact.core.model.matchingrules.*
+import com.github.austek.plugin.avro.Avro.AvroRecord
+import com.github.austek.plugin.avro.TestSchemas.*
+import com.github.austek.plugin.avro.utils.MatchingRuleCategoryImplicits.*
+import com.google.protobuf.struct.Value.Kind.*
 import com.google.protobuf.struct.{ListValue => StructListValue, Struct, Value}
 import org.apache.avro.generic.{GenericData, GenericRecord}
 import org.scalatest.EitherValues
@@ -13,9 +13,10 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
 import java.util
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
+  import com.github.austek.plugin.avro.utils.MatchingRuleCategoryImplicits.given
   def provide: AfterWord = afterWord("provide")
 
   "String field" when {
@@ -63,7 +64,7 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
       "a method," which {
         "returns GenericRecord with field" in {
           val genericRecord = avroRecord.toGenericRecord(schema)
-          genericRecord.get("no") shouldBe 121
+          genericRecord.get("no").toString.toInt shouldBe 121
         }
         "returns matching rules using JsonPath" in {
           avroRecord.matchingRules should have size 1
@@ -81,7 +82,7 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
       "a method," which {
         "returns GenericRecord with field containing default value" in {
           val genericRecord = avroRecord.toGenericRecord(schema)
-          genericRecord.get("no") shouldBe 5
+          genericRecord.get("no").toString.toInt shouldBe 5
         }
         "returns empty matching rules using JsonPath" in {
           avroRecord.matchingRules.getRules("$.no") shouldBe empty
@@ -99,7 +100,7 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
       "a method," which {
         "returns GenericRecord with field" in {
           val genericRecord = avroRecord.toGenericRecord(schema)
-          genericRecord.get("id") shouldBe 100
+          genericRecord.get("id").toString.toInt shouldBe 100
         }
         "returns matching rules using JsonPath" in {
           avroRecord.matchingRules should have size 1
@@ -117,7 +118,7 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
       "a method," which {
         "returns GenericRecord with field containing default value" in {
           val genericRecord = avroRecord.toGenericRecord(schema)
-          genericRecord.get("id") shouldBe 100
+          genericRecord.get("id").toString.toInt shouldBe 100
         }
         "returns empty matching rules using JsonPath" in {
           avroRecord.matchingRules.getRules("$.id") shouldBe empty
@@ -135,7 +136,7 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
       "a method," which {
         "returns GenericRecord with field" in {
           val genericRecord = avroRecord.toGenericRecord(schema)
-          genericRecord.get("width") shouldBe 1.8d
+          genericRecord.get("width").toString.toDouble shouldBe 1.8d
         }
         "returns matching rules using JsonPath" in {
           avroRecord.matchingRules should have size 1
@@ -153,7 +154,7 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
       "a method," which {
         "returns GenericRecord with field containing default value" in {
           val genericRecord = avroRecord.toGenericRecord(schema)
-          genericRecord.get("width") shouldBe 1.8d
+          genericRecord.get("width").toString.toDouble shouldBe 1.8d
         }
         "returns empty matching rules using JsonPath" in {
           avroRecord.matchingRules.getRules("$.width") shouldBe empty
@@ -171,7 +172,7 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
       "a method," which {
         "returns GenericRecord with field" in {
           val genericRecord = avroRecord.toGenericRecord(schema)
-          genericRecord.get("height") shouldBe 15.8f
+          genericRecord.get("height").toString.toFloat shouldBe 15.8f
         }
         "returns matching rules using JsonPath" in {
           avroRecord.matchingRules should have size 1
@@ -189,7 +190,7 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
       "a method," which {
         "returns GenericRecord with field containing default value" in {
           val genericRecord = avroRecord.toGenericRecord(schema)
-          genericRecord.get("height") shouldBe 15.8f
+          genericRecord.get("height").toString.toFloat shouldBe 15.8f
         }
         "returns empty matching rules using JsonPath" in {
           avroRecord.matchingRules.getRules("$.height") shouldBe empty
@@ -207,7 +208,7 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
       "a method," which {
         "returns GenericRecord with field" in {
           val genericRecord = avroRecord.toGenericRecord(schema)
-          genericRecord.get("enabled") shouldBe true
+          genericRecord.get("enabled").toString.toBoolean shouldBe true
         }
         "returns matching rules using JsonPath" in {
           avroRecord.matchingRules should have size 1
@@ -225,7 +226,7 @@ class AvroRecordTest extends AnyWordSpecLike with Matchers with EitherValues {
       "a method," which {
         "returns GenericRecord with field containing default value" in {
           val genericRecord = avroRecord.toGenericRecord(schema)
-          genericRecord.get("enabled") shouldBe true
+          genericRecord.get("enabled").toString.toBoolean shouldBe true
         }
         "returns empty matching rules using JsonPath" in {
           avroRecord.matchingRules.getRules("$.enabled") shouldBe empty

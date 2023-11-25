@@ -2,11 +2,11 @@ package com.github.austek.plugin.avro.matchers
 
 import au.com.dius.pact.core.matchers.{BodyItemMatchResult => AvroBodyItemMatchResult, BodyMismatch}
 import com.github.austek.plugin.avro.error.{PluginError, PluginErrorException}
-import com.github.austek.plugin.avro.implicits.RecordImplicits._
+import com.github.austek.plugin.avro.implicits.RecordImplicits.*
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object BodyItemMatchResult {
 

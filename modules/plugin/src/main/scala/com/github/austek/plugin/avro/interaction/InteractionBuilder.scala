@@ -2,19 +2,19 @@ package com.github.austek.plugin.avro.interaction
 
 import au.com.dius.pact.core.model.matchingrules.{MatchingRule => _, MatchingRules => _, _}
 import com.github.austek.plugin.avro.Avro.AvroRecord
-import com.github.austek.plugin.avro.AvroPluginConstants._
+import com.github.austek.plugin.avro.AvroPluginConstants.*
 import com.github.austek.plugin.avro.AvroSchemaBase16Hash
 import com.github.austek.plugin.avro.error.{PluginError, PluginErrorMessage}
-import com.github.austek.plugin.avro.utils.Util._
+import com.github.austek.plugin.avro.utils.Util.*
 import com.google.protobuf.ByteString
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging
 import io.pact.plugin.pact_plugin.Body.ContentTypeHint
-import io.pact.plugin.pact_plugin._
+import io.pact.plugin.pact_plugin.*
 import org.apache.avro.Schema
-import org.apache.avro.Schema.Type._
+import org.apache.avro.Schema.Type.*
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object InteractionBuilder extends StrictLogging {
 

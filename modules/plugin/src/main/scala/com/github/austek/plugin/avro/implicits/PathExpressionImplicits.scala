@@ -1,6 +1,6 @@
 package com.github.austek.plugin.avro.implicits
 
-import au.com.dius.pact.core.model.PathExpressionsKt._
+import au.com.dius.pact.core.model.PathExpressionsKt.*
 
 object PathExpressionImplicits {
 

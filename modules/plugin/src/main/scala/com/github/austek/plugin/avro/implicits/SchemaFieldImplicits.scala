@@ -1,21 +1,21 @@
 package com.github.austek.plugin.avro.implicits
 
 import au.com.dius.pact.core.matchers.{BodyItemMatchResult => AvroBodyItemMatchResult, _}
-import au.com.dius.pact.core.model.PathExpressionsKt._
+import au.com.dius.pact.core.model.PathExpressionsKt.*
 import com.github.austek.plugin.avro.error.{PluginError, PluginErrorException, PluginErrorMessage, PluginErrorMessages}
-import com.github.austek.plugin.avro.implicits.PathExpressionImplicits._
-import com.github.austek.plugin.avro.implicits.RecordImplicits._
-import com.github.austek.plugin.avro.implicits.SchemaTypeImplicits._
+import com.github.austek.plugin.avro.implicits.PathExpressionImplicits.*
+import com.github.austek.plugin.avro.implicits.RecordImplicits.*
+import com.github.austek.plugin.avro.implicits.SchemaTypeImplicits.*
 import com.github.austek.plugin.avro.matchers.{BodyItemMatchResult, BodyMismatch}
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.avro.Schema
-import org.apache.avro.Schema.Type._
+import org.apache.avro.Schema.Type.*
 import org.apache.avro.generic.GenericData.{EnumSymbol, Fixed}
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.util.Utf8
 
 import java.util
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object SchemaFieldImplicits extends StrictLogging {
 

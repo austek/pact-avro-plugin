@@ -1,19 +1,19 @@
 package com.github.austek.plugin.avro
 
-import Avro._
-import com.github.austek.plugin.avro.utils.StringUtils._
+import Avro.*
+import com.github.austek.plugin.avro.utils.StringUtils.*
 import com.github.austek.plugin.avro.utils.AvroUtils
-import com.google.protobuf.struct.Value.Kind._
+import com.google.protobuf.struct.Value.Kind.*
 import com.google.protobuf.struct.{ListValue => StructListValue, Struct, Value}
 import io.pact.plugin.pact_plugin.Body.ContentTypeHint.BINARY
-import io.pact.plugin.pact_plugin._
+import io.pact.plugin.pact_plugin.*
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AsyncFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{EitherValues, OptionValues}
 
 import java.nio.file.Path
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionValues with ScalaFutures with EitherValues {
 

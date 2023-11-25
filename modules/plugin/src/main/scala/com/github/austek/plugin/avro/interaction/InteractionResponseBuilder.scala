@@ -1,11 +1,11 @@
 package com.github.austek.plugin.avro.interaction
 
-import com.github.austek.plugin.avro.AvroPluginConstants._
+import com.github.austek.plugin.avro.AvroPluginConstants.*
 import com.github.austek.plugin.avro.AvroSchemaBase16Hash
 import com.github.austek.plugin.avro.error.{PluginErrorException, PluginErrorMessage, PluginErrorMessages}
 import com.google.protobuf.struct.{Struct, Value}
 import com.typesafe.scalalogging.StrictLogging
-import io.pact.plugin.pact_plugin._
+import io.pact.plugin.pact_plugin.*
 import org.apache.avro.Schema
 
 object InteractionResponseBuilder extends StrictLogging {

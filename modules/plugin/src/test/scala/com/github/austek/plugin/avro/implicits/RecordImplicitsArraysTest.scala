@@ -3,17 +3,17 @@ package com.github.austek.plugin.avro.implicits
 import au.com.dius.pact.core.matchers.MatchingContext
 import au.com.dius.pact.core.model.matchingrules.MatchingRuleCategory
 import com.github.austek.plugin.avro.Avro.AvroRecord
-import com.github.austek.plugin.avro.TestSchemas._
-import RecordImplicits._
+import com.github.austek.plugin.avro.TestSchemas.*
+import RecordImplicits.*
 import com.github.austek.plugin.avro.matchers.{BodyItemMatchResult, BodyMismatch}
-import com.google.protobuf.struct.Value.Kind._
+import com.google.protobuf.struct.Value.Kind.*
 import com.google.protobuf.struct.{ListValue => StructListValue, Struct, Value}
 import org.apache.avro.generic.GenericData
 import org.scalatest.EitherValues
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 class RecordImplicitsArraysTest extends AnyWordSpec with Matchers with EitherValues {
   "GenericRecord" when {
     "comparing Array fields with String values" should {

@@ -7,19 +7,22 @@ import java.util
 object BuildSettings {
   private val javaVersion = 17
   private val env: util.Map[String, String] = System.getenv()
-  val scala213 = "2.13.12"
+  val scalaV = "3.3.1"
 
   lazy val basicSettings: Seq[Def.Setting[?]] = Seq(
     homepage := Some(new URL("https://github.com/austek/pact-avro-plugin")),
     organization := "io.pact",
     description := "Pact Avro Plugin",
-    scalaVersion := scala213,
+    scalaVersion := scalaV,
     resolvers += Resolver.mavenLocal,
     resolvers ++= Resolver.sonatypeOssRepos("releases"),
     javacOptions ++= Seq(
-      "-encoding", "UTF-8",
-      "-source", s"$javaVersion",
-      "-target", s"$javaVersion"
+      "-encoding",
+      "UTF-8",
+      "-source",
+      s"$javaVersion",
+      "-target",
+      s"$javaVersion"
     ),
     Test / fork := true,
     scalacOptions --= {
@@ -29,7 +32,7 @@ object BuildSettings {
         Seq("-Xfatal-warnings")
     },
     scalacOptions ++= Seq(
-      "-Wconf:src=src_managed/.*:silent"
+      "-Wconf:id=E175:silent"
     ),
     Test / tpolecatExcludeOptions += ScalacOptions.warnNonUnitStatement,
     initialize := {
@@ -46,6 +49,6 @@ object BuildSettings {
       .withWarnTransitiveEvictions(true)
       .withShowCallers(true),
     // Checks evictions on resolving dependencies
-    update := update.dependsOn(evicted).value,
+    update := update.dependsOn(evicted).value
   )
 }

@@ -7,7 +7,7 @@ import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.apache.avro.io.DecoderFactory
 
 import java.io.{ByteArrayInputStream, File, InputStream}
-import scala.util._
+import scala.util.*
 
 object AvroUtils extends StrictLogging {
 
