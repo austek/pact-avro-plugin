@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Getting Started :: Pact Avro Plugin</title>
-    <link rel="canonical" href="https://austek.github.io/pact-avro-plugin/pact-avro-plugin/0.0.5/getting_started.html">
+    <link rel="canonical" href="https://austek.github.io/pact-avro-plugin/pact-avro-plugin/0.0.6/getting_started.html">
     <link rel="prev" href="index.html">
     <link rel="next" href="logging.html">
     <meta name="generator" content="Antora 3.1.2">
@@ -44,11 +44,12 @@
     </nav>
 </header>
 <div class="body">
-<div class="nav-container" data-component="pact-avro-plugin" data-version="0.0.5">
+<div class="nav-container" data-component="pact-avro-plugin" data-version="0.0.6">
   <aside class="nav">
     <div class="panels">
 <div class="nav-panel-menu is-active" data-panel="menu">
   <nav class="nav-menu">
+    <button class="nav-menu-toggle" aria-label="Toggle expand/collapse all" style="display: none"></button>
     <h3 class="title"><a href="index.html">Pact Avro Plugin</a></h3>
 <ul class="nav-list">
   <li class="nav-item" data-depth="0">
@@ -70,14 +71,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Pact Avro Plugin</span>
-    <span class="version">0.0.5</span>
+    <span class="version">0.0.6</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Pact Avro Plugin</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.0.5</a>
+          <a href="index.html">0.0.6</a>
         </li>
       </ul>
     </li>
@@ -126,7 +127,7 @@ a message to a consumer).</p>
 </div>
 <div class="paragraph">
 <p>Plugin installation requires the plugin executable binary as well as the plugin manifest file to be unpacked/copied into a Pact plugin directory. By default, this will be <code>.pact/plugins/avro-&lt;version&gt;</code> in the home directory (i.e.
-<code>$HOME/.pact/plugins/avro-0.0.5</code> for version 0.0.5).</p>
+<code>$HOME/.pact/plugins/avro-0.0.6</code> for version 0.0.6).</p>
 </div>
 <div class="sect2">
 <h3 id="automated"><a class="anchor" href="#automated"></a>Automated</h3>
@@ -145,7 +146,7 @@ a message to a consumer).</p>
 <div class="sect2">
 <h3 id="manual"><a class="anchor" href="#manual"></a>Manual</h3>
 <div class="paragraph">
-<p>Example installation of version 0.0.5 (replace with the actual version you are using):</p>
+<p>Example installation of version 0.0.6 (replace with the actual version you are using):</p>
 </div>
 <div class="dlist">
 <dl>
@@ -158,7 +159,7 @@ a message to a consumer).</p>
 <p>Create the plugin directory if needed:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">mkdir -p ~/.pact/plugins/avro-0.0.5</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">mkdir -p ~/.pact/plugins/avro-0.0.6</code></pre>
 </div>
 </div>
 </li>
@@ -166,7 +167,7 @@ a message to a consumer).</p>
 <p>Download the plugin manifest into the directory:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">wget https://github.com/austek/pact-avro-plugin/releases/download/v-0.0.5/pact-plugin.json -O ~/.pact/plugins/avro-0.0.5/pact-plugin.json</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">wget https://github.com/austek/pact-avro-plugin/releases/download/v-0.0.6/pact-plugin.json -O ~/.pact/plugins/avro-0.0.6/pact-plugin.json</code></pre>
 </div>
 </div>
 </li>
@@ -174,7 +175,7 @@ a message to a consumer).</p>
 <p>Download the plugin executable into the directory:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">wget -c https://github.com/austek/pact-avro-plugin/releases/download/v0.0.5/pact-avro-plugin.zip -O ~/.pact/plugins/avro-0.0.5/pact-avro-plugin.zip</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">wget -c https://github.com/austek/pact-avro-plugin/releases/download/v0.0.6/pact-avro-plugin.zip -O ~/.pact/plugins/avro-0.0.6/pact-avro-plugin.zip</code></pre>
 </div>
 </div>
 </li>
@@ -182,7 +183,7 @@ a message to a consumer).</p>
 <p>Unpack the plugin executable:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cd ~/.pact/plugins/avro-$0.0.5 && unzip pact-avro-plugin.zip</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cd ~/.pact/plugins/avro-0.0.6 && unzip pact-avro-plugin.zip</code></pre>
 </div>
 </div>
 </li>
@@ -190,7 +191,7 @@ a message to a consumer).</p>
 <p>Make the plugin executable:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">chmod +x ~/.pact/plugins/avro-0.0.5/bin/pact-avro-plugin</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">chmod +x ~/.pact/plugins/avro-0.0.6/bin/pact-avro-plugin</code></pre>
 </div>
 </div>
 </li>
