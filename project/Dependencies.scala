@@ -34,8 +34,8 @@ object Dependencies extends DependencyUtils {
   val assertJCore: ModuleID = "org.assertj"                     % "assertj-core"      % "3.24.2"
   val avroCompiler: ModuleID = "org.apache.avro"                % "avro-compiler"     % Versions.avro excludeAll ExclusionRule("org.slf4j")
   val jUnitInterface: ModuleID = "net.aichler"                  % "jupiter-interface" % "0.11.1"
-  val pactConsumerJunit: ModuleID = "au.com.dius.pact.consumer" % "junit5"            % Versions.pact excludeAll ExclusionRule("io.pact.plugin.driver")
-  val pactProviderJunit: ModuleID = "au.com.dius.pact.provider" % "junit5"            % Versions.pact excludeAll ExclusionRule("io.pact.plugin.driver")
+  val pactConsumerJunit: ModuleID = "au.com.dius.pact.consumer" % "junit5"            % Versions.pact
+  val pactProviderJunit: ModuleID = "au.com.dius.pact.provider" % "junit5"            % Versions.pact
   val pulsar4sAvro: ModuleID = "com.clever-cloud.pulsar4s"     %% "pulsar4s-avro"     % Versions.pulsar4sVersion excludeAll ExclusionRule("org.slf4j")
   val pulsar4sCore: ModuleID = "com.clever-cloud.pulsar4s"     %% "pulsar4s-core"     % Versions.pulsar4sVersion excludeAll ExclusionRule("org.slf4j")
   val scalacheck: ModuleID = "org.scalacheck"                  %% "scalacheck"        % "1.17.0"

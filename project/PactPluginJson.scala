@@ -32,7 +32,7 @@ object PactPluginJson {
       dependencies = List(
         PactPluginDependency(
           name = "jvm",
-          version = "11+",
+          version = "17+",
           `type` = "OSPackage"
         )
       )

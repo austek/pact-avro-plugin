@@ -52,7 +52,7 @@ object PublishSettings {
       |     mkdir -p ~/.pact/plugins/avro-${VERSION}
       |     wget https://github.com/austek/pact-avro-plugin/releases/download/v${VERSION}/pact-plugin.json -O ~/.pact/plugins/avro-${VERSION}/pact-plugin.json
       |     wget -c https://github.com/austek/pact-avro-plugin/releases/download/v${VERSION}/pact-avro-plugin.tgz \
-      |     -O - | tar -xz -C ~/.pact/plugins/avro-${VERSION} --strip-components 1
+      |     -O - | tar -xz -C ~/.pact/plugins/avro-${VERSION}
       |     ;;
       |
       |   *)

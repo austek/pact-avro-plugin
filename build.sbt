@@ -41,7 +41,7 @@ lazy val provider = project
     Test / envVars := Map("PACT_PLUGIN_DIR" -> ((pluginRef / target).value / "plugin").absolutePath),
     libraryDependencies ++=
       Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, scalacheck) ++
-        Dependencies.test(assertJCore, jUnitInterface, pactProviderJunit, pactCore),
+        Dependencies.test(assertJCore, jUnitInterface, pactProviderJunit),
     publish / skip := false
   )
 
@@ -54,7 +54,7 @@ lazy val consumer = project
     Test / envVars := Map("PACT_PLUGIN_DIR" -> ((pluginRef / target).value / "plugin").absolutePath),
     libraryDependencies ++=
       Dependencies.compile(avroCompiler, logback, pulsar4sCore, pulsar4sAvro, scalaLogging) ++
-        Dependencies.test(assertJCore, jUnitInterface, pactConsumerJunit, pactCore),
+        Dependencies.test(assertJCore, jUnitInterface, pactConsumerJunit),
     publish / skip := false
   )
 
