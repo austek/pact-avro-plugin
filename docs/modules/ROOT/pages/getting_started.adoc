@@ -27,45 +27,10 @@ pact-plugin-cli -y install https://github.com/austek/pact-avro-plugin/releases/l
 
 === Manual
 
-Example installation of version {version} (replace with the actual version you are using):
+.Run install-plugin.sh:
+[source,shell]
+----
+wget -O - https://github.com/austek/pact-avro-plugin/releases/latest/download/install-plugin.sh | bash
+----
 
 INFORMATION:: The default plugin directory (`$HOME/.pact/plugins`) can be changed by setting the `PACT_PLUGIN_DIR` environment variable.
-
-. Create the plugin directory if needed:
-+
-[source,shell,subs=attributes]
-----
-mkdir -p ~/.pact/plugins/avro-{version}
-----
-
-. Download the plugin manifest into the directory:
-+
-[source,shell,subs=attributes]
-----
-wget https://github.com/austek/pact-avro-plugin/releases/download/v-{version}/pact-plugin.json -O ~/.pact/plugins/avro-{version}/pact-plugin.json
-----
-
-. Download the plugin executable into the directory:
-+
-[source,shell,subs=attributes]
-----
-wget -c https://github.com/austek/pact-avro-plugin/releases/download/v{version}/pact-avro-plugin.zip -O ~/.pact/plugins/avro-{version}/pact-avro-plugin.zip
-----
-
-. Unpack the plugin executable:
-+
-[source,shell,subs=attributes]
-----
-cd ~/.pact/plugins/avro-${VERSION} && unzip pact-avro-plugin.zip
-----
-
-. Make the plugin executable:
-+
-[source,shell,subs=attributes]
-----
-chmod +x ~/.pact/plugins/avro-{version}/bin/pact-avro-plugin
-----
-
-NOTE:: The unpacked executable name must match the `entryPoint` value in the manifest file. By default, this is
-`pact-avro-plugin` on unix* and `pact-avro-plugin.bat` on Windows.
-

@@ -24,7 +24,6 @@ object PublishSettings {
         sourceDirectory.value / "main" / "resources" / "logback.xml" -> "conf/logback.xml"
       ),
       Universal / javaOptions ++= Seq(
-        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005",
         "-Dfile.encoding=UTF-8",
         "-Dlogback.configurationFile=conf/logback.xml"
       ),
@@ -51,7 +50,8 @@ object PublishSettings {
       |   Darwin|Linux|CYGWIN*|MINGW32*|MSYS*|MINGW*)
       |     echo '== Installing plugin =='
       |     mkdir -p ~/.pact/plugins/avro-${VERSION}
-      |     wget -c https://github.com/austek/pact-avro-plugin/releases/download/v${VERSION}/pact-avro-plugin-${VERSION}.tgz \
+      |     wget https://github.com/austek/pact-avro-plugin/releases/download/v${VERSION}/pact-plugin.json -O ~/.pact/plugins/avro-${VERSION}/pact-plugin.json
+      |     wget -c https://github.com/austek/pact-avro-plugin/releases/download/v${VERSION}/pact-avro-plugin.tgz \
       |     -O - | tar -xz -C ~/.pact/plugins/avro-${VERSION} --strip-components 1
       |     ;;
       |

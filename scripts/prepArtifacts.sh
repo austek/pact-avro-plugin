@@ -5,7 +5,7 @@ echo Prepare release artifacts
 
 PLUGIN_TARGET=modules/plugin/target
 ART_DIR=target/artifacts
-ART_NAME=pact-avro-plugin.zip
+ART_NAME=pact-avro-plugin.tgz
 
 mkdir -p ${ART_DIR}
 
