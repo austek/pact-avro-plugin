@@ -1,6 +1,6 @@
 name: pact-avro-plugin
 title: Pact Avro Plugin
-version: snapshot
+version: latest
 asciidoc:
   attributes:
     icons: font
