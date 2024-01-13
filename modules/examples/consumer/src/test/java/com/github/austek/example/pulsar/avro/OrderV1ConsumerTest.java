@@ -69,7 +69,7 @@ class OrderV1ConsumerTest {
     MessageContents messageContents = message.getContents();
     List<OrderNewEvent> orders =
         arrayByteToAvroRecord(OrderNewEvent.class, messageContents.getContents().getValue());
-    OrderNewEvent order = assertFirstOrder(orders);
+    assertFirstOrder(orders);
 
     assertThat(messageContents.getContents().getContentType())
         .hasToString("avro/binary; record=OrderNewEvent");
@@ -85,7 +85,7 @@ class OrderV1ConsumerTest {
     assertThat(idRules.get(0)).extracting("name").isEqualTo("not-empty");
   }
 
-  private static OrderNewEvent assertFirstOrder(List<OrderNewEvent> orders) {
+  private static void assertFirstOrder(List<OrderNewEvent> orders) {
     assertThat(orders).hasSize(1);
     OrderNewEvent order = orders.get(0);
     assertThat(order.getOrderId()).hasToString("0c7cbb5a-9a9a-4088-9713-c0c88475c903");
@@ -97,6 +97,5 @@ class OrderV1ConsumerTest {
     OrderItem item2 = order.getItems().get(1);
     assertThat(item2.getItemId()).hasToString("8a62474a-7157-4c67-9126-c6dcecb1df08");
     assertThat(item2.getQuantity()).isEqualTo(2L);
-    return order;
   }
 }
