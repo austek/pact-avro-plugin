@@ -2,6 +2,7 @@ import io.github.davidgregory084.TpolecatPlugin.autoImport.*
 import sbt.Keys.*
 import sbt.*
 
+import java.net.URI
 import java.util
 
 object BuildSettings {
@@ -10,7 +11,7 @@ object BuildSettings {
   val scalaV = "3.3.1"
 
   lazy val basicSettings: Seq[Def.Setting[?]] = Seq(
-    homepage := Some(new URL("https://github.com/austek/pact-avro-plugin")),
+    homepage := Some(URI.create("https://github.com/austek/pact-avro-plugin").toURL),
     organization := "io.pact",
     description := "Pact Avro Plugin",
     scalaVersion := scalaV,
