@@ -4,12 +4,12 @@ import au.com.dius.pact.core.model.matchingrules.{MatchingRule, MatchingRuleCate
 import com.github.austek.pact.RuleParser.parseRules
 import com.github.austek.plugin.avro.AvroPluginConstants.MatchingRuleCategoryName
 import com.github.austek.plugin.avro.error.*
-import com.github.austek.plugin.avro.utils.StringUtils._
+import com.github.austek.plugin.avro.utils.StringUtils.*
 import com.google.protobuf.ByteString
 import com.google.protobuf.struct.Value
 import com.google.protobuf.struct.Value.Kind.*
 import com.typesafe.scalalogging.StrictLogging
-import org.apache.avro.Schema
+import org.apache.avro.{JsonProperties, Schema}
 import org.apache.avro.Schema.Type.*
 import org.apache.avro.generic.*
 import org.apache.avro.io.EncoderFactory
@@ -96,7 +96,8 @@ object Avro {
       rules: Seq[MatchingRule]
     ): Either[PluginError[_], AvroValue] = {
       fieldValue match {
-        case value: String => fromString(path, fieldName, schemaType, value, rules)
+        case value: String          => fromString(path, fieldName, schemaType, value, rules)
+        case _: JsonProperties.Null => Right(AvroNull(path, fieldName))
         case _ =>
           (schemaType match {
             case BOOLEAN => Try(AvroBoolean(path, fieldName, fieldValue.asInstanceOf[Boolean], rules)).toEither
@@ -376,9 +377,9 @@ object Avro {
       schema.getFields.asScala.toSeq
         .map { schemaField =>
           val fieldName = AvroFieldName(schemaField.name())
-          configFields.get(schemaField.name()) match {
-            case Some(configValue) => configuredField(rootPath, schemaField, fieldName, configValue)
-            case None              => unConfiguredField(rootPath, schemaField, fieldName)
+          schemaField.schema().getType match {
+            case UNION => handleUnionField(rootPath, fieldName, schemaField, configFields.get(schemaField.name()))
+            case _     => handleField(rootPath, fieldName, schemaField, configFields.get(schemaField.name()))
           }
         }
         .partitionMap(identity) match {
@@ -387,40 +388,30 @@ object Avro {
       }
     }
 
-    private def configuredField(
-      rootPath: PactFieldPath,
-      schemaField: Schema.Field,
-      fieldName: AvroFieldName,
-      configValue: Value
-    ): Either[Seq[PluginError[_]], AvroValue] = {
-      schemaField.schema().getType match {
-        case STRING | INT | LONG | FLOAT | DOUBLE | BOOLEAN | ENUM | FIXED | BYTES | NULL =>
-          AvroValue(rootPath, fieldName, schemaField.schema(), configValue)
-        case RECORD => AvroRecord(rootPath :+ fieldName, fieldName, schemaField.schema(), configValue.getStructValue.fields)
-        case ARRAY  => AvroArray(rootPath, fieldName, schemaField.schema(), configValue)
-        case MAP    => AvroMap(rootPath, fieldName, schemaField.schema(), configValue)
-        case UNION  => handleAvroUnion(rootPath, schemaField, fieldName, configValue)
-      }
-    }
-
-    private def handleAvroUnion(rootPath: PactFieldPath, schemaField: Schema.Field, fieldName: AvroFieldName, configValue: Value) = {
+    private def handleUnionField(rootPath: PactFieldPath, fieldName: AvroFieldName, schemaField: Schema.Field, mayBeConfigValue: Option[Value]) = {
       val subTypes = schemaField.schema().getTypes.asScala
       if (subTypes.size == 2 && subTypes.exists(_.getType == NULL)) {
-        subTypes.filterNot(_.getType == NULL).headOption match {
-          case Some(schema) => handleNullableField(rootPath, fieldName, configValue, schema)
-          case None         => Left(Seq(PluginErrorException(FieldInvalidSchemaException(fieldName, configValue))))
+        (mayBeConfigValue, subTypes.filterNot(_.getType == NULL).headOption) match {
+          case (Some(configValue), Some(schema)) => handleConfiguredField(rootPath, fieldName, schema, configValue)
+          case (None, Some(schema))              => handleDefaultValue(rootPath, fieldName, schemaField, schema)
+          case (_, _)                            => Left(Seq(PluginErrorException(FieldInvalidSchemaException(fieldName, mayBeConfigValue))))
         }
       } else {
-        Left(Seq(PluginErrorException(FieldNotNullableException(fieldName, configValue))))
+        Left(Seq(PluginErrorException(FieldNotNullableException(fieldName, mayBeConfigValue))))
       }
     }
 
-    private def handleNullableField(
+    private def handleField(
       rootPath: PactFieldPath,
       fieldName: AvroFieldName,
-      configValue: Value,
-      schema: Schema
-    ): Either[Seq[PluginError[_]], AvroValue] = {
+      schemaField: Schema.Field,
+      maybeConfigValue: Option[Value]
+    ): Either[Seq[PluginError[_]], AvroValue] =
+      maybeConfigValue match
+        case Some(configValue) => handleConfiguredField(rootPath, fieldName, schemaField.schema(), configValue)
+        case None              => handleNoneConfiguredField(rootPath, fieldName, schemaField)
+
+    private def handleConfiguredField(rootPath: PactFieldPath, fieldName: AvroFieldName, schema: Schema, configValue: Value) = {
       schema.getType match {
         case STRING | INT | LONG | FLOAT | DOUBLE | BOOLEAN | ENUM | FIXED | BYTES | NULL => AvroValue(rootPath, fieldName, schema, configValue)
         case RECORD => AvroRecord(rootPath :+ fieldName, fieldName, schema, configValue.getStructValue.fields)
@@ -430,14 +421,29 @@ object Avro {
       }
     }
 
-    private def unConfiguredField(rootPath: PactFieldPath, schemaField: Schema.Field, fieldName: AvroFieldName): Either[Seq[PluginError[_]], AvroValue] = {
+    private def handleNoneConfiguredField(
+      rootPath: PactFieldPath,
+      fieldName: AvroFieldName,
+      schemaField: Schema.Field
+    ): Either[Seq[PluginError[_]], AvroValue] = {
       if (schemaField.hasDefaultValue) {
-        AvroValue(rootPath :+ fieldName, fieldName, schemaField.schema().getType, schemaField.defaultVal(), Seq.empty).left.map(e => Seq(e))
-      } else if (schemaField.schema().getType == UNION && schemaField.schema().getTypes.asScala.exists(_.getType == NULL)) {
-        Right(AvroNull(rootPath :+ fieldName, fieldName))
+        handleDefaultValue(rootPath, fieldName, schemaField, schemaField.schema())
       } else {
         Left(Seq(PluginErrorException(new Exception(s"Couldn't find configuration for field: ${schemaField.name()}"))))
       }
     }
+
+    private def handleDefaultValue(
+      rootPath: PactFieldPath,
+      fieldName: AvroFieldName,
+      schemaField: Schema.Field,
+      schema: Schema
+    ): Either[Seq[PluginError[_]], AvroValue] =
+      Option(schemaField.defaultVal()) match
+        case Some(value) => AvroValue(rootPath :+ fieldName, fieldName, schema.getType, value, Seq.empty).left.map(e => Seq(e))
+        case None        => handleNullField(rootPath, fieldName)
+
+    private def handleNullField(rootPath: PactFieldPath, fieldName: AvroFieldName) =
+      Right(AvroNull(rootPath :+ fieldName, fieldName))
   }
 }

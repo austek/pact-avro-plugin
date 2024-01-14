@@ -7,6 +7,7 @@ import com.github.austek.plugin.avro.TestSchemas.*
 import com.github.austek.plugin.avro.utils.MatchingRuleCategoryImplicits.*
 import com.google.protobuf.struct.Value.Kind.*
 import com.google.protobuf.struct.{ListValue as StructListValue, Struct, Value}
+import org.apache.avro.Schema.Type.NULL
 import org.apache.avro.generic.{GenericData, GenericRecord}
 import org.scalatest.EitherValues
 import org.scalatest.matchers.should.Matchers
@@ -50,7 +51,7 @@ class AvroRecordComplexTypesTest extends AnyWordSpecLike with Matchers with Eith
           genericRecord.get("color") shouldBe new GenericData.EnumSymbol(schema, "UNKNOWN")
         }
         "returns empty matching rules using JsonPath" in {
-          avroRecord.matchingRules.getRules("$.color") shouldBe empty
+          avroRecord.matchingRules shouldBe empty
         }
       }
     }
@@ -86,7 +87,7 @@ class AvroRecordComplexTypesTest extends AnyWordSpecLike with Matchers with Eith
           genericRecord.get("md5") shouldBe new GenericData.Fixed(schema.getField("md5").schema(), "\\u0000".getBytes)
         }
         "returns empty matching rules using JsonPath" in {
-          avroRecord.matchingRules.getRules("$.md5") shouldBe empty
+          avroRecord.matchingRules shouldBe empty
         }
       }
     }
@@ -246,6 +247,85 @@ class AvroRecordComplexTypesTest extends AnyWordSpecLike with Matchers with Eith
           avroRecord.matchingRules should have size 2
           avroRecord.matchingRules.getRules("$.addresses.first.street") shouldBe List(EqualsMatcher.INSTANCE)
           avroRecord.matchingRules.getRules("$.addresses.second.street") shouldBe List(EqualsMatcher.INSTANCE)
+        }
+      }
+    }
+  }
+
+  "Optional Complex field" when {
+    val schema = schemaWithField("""{
+                                   |  "name": "address",
+                                   |  "type": [ "null",
+                                   |    {
+                                   |      "name": "Address",
+                                   |      "type": "record",
+                                   |      "fields": [
+                                   |        { "name": "street", "type": "string" }
+                                   |      ]
+                                   |    }
+                                   |  ]
+                                   |}""".stripMargin)
+    "value provided" should provide {
+      val pactConfiguration = Map("address" -> Value(StructValue(Struct(Map("street" -> Value(StringValue("matching(equalTo, 'first street')")))))))
+      val avroRecord = AvroRecord(schema, pactConfiguration).value
+      val addressSchema = schema.getField("address").schema().getTypes.asScala.filterNot(_.getType == NULL).head
+      val addressRecord = new GenericData.Record(addressSchema)
+      addressRecord.put("street", "first street")
+
+      "a method," which {
+        "returns GenericRecord with field" in {
+          val genericRecord = avroRecord.toGenericRecord(schema)
+          genericRecord.get("address") shouldBe addressRecord
+        }
+        "returns matching rules using JsonPath" in {
+          avroRecord.matchingRules should have size 1
+          avroRecord.matchingRules.getRules("$.address.street") shouldBe List(EqualsMatcher.INSTANCE)
+        }
+      }
+    }
+
+    "value not provided but has default" should provide {
+      val schema = schemaWithField("""{
+                                     |  "name": "address",
+                                     |  "type": [ "null",
+                                     |    {
+                                     |      "name": "Address",
+                                     |      "type": "record",
+                                     |      "fields": [
+                                     |        { "name": "street", "type": "string", "default": "first street" }
+                                     |      ]
+                                     |    }
+                                     |  ],
+                                     |  "default": null
+                                     |}""".stripMargin)
+      val pactConfiguration: Map[String, Value] = Map()
+      val avroRecord = AvroRecord(schema, pactConfiguration).value
+      val addressSchema = schema.getField("address").schema().getTypes.asScala.filterNot(_.getType == NULL).head
+      val addressRecord = new GenericData.Record(addressSchema)
+      addressRecord.put("street", "first street")
+
+      "a method," which {
+        "returns GenericRecord with field containing default value" in {
+          val genericRecord = avroRecord.toGenericRecord(schema)
+          genericRecord.get("address") shouldBe null
+        }
+        "returns empty matching rules using JsonPath" in {
+          avroRecord.matchingRules shouldBe empty
+        }
+      }
+    }
+
+    "value not provided" should provide {
+      val pactConfiguration: Map[String, Value] = Map()
+      val avroRecord = AvroRecord(schema, pactConfiguration).value
+
+      "a method," which {
+        "returns GenericRecord with field containing default value" in {
+          val genericRecord = avroRecord.toGenericRecord(schema)
+          genericRecord.get("address") shouldBe null
+        }
+        "returns empty matching rules using JsonPath" in {
+          avroRecord.matchingRules shouldBe empty
         }
       }
     }
