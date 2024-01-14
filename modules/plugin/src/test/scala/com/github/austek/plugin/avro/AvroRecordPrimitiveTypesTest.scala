@@ -13,6 +13,8 @@ import org.scalatest.wordspec.AnyWordSpecLike
 
 class AvroRecordPrimitiveTypesTest extends AnyWordSpecLike with Matchers with EitherValues {
   import com.github.austek.plugin.avro.utils.MatchingRuleCategoryImplicits.given
+
+  private val byteValue = "\\\u0000\\\u0001\\\u0002\\\u0003\\\u0004\\\u0005\\\u0006\\\u0007"
   def provide: AfterWord = afterWord("provide")
 
   "String field" when {
@@ -45,7 +47,7 @@ class AvroRecordPrimitiveTypesTest extends AnyWordSpecLike with Matchers with Ei
           genericRecord.get("street") shouldBe "NONE"
         }
         "returns empty matching rules using JsonPath" in {
-          avroRecord.matchingRules.getRules("$.street") shouldBe empty
+          avroRecord.matchingRules shouldBe empty
         }
       }
     }
@@ -81,7 +83,7 @@ class AvroRecordPrimitiveTypesTest extends AnyWordSpecLike with Matchers with Ei
           genericRecord.get("no").toString.toInt shouldBe 5
         }
         "returns empty matching rules using JsonPath" in {
-          avroRecord.matchingRules.getRules("$.no") shouldBe empty
+          avroRecord.matchingRules shouldBe empty
         }
       }
     }
@@ -117,7 +119,7 @@ class AvroRecordPrimitiveTypesTest extends AnyWordSpecLike with Matchers with Ei
           genericRecord.get("id").toString.toInt shouldBe 100
         }
         "returns empty matching rules using JsonPath" in {
-          avroRecord.matchingRules.getRules("$.id") shouldBe empty
+          avroRecord.matchingRules shouldBe empty
         }
       }
     }
@@ -153,7 +155,7 @@ class AvroRecordPrimitiveTypesTest extends AnyWordSpecLike with Matchers with Ei
           genericRecord.get("width").toString.toDouble shouldBe 1.8d
         }
         "returns empty matching rules using JsonPath" in {
-          avroRecord.matchingRules.getRules("$.width") shouldBe empty
+          avroRecord.matchingRules shouldBe empty
         }
       }
     }
@@ -189,7 +191,7 @@ class AvroRecordPrimitiveTypesTest extends AnyWordSpecLike with Matchers with Ei
           genericRecord.get("height").toString.toFloat shouldBe 15.8f
         }
         "returns empty matching rules using JsonPath" in {
-          avroRecord.matchingRules.getRules("$.height") shouldBe empty
+          avroRecord.matchingRules shouldBe empty
         }
       }
     }
@@ -225,7 +227,7 @@ class AvroRecordPrimitiveTypesTest extends AnyWordSpecLike with Matchers with Ei
           genericRecord.get("enabled").toString.toBoolean shouldBe true
         }
         "returns empty matching rules using JsonPath" in {
-          avroRecord.matchingRules.getRules("$.enabled") shouldBe empty
+          avroRecord.matchingRules shouldBe empty
         }
       }
     }
@@ -234,15 +236,13 @@ class AvroRecordPrimitiveTypesTest extends AnyWordSpecLike with Matchers with Ei
   "Bytes field" when {
     "value provided" should provide {
       val schema = schemaWithField("""{"name": "MAC", "type": "bytes"}""")
-      val pactConfiguration: Map[String, Value] = Map(
-        "MAC" -> Value(StringValue("matching(equalTo, '\\\u0000\\\u0001\\\u0002\\\u0003\\\u0004\\\u0005\\\u0006\\\u0007')"))
-      )
+      val pactConfiguration: Map[String, Value] = Map("MAC" -> Value(StringValue(s"matching(equalTo, '$byteValue')")))
       val avroRecord = AvroRecord(schema, pactConfiguration).value
 
       "a method," which {
         "returns GenericRecord with field" in {
           val genericRecord = avroRecord.toGenericRecord(schema)
-          genericRecord.get("MAC") shouldBe "\\\u0000\\\u0001\\\u0002\\\u0003\\\u0004\\\u0005\\\u0006\\\u0007"
+          genericRecord.get("MAC") shouldBe byteValue
         }
         "returns matching rules using JsonPath" in {
           avroRecord.matchingRules should have size 1
@@ -263,7 +263,58 @@ class AvroRecordPrimitiveTypesTest extends AnyWordSpecLike with Matchers with Ei
           genericRecord.get("MAC") shouldBe "\\u0000"
         }
         "returns empty matching rules using JsonPath" in {
-          avroRecord.matchingRules.getRules("$.MAC") shouldBe empty
+          avroRecord.matchingRules shouldBe empty
+        }
+      }
+    }
+  }
+
+  "Optional Primitive field" when {
+    val schema = schemaWithField("""{"name": "MAC", "type": ["null", "bytes"]}""")
+    "value provided" should provide {
+      val pactConfiguration: Map[String, Value] = Map("MAC" -> Value(StringValue(s"matching(equalTo, '$byteValue')")))
+      val avroRecord = AvroRecord(schema, pactConfiguration).value
+
+      "a method," which {
+        "returns GenericRecord with field" in {
+          val genericRecord = avroRecord.toGenericRecord(schema)
+          genericRecord.get("MAC") shouldBe byteValue
+        }
+        "returns matching rules using JsonPath" in {
+          avroRecord.matchingRules should have size 1
+          val rules = avroRecord.matchingRules.getRules("$.MAC")
+          rules shouldBe Seq(EqualsMatcher.INSTANCE)
+        }
+      }
+    }
+
+    "value not provided but has default" should provide {
+      val schema = schemaWithField("""{"name": "MAC", "type": ["null", "bytes"], "default": null}""")
+      val pactConfiguration: Map[String, Value] = Map()
+      val avroRecord = AvroRecord(schema, pactConfiguration).value
+
+      "a method," which {
+        "returns GenericRecord with field containing default value" in {
+          val genericRecord = avroRecord.toGenericRecord(schema)
+          genericRecord.get("MAC") shouldBe null
+        }
+        "returns empty matching rules using JsonPath" in {
+          avroRecord.matchingRules shouldBe empty
+        }
+      }
+    }
+
+    "value not provided" should provide {
+      val pactConfiguration: Map[String, Value] = Map()
+      val avroRecord = AvroRecord(schema, pactConfiguration).value
+
+      "a method," which {
+        "returns GenericRecord with field containing default value" in {
+          val genericRecord = avroRecord.toGenericRecord(schema)
+          genericRecord.get("MAC") shouldBe null
+        }
+        "returns empty matching rules using JsonPath" in {
+          avroRecord.matchingRules shouldBe empty
         }
       }
     }
