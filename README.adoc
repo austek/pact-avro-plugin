@@ -4,6 +4,11 @@ ____
 Pact plugin for testing messages serialised by https://avro.apache.org/docs[Apache Avro] using the https://docs.pact.io[Pact] contract testing framework.
 ____
 
+== Pre-requisites
+
+This plugin requires the following to be installed:
+
+* Java 17+
 
 == Development Roadmap
 

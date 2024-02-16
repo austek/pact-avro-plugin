@@ -18,7 +18,7 @@ ROOT:: Contains the documentation that is specific to {project-display-name}.
 While IntelliJ will have inline viewing per page, sometimes references do not always get pulled in especially from a separate repo.
 Developers can validate what they have documented is rendered correctly in context by running antora locally to generate the docs:
 
-[source,bash]
+[source,console]
 ----
 npm ci && npx antora antora-playbook.yml --fetch --stacktrace
 ----
