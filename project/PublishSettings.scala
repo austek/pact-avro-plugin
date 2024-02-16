@@ -39,7 +39,7 @@ object PublishSettings {
 
   private def generateInstallPluginSh(artifactDir: sbt.File, version: String): sbt.File = {
     val file = artifactDir / "install-plugin.sh"
-    val content = """#!/usr/bin/env bash
+    val content = """#!/bin/sh
       |
       |set -e
       |
@@ -50,8 +50,8 @@ object PublishSettings {
       |   Darwin|Linux|CYGWIN*|MINGW32*|MSYS*|MINGW*)
       |     echo '== Installing plugin =='
       |     mkdir -p ~/.pact/plugins/avro-${VERSION}
-      |     wget https://github.com/austek/pact-avro-plugin/releases/download/v${VERSION}/pact-plugin.json -O ~/.pact/plugins/avro-${VERSION}/pact-plugin.json
-      |     wget -c https://github.com/austek/pact-avro-plugin/releases/download/v${VERSION}/pact-avro-plugin.tgz \
+      |     wget --no-verbose https://github.com/austek/pact-avro-plugin/releases/download/v${VERSION}/pact-plugin.json -O ~/.pact/plugins/avro-${VERSION}/pact-plugin.json
+      |     wget --no-verbose -c https://github.com/austek/pact-avro-plugin/releases/download/v${VERSION}/pact-avro-plugin.tgz \
       |     -O - | tar -xz -C ~/.pact/plugins/avro-${VERSION}
       |     ;;
       |
