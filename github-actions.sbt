@@ -2,7 +2,7 @@
 ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Run(
     name = Some("Start containers"),
-    commands = List("docker-compose -f docker-compose.yml up -d")
+    commands = List("docker compose -f docker-compose.yml up -d")
   ),
   WorkflowStep.Sbt(
     name = Some("Build project"),
@@ -23,7 +23,7 @@ ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Run(
     cond = Some("always()"),
     name = Some("Stop containers"),
-    commands = List("docker-compose -f docker-compose.yml down")
+    commands = List("docker compose -f docker-compose.yml down")
   )
 )
 // Add windows-latest when https://github.com/sbt/sbt/issues/7082 is resolved

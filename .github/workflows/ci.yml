@@ -62,7 +62,7 @@ jobs:
         run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
       - name: Start containers
-        run: docker-compose -f docker-compose.yml up -d
+        run: docker compose -f docker-compose.yml up -d
 
       - name: Build project
         run: sbt ++${{ matrix.scala }} compile scalafmtCheckAll javafmtCheckAll plugin/test
@@ -78,7 +78,7 @@ jobs:
 
       - name: Stop containers
         if: always()
-        run: docker-compose -f docker-compose.yml down
+        run: docker compose -f docker-compose.yml down
 
       - name: Compress target directories
         run: tar cf targets.tar target modules/plugin/target modules/examples/provider/target modules/examples/consumer/target project/target

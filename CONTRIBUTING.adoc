@@ -67,7 +67,7 @@ sbt consumer/test
 .Run Pact broker
 [source,shell]
 ----
-docker-compose -f docker-compose.yml up -d
+docker compose -f docker-compose.yml up -d
 ----
 
 .Upload Consumer Pact
@@ -85,7 +85,7 @@ sbt provider/test
 .Stop Pact broker
 [source,shell]
 ----
-docker-compose -f docker-compose.yml down
+docker compose -f docker-compose.yml down
 ----
 
 
