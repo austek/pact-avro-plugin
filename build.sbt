@@ -10,7 +10,9 @@ lazy val plugin = project
   .enablePlugins(
     GitHubPagesPlugin,
     GitVersioning,
-    JavaAppPackaging
+    JavaAppPackaging,
+    // https://sbt-native-packager.readthedocs.io/en/stable/recipes/longclasspath.html#long-classpaths
+    LauncherJarPlugin
   )
   .settings(
     name := "plugin",
