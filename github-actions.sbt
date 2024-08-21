@@ -28,7 +28,7 @@ ThisBuild / githubWorkflowBuild := Seq(
 )
 // Add windows-latest when https://github.com/sbt/sbt/issues/7082 is resolved
 // Add macos-latest when step to install docker on it is done
-ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest")
+ThisBuild / githubWorkflowOSes := Seq("macos-latest", "ubuntu-latest", "windows-latest")
 ThisBuild / githubWorkflowJavaVersions := Seq(
   JavaSpec.temurin("17"),
   JavaSpec.temurin("20")

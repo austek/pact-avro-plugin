@@ -22,11 +22,16 @@ jobs:
     name: Build and Test
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        scala: [3.3.1]
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        scala: [3.4.2]
         java: [temurin@17, temurin@20]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Ignore line ending differences in git
+        if: contains(runner.os, 'windows')
+        shell: bash
+        run: git config --global core.autocrlf false
+
       - name: Checkout current branch (full)
         uses: actions/checkout@v2
         with:
@@ -59,28 +64,36 @@ jobs:
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
       - name: Check that workflows are up to date
+        shell: bash
         run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
       - name: Start containers
+        shell: bash
         run: docker compose -f docker-compose.yml up -d
 
       - name: Build project
+        shell: bash
         run: sbt ++${{ matrix.scala }} compile scalafmtCheckAll javafmtCheckAll plugin/test
 
       - name: Test Consumer
+        shell: bash
         run: sbt ++${{ matrix.scala }} consumer/test
 
       - name: Upload Consumer Pact
+        shell: bash
         run: ./scripts/pact-publish.sh
 
       - name: Test Provider
+        shell: bash
         run: sbt ++${{ matrix.scala }} provider/test
 
       - name: Stop containers
         if: always()
+        shell: bash
         run: docker compose -f docker-compose.yml down
 
       - name: Compress target directories
+        shell: bash
         run: tar cf targets.tar target modules/plugin/target modules/examples/provider/target modules/examples/consumer/target project/target
 
       - name: Upload target directories
@@ -96,10 +109,14 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [3.3.1]
+        scala: [3.4.2]
         java: [temurin@17]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Ignore line ending differences in git
+        if: contains(runner.os, 'windows')
+        run: git config --global core.autocrlf false
+
       - name: Checkout current branch (full)
         uses: actions/checkout@v2
         with:
@@ -131,12 +148,12 @@ jobs:
             ~/Library/Caches/Coursier/v1
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
-      - name: Download target directories (3.3.1)
+      - name: Download target directories (3.4.2)
         uses: actions/download-artifact@v2
         with:
-          name: target-${{ matrix.os }}-3.3.1-${{ matrix.java }}
+          name: target-${{ matrix.os }}-3.4.2-${{ matrix.java }}
 
-      - name: Inflate target directories (3.3.1)
+      - name: Inflate target directories (3.4.2)
         run: |
           tar xf targets.tar
           rm targets.tar

@@ -1,3 +1,3 @@
 libraryDependencies ++= List(
-  "com.lihaoyi" %% "upickle" % "3.1.4"
+  "com.lihaoyi" %% "upickle" % "4.0.0"
 )
