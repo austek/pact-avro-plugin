@@ -12,11 +12,11 @@ import scala.jdk.CollectionConverters.*
 case class FieldRule(value: String, rules: Seq[MatchingRule])
 
 object RuleParser {
-  def parseRules(inValue: Value): Either[PluginError[_], FieldRule] = parseRules(inValue.getStringValue)
+  def parseRules(inValue: Value): Either[PluginError[?], FieldRule] = parseRules(inValue.getStringValue)
 
-  def parseRules(inValue: StringValue): Either[PluginError[_], FieldRule] = parseRules(inValue.value)
+  def parseRules(inValue: StringValue): Either[PluginError[?], FieldRule] = parseRules(inValue.value)
 
-  def parseRules(in: String): Either[PluginError[_], FieldRule] = {
+  def parseRules(in: String): Either[PluginError[?], FieldRule] = {
     fromPactResult(MatchingRuleDefinition.parseMatchingRuleDefinition(in)) match {
       case Right(ok) =>
         ok.getRules.asScala.toSeq

@@ -23,7 +23,7 @@ object CompareContentsResponseBuilder extends StrictLogging {
 
   private val ContentTypeRegex: Regex = raw"(\w+/\*?\+?\w+);\s*record=(\w+)".r
 
-  def build(request: CompareContentsRequest, avroSchema: Schema): Either[PluginError[_], CompareContentsResponse] = {
+  def build(request: CompareContentsRequest, avroSchema: Schema): Either[PluginError[?], CompareContentsResponse] = {
     for {
       actualBody <- getBody(request.actual, "Actual body required")
       expectedBody <- getBody(request.expected, "Expected body required")
@@ -54,7 +54,7 @@ object CompareContentsResponseBuilder extends StrictLogging {
     request: CompareContentsRequest,
     actual: GenericRecord,
     expected: GenericRecord
-  ): Either[PluginError[_], CompareContentsResponse] = {
+  ): Either[PluginError[?], CompareContentsResponse] = {
     val matchingContext = buildMatchingContext(request)
     AvroContentMatcher.compare(expected, actual, matchingContext).map { bodyMatchResult =>
       CompareContentsResponse(
@@ -108,8 +108,8 @@ object CompareContentsResponseBuilder extends StrictLogging {
     )
   }
 
-  private def extractRecordName(actual: Body, expected: Body): Either[PluginError[_], String] = {
-    def extract(body: Body, name: String): Either[PluginError[_], String] = {
+  private def extractRecordName(actual: Body, expected: Body): Either[PluginError[?], String] = {
+    def extract(body: Body, name: String): Either[PluginError[?], String] = {
       body.contentType match {
         case ContentTypeRegex(contentType, recordName) =>
           Either.cond(
@@ -134,7 +134,7 @@ object CompareContentsResponseBuilder extends StrictLogging {
     }
   }
 
-  private def getBody(body: Option[Body], msg: String): Either[PluginError[_], Body] = {
+  private def getBody(body: Option[Body], msg: String): Either[PluginError[?], Body] = {
     Either.cond(
       body.isDefined,
       body.get,

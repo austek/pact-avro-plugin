@@ -23,7 +23,7 @@ object InteractionBuilder extends StrictLogging {
     recordName: String,
     avroSchemaHash: AvroSchemaBase16Hash,
     configuration: Struct
-  ): Either[Seq[PluginError[_]], InteractionResponse] = {
+  ): Either[Seq[PluginError[?]], InteractionResponse] = {
     schema.getType match {
       case UNION                                  => buildUnionResponse(schema, recordName, avroSchemaHash, configuration)
       case RECORD if schema.getName == recordName => buildRecordResponse(schema, recordName, avroSchemaHash, configuration)
@@ -43,7 +43,7 @@ object InteractionBuilder extends StrictLogging {
     recordName: String,
     avroSchemaHash: AvroSchemaBase16Hash,
     configuration: Struct
-  ): Either[Seq[PluginError[_]], InteractionResponse] = {
+  ): Either[Seq[PluginError[?]], InteractionResponse] = {
     AvroRecord(schema, configuration.fields).flatMap { avroRecord =>
       avroRecord
         .toByteString(schema)

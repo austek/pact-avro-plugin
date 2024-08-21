@@ -7,7 +7,7 @@ import org.apache.avro.generic.GenericRecord
 object SchemaTypeImplicits {
 
   implicit class RichType(schemaType: Type) {
-    def asJava: Class[_] = {
+    def asJava: Class[?] = {
       schemaType match {
         case STRING | BYTES => classOf[String]
         case INT            => classOf[Int]
@@ -17,7 +17,7 @@ object SchemaTypeImplicits {
         case BOOLEAN        => classOf[Boolean]
         case ENUM           => classOf[String]
         case FIXED          => classOf[Array[Byte]]
-        case ARRAY          => classOf[List[_]]
+        case ARRAY          => classOf[List[?]]
         case MAP            => classOf[Map[_, _]]
         case RECORD         => classOf[GenericRecord]
         case _              => classOf[Object]

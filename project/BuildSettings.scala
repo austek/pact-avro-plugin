@@ -1,6 +1,7 @@
-import io.github.davidgregory084.TpolecatPlugin.autoImport.*
-import sbt.Keys.*
+import org.typelevel.sbt.tpolecat.TpolecatPlugin.autoImport.tpolecatExcludeOptions
+import org.typelevel.scalacoptions.ScalacOptions
 import sbt.*
+import sbt.Keys.*
 
 import java.net.URI
 import java.util
@@ -8,7 +9,7 @@ import java.util
 object BuildSettings {
   private val javaVersion = 17
   private val env: util.Map[String, String] = System.getenv()
-  val scalaV = "3.4.2"
+  val scalaV = "3.3.4-RC1" // Using version as  `Wconf:src` option is not available in released 3.3.*, 3.4.* or 3.5.* versions
 
   lazy val basicSettings: Seq[Def.Setting[?]] = Seq(
     homepage := Some(URI.create("https://github.com/austek/pact-avro-plugin").toURL),
@@ -33,7 +34,8 @@ object BuildSettings {
         Seq("-Xfatal-warnings")
     },
     scalacOptions ++= Seq(
-      "-Wconf:id=E175:silent"
+      "-Wconf:id=E175:silent",
+      "-Wconf:src=src_managed/.*:silent"
     ),
     Test / tpolecatExcludeOptions += ScalacOptions.warnNonUnitStatement,
     initialize := {
