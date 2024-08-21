@@ -53,7 +53,7 @@ object RecordImplicits extends StrictLogging {
     def compare(
       path: List[String],
       other: GenericRecord
-    )(implicit context: MatchingContext): Either[Seq[PluginError[_]], List[BodyItemMatchResult]] = {
+    )(implicit context: MatchingContext): Either[Seq[PluginError[?]], List[BodyItemMatchResult]] = {
       import SchemaFieldImplicits.*
 
       logger.debug(s">>> Record.compare($path, $record, $other)")

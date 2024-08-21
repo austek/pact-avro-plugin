@@ -148,7 +148,7 @@ class PactAvroPluginService extends PactPlugin with StrictLogging {
       case None         => Left(PluginErrorMessage(errorMsg))
     }
 
-  private def getAvroSchema(configuration: Struct): Either[PluginError[_], Schema] = {
+  private def getAvroSchema(configuration: Struct): Either[PluginError[?], Schema] = {
     getConfigStringValue(
       configuration.fields,
       "pact:avro",

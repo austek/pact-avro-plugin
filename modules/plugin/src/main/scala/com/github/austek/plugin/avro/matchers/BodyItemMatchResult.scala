@@ -18,7 +18,7 @@ object BodyItemMatchResult {
     actual: GenericRecord,
     mismatch: String,
     mismatchPath: String = "/"
-  ): Either[PluginError[_], List[AvroBodyItemMatchResult]] = {
+  ): Either[PluginError[?], List[AvroBodyItemMatchResult]] = {
     expected.diff(actual).map { diff =>
       List(
         BodyItemMatchResult(

@@ -1,4 +1,15 @@
 // sbt-github-actions
+
+// Add windows-latest when https://github.com/sbt/sbt/issues/7082 is resolved
+// Add macos-latest when step to install docker on it is done
+ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest")
+ThisBuild / githubWorkflowJavaVersions := Seq(
+  JavaSpec.zulu("17"),
+  JavaSpec.zulu("20")
+)
+ThisBuild / githubWorkflowTargetBranches := Seq("main")
+ThisBuild / githubWorkflowTargetTags := Seq("v*")
+
 ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Run(
     name = Some("Start containers"),
@@ -26,15 +37,7 @@ ThisBuild / githubWorkflowBuild := Seq(
     commands = List("docker compose -f docker-compose.yml down")
   )
 )
-// Add windows-latest when https://github.com/sbt/sbt/issues/7082 is resolved
-// Add macos-latest when step to install docker on it is done
-ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest")
-ThisBuild / githubWorkflowJavaVersions := Seq(
-  JavaSpec.temurin("17"),
-  JavaSpec.temurin("20")
-)
-ThisBuild / githubWorkflowTargetBranches := Seq("main")
-ThisBuild / githubWorkflowTargetTags := Seq("v*")
+
 ThisBuild / githubWorkflowPublishTargetBranches := Seq(
   RefPredicate.StartsWith(Ref.Tag("v"))
 )

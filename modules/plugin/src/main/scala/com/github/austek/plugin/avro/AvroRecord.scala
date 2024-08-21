@@ -63,7 +63,7 @@ object Avro {
       schema: Schema,
       inValue: Value,
       appendPath: Boolean = true
-    ): Either[Seq[PluginError[_]], AvroValue] = {
+    ): Either[Seq[PluginError[?]], AvroValue] = {
       def valueSchema = schema.getType match {
         case ARRAY => schema.getElementType
         case MAP   => schema.getValueType
@@ -94,7 +94,7 @@ object Avro {
       schemaType: Schema.Type,
       fieldValue: Object,
       rules: Seq[MatchingRule]
-    ): Either[PluginError[_], AvroValue] = {
+    ): Either[PluginError[?], AvroValue] = {
       fieldValue match {
         case value: String          => fromString(path, fieldName, schemaType, value, rules)
         case _: JsonProperties.Null => Right(AvroNull(path, fieldName))
@@ -123,7 +123,7 @@ object Avro {
       schemaType: Schema.Type,
       fieldValue: String,
       rules: Seq[MatchingRule]
-    ): Either[PluginError[_], AvroValue] = {
+    ): Either[PluginError[?], AvroValue] = {
       (schemaType match {
         case BOOLEAN => Right(AvroBoolean(path, fieldName, fieldValue.toLowerCase == "true", rules))
         case BYTES   => Right(AvroString(path, fieldName, fieldValue, rules))
@@ -199,7 +199,7 @@ object Avro {
   }
 
   object AvroArray {
-    def apply(rootPath: PactFieldPath, fieldName: AvroFieldName, schema: Schema, inValue: Value): Either[Seq[PluginError[_]], AvroArray] = {
+    def apply(rootPath: PactFieldPath, fieldName: AvroFieldName, schema: Schema, inValue: Value): Either[Seq[PluginError[?]], AvroArray] = {
       inValue.kind match {
         case Empty        => Right(AvroArray(rootPath, fieldName))
         case NullValue(_) => Right(AvroArray(rootPath, fieldName))
@@ -258,7 +258,7 @@ object Avro {
   }
 
   object AvroMap {
-    def apply(rootPath: PactFieldPath, fieldName: AvroFieldName, schema: Schema, inValue: Value): Either[Seq[PluginError[_]], AvroMap] = {
+    def apply(rootPath: PactFieldPath, fieldName: AvroFieldName, schema: Schema, inValue: Value): Either[Seq[PluginError[?]], AvroMap] = {
       val path = rootPath :+ fieldName
       inValue.kind match {
         case Empty        => Right(AvroMap(path, fieldName))
@@ -370,10 +370,10 @@ object Avro {
 
   object AvroRecord {
 
-    def apply(schema: Schema, configFields: Map[String, Value]): Either[Seq[PluginError[_]], AvroRecord] =
+    def apply(schema: Schema, configFields: Map[String, Value]): Either[Seq[PluginError[?]], AvroRecord] =
       this("$".toPactPath, ".".toFieldName, schema, configFields)
 
-    def apply(rootPath: PactFieldPath, fieldName: AvroFieldName, schema: Schema, configFields: Map[String, Value]): Either[Seq[PluginError[_]], AvroRecord] = {
+    def apply(rootPath: PactFieldPath, fieldName: AvroFieldName, schema: Schema, configFields: Map[String, Value]): Either[Seq[PluginError[?]], AvroRecord] = {
       schema.getFields.asScala.toSeq
         .map { schemaField =>
           val fieldName = AvroFieldName(schemaField.name())
@@ -406,7 +406,7 @@ object Avro {
       fieldName: AvroFieldName,
       schemaField: Schema.Field,
       maybeConfigValue: Option[Value]
-    ): Either[Seq[PluginError[_]], AvroValue] =
+    ): Either[Seq[PluginError[?]], AvroValue] =
       maybeConfigValue match
         case Some(configValue) => handleConfiguredField(rootPath, fieldName, schemaField.schema(), configValue)
         case None              => handleNoneConfiguredField(rootPath, fieldName, schemaField)
@@ -425,7 +425,7 @@ object Avro {
       rootPath: PactFieldPath,
       fieldName: AvroFieldName,
       schemaField: Schema.Field
-    ): Either[Seq[PluginError[_]], AvroValue] = {
+    ): Either[Seq[PluginError[?]], AvroValue] = {
       if (schemaField.hasDefaultValue) {
         handleDefaultValue(rootPath, fieldName, schemaField, schemaField.schema())
       } else {
@@ -438,7 +438,7 @@ object Avro {
       fieldName: AvroFieldName,
       schemaField: Schema.Field,
       schema: Schema
-    ): Either[Seq[PluginError[_]], AvroValue] =
+    ): Either[Seq[PluginError[?]], AvroValue] =
       Option(schemaField.defaultVal()) match
         case Some(value) => AvroValue(rootPath :+ fieldName, fieldName, schema.getType, value, Seq.empty).left.map(e => Seq(e))
         case None        => handleNullField(rootPath, fieldName)

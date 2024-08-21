@@ -23,58 +23,51 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [3.3.1]
-        java: [temurin@17, temurin@20]
+        scala: [3.3.4-RC1]
+        java: [zulu@17, zulu@20]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Java (temurin@17)
-        if: matrix.java == 'temurin@17'
-        uses: actions/setup-java@v2
+      - name: Setup Java (zulu@17)
+        if: matrix.java == 'zulu@17'
+        uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: zulu
           java-version: 17
+          cache: sbt
 
-      - name: Setup Java (temurin@20)
-        if: matrix.java == 'temurin@20'
-        uses: actions/setup-java@v2
+      - name: Setup Java (zulu@20)
+        if: matrix.java == 'zulu@20'
+        uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: zulu
           java-version: 20
+          cache: sbt
 
-      - name: Cache sbt
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.sbt
-            ~/.ivy2/cache
-            ~/.coursier/cache/v1
-            ~/.cache/coursier/v1
-            ~/AppData/Local/Coursier/Cache/v1
-            ~/Library/Caches/Coursier/v1
-          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
+      - name: Setup sbt
+        uses: sbt/setup-sbt@v1
 
       - name: Check that workflows are up to date
-        run: sbt ++${{ matrix.scala }} githubWorkflowCheck
+        run: sbt '++ ${{ matrix.scala }}' githubWorkflowCheck
 
       - name: Start containers
         run: docker compose -f docker-compose.yml up -d
 
       - name: Build project
-        run: sbt ++${{ matrix.scala }} compile scalafmtCheckAll javafmtCheckAll plugin/test
+        run: sbt '++ ${{ matrix.scala }}' compile scalafmtCheckAll javafmtCheckAll plugin/test
 
       - name: Test Consumer
-        run: sbt ++${{ matrix.scala }} consumer/test
+        run: sbt '++ ${{ matrix.scala }}' consumer/test
 
       - name: Upload Consumer Pact
         run: ./scripts/pact-publish.sh
 
       - name: Test Provider
-        run: sbt ++${{ matrix.scala }} provider/test
+        run: sbt '++ ${{ matrix.scala }}' provider/test
 
       - name: Stop containers
         if: always()
@@ -84,7 +77,7 @@ jobs:
         run: tar cf targets.tar target modules/plugin/target modules/examples/provider/target modules/examples/consumer/target project/target
 
       - name: Upload target directories
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: target-${{ matrix.os }}-${{ matrix.scala }}-${{ matrix.java }}
           path: targets.tar
@@ -96,47 +89,40 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [3.3.1]
-        java: [temurin@17]
+        scala: [3.3.4-RC1]
+        java: [zulu@17]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Java (temurin@17)
-        if: matrix.java == 'temurin@17'
-        uses: actions/setup-java@v2
+      - name: Setup Java (zulu@17)
+        if: matrix.java == 'zulu@17'
+        uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: zulu
           java-version: 17
+          cache: sbt
 
-      - name: Setup Java (temurin@20)
-        if: matrix.java == 'temurin@20'
-        uses: actions/setup-java@v2
+      - name: Setup Java (zulu@20)
+        if: matrix.java == 'zulu@20'
+        uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: zulu
           java-version: 20
+          cache: sbt
 
-      - name: Cache sbt
-        uses: actions/cache@v2
+      - name: Setup sbt
+        uses: sbt/setup-sbt@v1
+
+      - name: Download target directories (3.3.4-RC1)
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            ~/.sbt
-            ~/.ivy2/cache
-            ~/.coursier/cache/v1
-            ~/.cache/coursier/v1
-            ~/AppData/Local/Coursier/Cache/v1
-            ~/Library/Caches/Coursier/v1
-          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
+          name: target-${{ matrix.os }}-3.3.4-RC1-${{ matrix.java }}
 
-      - name: Download target directories (3.3.1)
-        uses: actions/download-artifact@v2
-        with:
-          name: target-${{ matrix.os }}-3.3.1-${{ matrix.java }}
-
-      - name: Inflate target directories (3.3.1)
+      - name: Inflate target directories (3.3.4-RC1)
         run: |
           tar xf targets.tar
           rm targets.tar
@@ -153,7 +139,7 @@ jobs:
         run: ./scripts/docBuild.sh ${{ github.ref }}
 
       - name: Build package
-        run: 'sbt ++${{ matrix.scala }} universal:packageZipTarball'
+        run: 'sbt universal:packageZipTarball'
 
       - name: Prepare Artifacts
         run: ./scripts/prepArtifacts.sh
@@ -170,4 +156,4 @@ jobs:
       - name: Publish docs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: sbt ++${{ matrix.scala }} publishToGitHubPages
+        run: sbt publishToGitHubPages

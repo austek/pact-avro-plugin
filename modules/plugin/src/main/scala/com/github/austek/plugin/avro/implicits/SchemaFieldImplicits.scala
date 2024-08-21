@@ -23,7 +23,7 @@ object SchemaFieldImplicits extends StrictLogging {
 
     def compare(path: List[String], other: Schema.Field, expected: GenericRecord, actual: GenericRecord)(implicit
       context: MatchingContext
-    ): Either[Seq[PluginError[_]], List[AvroBodyItemMatchResult]] = {
+    ): Either[Seq[PluginError[?]], List[AvroBodyItemMatchResult]] = {
       (field.schema().getType, other.schema().getType) match {
         case (expectedType, actualType) if expectedType == actualType =>
           expectedType match {
@@ -79,7 +79,7 @@ object SchemaFieldImplicits extends StrictLogging {
       actual: GenericRecord,
       context: MatchingContext
     ): List[AvroBodyItemMatchResult] = {
-      val clazz: Class[_] = field.schema().getElementType.getType.asJava
+      val clazz: Class[?] = field.schema().getElementType.getType.asJava
       val expectedList = expected.get(field.name()).asInstanceOf[util.List[clazz.type]]
       logger.debug(s">>> compareArrayField($path, $field, $expectedList)")
       Option(actual.get(field.name()).asInstanceOf[util.List[clazz.type]]) match {
@@ -175,7 +175,7 @@ object SchemaFieldImplicits extends StrictLogging {
       actual: GenericRecord,
       context: MatchingContext
     ): List[AvroBodyItemMatchResult] = {
-      val clazz: Class[_] = field.schema().getValueType.getType.asJava
+      val clazz: Class[?] = field.schema().getValueType.getType.asJava
       val expectedEntries = expected.get(field.name()).asInstanceOf[util.Map[String, clazz.type]]
       logger.debug(s">>> compareArrayField($path, $field, $expectedEntries)")
       Option(actual.get(field.name()).asInstanceOf[util.Map[String, clazz.type]]) match {
