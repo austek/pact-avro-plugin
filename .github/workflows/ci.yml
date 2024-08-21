@@ -22,9 +22,9 @@ jobs:
     name: Build and Test
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         scala: [3.4.2]
-        java: [temurin@17, temurin@20]
+        java: [zulu@17, zulu@20]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Ignore line ending differences in git
@@ -32,40 +32,41 @@ jobs:
         shell: bash
         run: git config --global core.autocrlf false
 
+      - name: Configure pagefile for Windows
+        if: contains(runner.os, 'windows')
+        uses: al-cheb/configure-pagefile-action@v1.4
+        with:
+          minimum-size: 2GB
+          maximum-size: 8GB
+          disk-root: 'C:'
+
       - name: Checkout current branch (full)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Java (temurin@17)
-        if: matrix.java == 'temurin@17'
-        uses: actions/setup-java@v2
+      - name: Setup Java (zulu@17)
+        if: matrix.java == 'zulu@17'
+        uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: zulu
           java-version: 17
+          cache: sbt
 
-      - name: Setup Java (temurin@20)
-        if: matrix.java == 'temurin@20'
-        uses: actions/setup-java@v2
+      - name: Setup Java (zulu@20)
+        if: matrix.java == 'zulu@20'
+        uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: zulu
           java-version: 20
+          cache: sbt
 
-      - name: Cache sbt
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.sbt
-            ~/.ivy2/cache
-            ~/.coursier/cache/v1
-            ~/.cache/coursier/v1
-            ~/AppData/Local/Coursier/Cache/v1
-            ~/Library/Caches/Coursier/v1
-          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
+      - name: Setup sbt
+        uses: sbt/setup-sbt@v1
 
       - name: Check that workflows are up to date
         shell: bash
-        run: sbt ++${{ matrix.scala }} githubWorkflowCheck
+        run: sbt '++ ${{ matrix.scala }}' githubWorkflowCheck
 
       - name: Start containers
         shell: bash
@@ -73,11 +74,11 @@ jobs:
 
       - name: Build project
         shell: bash
-        run: sbt ++${{ matrix.scala }} compile scalafmtCheckAll javafmtCheckAll plugin/test
+        run: sbt '++ ${{ matrix.scala }}' compile scalafmtCheckAll javafmtCheckAll plugin/test
 
       - name: Test Consumer
         shell: bash
-        run: sbt ++${{ matrix.scala }} consumer/test
+        run: sbt '++ ${{ matrix.scala }}' consumer/test
 
       - name: Upload Consumer Pact
         shell: bash
@@ -85,7 +86,7 @@ jobs:
 
       - name: Test Provider
         shell: bash
-        run: sbt ++${{ matrix.scala }} provider/test
+        run: sbt '++ ${{ matrix.scala }}' provider/test
 
       - name: Stop containers
         if: always()
@@ -97,7 +98,7 @@ jobs:
         run: tar cf targets.tar target modules/plugin/target modules/examples/provider/target modules/examples/consumer/target project/target
 
       - name: Upload target directories
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: target-${{ matrix.os }}-${{ matrix.scala }}-${{ matrix.java }}
           path: targets.tar
@@ -110,46 +111,47 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         scala: [3.4.2]
-        java: [temurin@17]
+        java: [zulu@17]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Ignore line ending differences in git
         if: contains(runner.os, 'windows')
         run: git config --global core.autocrlf false
 
+      - name: Configure pagefile for Windows
+        if: contains(runner.os, 'windows')
+        uses: al-cheb/configure-pagefile-action@v1.4
+        with:
+          minimum-size: 2GB
+          maximum-size: 8GB
+          disk-root: 'C:'
+
       - name: Checkout current branch (full)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Java (temurin@17)
-        if: matrix.java == 'temurin@17'
-        uses: actions/setup-java@v2
+      - name: Setup Java (zulu@17)
+        if: matrix.java == 'zulu@17'
+        uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: zulu
           java-version: 17
+          cache: sbt
 
-      - name: Setup Java (temurin@20)
-        if: matrix.java == 'temurin@20'
-        uses: actions/setup-java@v2
+      - name: Setup Java (zulu@20)
+        if: matrix.java == 'zulu@20'
+        uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: zulu
           java-version: 20
+          cache: sbt
 
-      - name: Cache sbt
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.sbt
-            ~/.ivy2/cache
-            ~/.coursier/cache/v1
-            ~/.cache/coursier/v1
-            ~/AppData/Local/Coursier/Cache/v1
-            ~/Library/Caches/Coursier/v1
-          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
+      - name: Setup sbt
+        uses: sbt/setup-sbt@v1
 
       - name: Download target directories (3.4.2)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: target-${{ matrix.os }}-3.4.2-${{ matrix.java }}
 
@@ -170,7 +172,7 @@ jobs:
         run: ./scripts/docBuild.sh ${{ github.ref }}
 
       - name: Build package
-        run: 'sbt ++${{ matrix.scala }} universal:packageZipTarball'
+        run: 'sbt universal:packageZipTarball'
 
       - name: Prepare Artifacts
         run: ./scripts/prepArtifacts.sh
@@ -187,4 +189,4 @@ jobs:
       - name: Publish docs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: sbt ++${{ matrix.scala }} publishToGitHubPages
+        run: sbt publishToGitHubPages
