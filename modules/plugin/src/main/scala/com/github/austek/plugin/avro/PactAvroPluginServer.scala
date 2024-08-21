@@ -21,7 +21,7 @@ class PactAvroPluginServer(
   private val serverKey: UUID = randomUUID()
 ) { self =>
 
-  private[this] var server: Option[Server] = None
+  private var server: Option[Server] = None
 
   private def start(): Unit = {
     server = Option(

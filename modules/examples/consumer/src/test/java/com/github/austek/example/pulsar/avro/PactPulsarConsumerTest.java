@@ -22,6 +22,8 @@ import com.github.austek.example.Order;
 import com.github.austek.example.Status;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.*;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DecoderFactory;
@@ -31,15 +33,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(PactConsumerTestExt.class)
 @PactTestFor(
-    providerName = "order-provider",
+    providerName = "avro-plugin-provider",
     providerType = ProviderType.ASYNCH,
     pactVersion = PactSpecVersion.V4)
 class PactPulsarConsumerTest {
-  private final String schemasPath =
-      Objects.requireNonNull(getClass().getResource("/avro/orders.avsc")).getPath();
+  private final String schemasPath;
   private final OrderService orderService = new OrderService();
 
-  @Pact(consumer = "avro-consumer")
+  PactPulsarConsumerTest() throws URISyntaxException {
+    schemasPath =
+        Paths.get(Objects.requireNonNull(getClass().getResource("/avro/orders.avsc")).toURI())
+            .toFile()
+            .getAbsolutePath();
+  }
+
+  @Pact(consumer = "avro-plugin-consumer")
   V4Pact configureRecordWithDependantRecord(PactBuilder builder) {
     // tag::configuration[]
     return builder

@@ -1,6 +1,7 @@
 services:
   postgres:
-    image: postgres:15.2-alpine
+    image: postgres:16.4-alpine
+    platform: linux/amd64
     healthcheck:
       test: psql postgres --command "select 1" -U postgres
     environment:
@@ -9,7 +10,8 @@ services:
       POSTGRES_DB: postgres
 
   pact-broker:
-    image: pactfoundation/pact-broker:2.113.0-pactbroker2.107.1-multi
+    image: pactfoundation/pact-broker
+    platform: linux/amd64
     ports:
       - "9292:9292"
     depends_on:
