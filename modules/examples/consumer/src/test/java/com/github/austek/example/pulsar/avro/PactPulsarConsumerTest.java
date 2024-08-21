@@ -31,7 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(PactConsumerTestExt.class)
 @PactTestFor(
-    providerName = "order-provider",
+    providerName = "avro-plugin-provider",
     providerType = ProviderType.ASYNCH,
     pactVersion = PactSpecVersion.V4)
 class PactPulsarConsumerTest {
@@ -39,7 +39,7 @@ class PactPulsarConsumerTest {
       Objects.requireNonNull(getClass().getResource("/avro/orders.avsc")).getPath();
   private final OrderService orderService = new OrderService();
 
-  @Pact(consumer = "avro-consumer")
+  @Pact(consumer = "avro-plugin-consumer")
   V4Pact configureRecordWithDependantRecord(PactBuilder builder) {
     // tag::configuration[]
     return builder

@@ -18,7 +18,7 @@ object SchemaTypeImplicits {
         case ENUM           => classOf[String]
         case FIXED          => classOf[Array[Byte]]
         case ARRAY          => classOf[List[?]]
-        case MAP            => classOf[Map[_, _]]
+        case MAP            => classOf[Map[?, ?]]
         case RECORD         => classOf[GenericRecord]
         case _              => classOf[Object]
       }

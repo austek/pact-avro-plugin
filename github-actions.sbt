@@ -1,8 +1,6 @@
 // sbt-github-actions
 
-// Add windows-latest when https://github.com/sbt/sbt/issues/7082 is resolved
-// Add macos-latest when step to install docker on it is done
-ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest")
+ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest", "macos-latest", "windows-2019")
 ThisBuild / githubWorkflowJavaVersions := Seq(
   JavaSpec.zulu("17"),
   JavaSpec.zulu("20")
@@ -10,10 +8,25 @@ ThisBuild / githubWorkflowJavaVersions := Seq(
 ThisBuild / githubWorkflowTargetBranches := Seq("main")
 ThisBuild / githubWorkflowTargetTags := Seq("v*")
 
+ThisBuild / githubWorkflowEnv := Map(
+  "PACT_BROKER_BASE_URL" -> "https://test.pactflow.io",
+  "PACT_BROKER_USERNAME" -> "dXfltyFMgNOFZAxr8io9wJ37iUpY42M",
+  "PACT_BROKER_PASSWORD" -> "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1",
+  "GITHUB_TOKEN" -> "${{ secrets.GITHUB_TOKEN }}"
+)
+ThisBuild / githubWorkflowBuildMatrixFailFast := Some(false)
 ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Run(
-    name = Some("Start containers"),
-    commands = List("docker compose -f docker-compose.yml up -d")
+    name = Some("Set outputs"),
+    id = Some("vars"),
+    commands = List(
+      """echo "sha_short=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT""",
+      """echo "git_tag=$(git describe --tags)" >> $GITHUB_OUTPUT"""
+    )
+  ),
+  WorkflowStep.Use(
+    UseRef.Public("pactflow", "actions", "main"),
+    name = Some("Pactflow Setup")
   ),
   WorkflowStep.Sbt(
     name = Some("Build project"),
@@ -24,17 +37,29 @@ ThisBuild / githubWorkflowBuild := Seq(
     commands = List("consumer/test")
   ),
   WorkflowStep.Run(
-    name = Some("Upload Consumer Pact"),
-    commands = List("./scripts/pact-publish.sh")
+    name = Some("Pact publish Windows"),
+    commands = List("""pact-broker.bat publish
+        | "modules/examples/consumer/target/pacts"
+        | --consumer-app-version=${{ steps.vars.outputs.git_tag }}-${{ runner.os }}
+        | --tag=${{ steps.vars.outputs.git_tag }}-${{ runner.os }}
+        | """.stripMargin.replaceAll("\n", "")),
+    cond = Some("contains(runner.os, 'windows')")
+  ),
+  WorkflowStep.Run(
+    name = Some("Pact publish *nix"),
+    commands = List("""pact-broker publish
+        | "modules/examples/consumer/target/pacts"
+        | --consumer-app-version=${{ steps.vars.outputs.git_tag }}-${{ runner.os }}
+        | --tag=${{ steps.vars.outputs.git_tag }}-${{ runner.os }}
+        | """.stripMargin.replaceAll("\n", "")),
+    cond = Some("!contains(runner.os, 'windows')")
   ),
   WorkflowStep.Sbt(
     name = Some("Test Provider"),
-    commands = List("provider/test")
-  ),
-  WorkflowStep.Run(
-    cond = Some("always()"),
-    name = Some("Stop containers"),
-    commands = List("docker compose -f docker-compose.yml down")
+    commands = List("provider/test"),
+    env = Map(
+      "PACT_BROKER_TAG" -> "${{ steps.vars.outputs.git_tag }}-${{ runner.os }}",
+    )
   )
 )
 

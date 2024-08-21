@@ -1,18 +1,18 @@
 package com.github.austek.plugin.avro
 
-import Avro.*
-import com.github.austek.plugin.avro.utils.StringUtils.*
+import com.github.austek.plugin.avro.Avro.*
 import com.github.austek.plugin.avro.utils.AvroUtils
+import com.github.austek.plugin.avro.utils.StringUtils.*
 import com.google.protobuf.struct.Value.Kind.*
-import com.google.protobuf.struct.{ListValue => StructListValue, Struct, Value}
-import io.pact.plugin.pact_plugin.Body.ContentTypeHint.BINARY
+import com.google.protobuf.struct.{ListValue as StructListValue, Struct, Value}
 import io.pact.plugin.pact_plugin.*
+import io.pact.plugin.pact_plugin.Body.ContentTypeHint.BINARY
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AsyncFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{EitherValues, OptionValues}
 
-import java.nio.file.Path
+import java.io.File
 import scala.jdk.CollectionConverters.*
 
 class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionValues with ScalaFutures with EitherValues {
@@ -78,7 +78,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
   }
 
   it should "require a valid avro schema file" in {
-    val schemasPath = getClass.getResource("/invalid.avsc").getPath
+    val schemasPath = new File(getClass.getResource("/invalid.avsc").getPath).getAbsolutePath
     new PactAvroPluginService()
       .configureInteraction(
         ConfigureInteractionRequest(
@@ -99,7 +99,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
   }
 
   it should "require record-name to be defined" in {
-    val schemasPath = getClass.getResource("/schemas.avsc").getPath
+    val schemasPath = new File(getClass.getResource("/schemas.avsc").getPath).getAbsolutePath
     new PactAvroPluginService()
       .configureInteraction(
         ConfigureInteractionRequest(
@@ -119,7 +119,8 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
   }
 
   it should "return Interaction Response for a single record" in {
-    val url = getClass.getResource("/item.avsc")
+    val schemaFile = new File(getClass.getResource("/item.avsc").getPath)
+    val schemaPath = schemaFile.getAbsolutePath
     val eventualResponse = new PactAvroPluginService()
       .configureInteraction(
         ConfigureInteractionRequest(
@@ -127,7 +128,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
           Some(
             Struct(
               Map(
-                "pact:avro" -> Value(StringValue(url.getPath)),
+                "pact:avro" -> Value(StringValue(schemaPath)),
                 "pact:record-name" -> Value(StringValue("Item")),
                 "pact:content-type" -> Value(StringValue("avro/binary")),
                 "name" -> Value(StringValue("notEmpty('Item-41')")),
@@ -144,7 +145,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     content.contentTypeHint shouldBe Body.ContentTypeHint.BINARY
     content.contentType shouldBe "avro/binary;record=Item"
 
-    val schema = AvroUtils.parseSchema(Path.of(url.getPath).toFile).value
+    val schema = AvroUtils.parseSchema(schemaFile).value
     val bytes =
       AvroRecord(
         "$".toPactPath,
@@ -160,7 +161,8 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
   }
 
   it should "return Interaction Response for a record with other record in field" in {
-    val url = getClass.getResource("/schemas.avsc")
+    val schemaFile = new File(getClass.getResource("/schemas.avsc").getPath)
+    val schemaPath = schemaFile.getAbsolutePath
     val eventualResponse = new PactAvroPluginService()
       .configureInteraction(
         ConfigureInteractionRequest(
@@ -168,7 +170,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
           Some(
             Struct(
               Map(
-                "pact:avro" -> Value(StringValue(url.getPath)),
+                "pact:avro" -> Value(StringValue(schemaPath)),
                 "pact:record-name" -> Value(StringValue("Complex")),
                 "pact:content-type" -> Value(StringValue("avro/binary")),
                 "id" -> Value(StringValue("notEmpty('100')")),
@@ -220,7 +222,7 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
     val content = interaction.contents.value
     content.contentTypeHint shouldBe Body.ContentTypeHint.BINARY
     content.contentType shouldBe "avro/binary;record=Complex"
-    val schema = AvroUtils.parseSchema(Path.of(url.getPath).toFile).value.getTypes.asScala.find(_.getName == "Complex").get
+    val schema = AvroUtils.parseSchema(schemaFile).value.getTypes.asScala.find(_.getName == "Complex").get
     val avroRecord = AvroRecord(
       "$".toPactPath,
       ".".toFieldName,
@@ -287,8 +289,8 @@ class PactPluginServiceTest extends AsyncFlatSpecLike with Matchers with OptionV
   }
 
   it should "return successful result when comparing to matching content" in {
-    val url = getClass.getResource("/item.avsc")
-    val schema = AvroUtils.parseSchema(Path.of(url.getPath).toFile).value
+    val schemaFile = new File(getClass.getResource("/item.avsc").getPath)
+    val schema = AvroUtils.parseSchema(schemaFile).value
     val expectedBytes =
       AvroRecord(
         "$".toPactPath,
