@@ -1,7 +1,7 @@
 // sbt-github-actions
 
 // Add macos-latest when step to install docker on it is done
-ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest", "windows-latest", "macos-latest")
+ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest", "windows-latest")
 ThisBuild / githubWorkflowJavaVersions := Seq(
   JavaSpec.zulu("17"),
   JavaSpec.zulu("20")
