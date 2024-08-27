@@ -37,9 +37,11 @@ class OrderV1ConsumerTest {
 
   @Pact(consumer = "OrderTopicConsumer")
   V4Pact configureRecordWithDependantRecord(PactBuilder builder) {
-    if (System.getProperty("os.name").toLowerCase().contains("win") &&  schemasPath.startsWith("/")) {
-        schemasPath = schemasPath.substring(1);
-    };
+    if (System.getProperty("os.name").toLowerCase().contains("win")
+        && schemasPath.startsWith("/")) {
+      schemasPath = schemasPath.substring(1);
+    }
+    ;
     var messageBody =
         Map.of(
             "message.contents",

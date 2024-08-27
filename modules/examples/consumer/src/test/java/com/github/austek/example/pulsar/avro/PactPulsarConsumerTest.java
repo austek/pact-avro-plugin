@@ -41,9 +41,11 @@ class PactPulsarConsumerTest {
 
   @Pact(consumer = "avro-plugin-consumer")
   V4Pact configureRecordWithDependantRecord(PactBuilder builder) {
-    if (System.getProperty("os.name").toLowerCase().contains("win") &&  schemasPath.startsWith("/")) {
-        schemasPath = schemasPath.substring(1);
-    };
+    if (System.getProperty("os.name").toLowerCase().contains("win")
+        && schemasPath.startsWith("/")) {
+      schemasPath = schemasPath.substring(1);
+    }
+    ;
     // tag::configuration[]
     return builder
         .usingPlugin("avro")
