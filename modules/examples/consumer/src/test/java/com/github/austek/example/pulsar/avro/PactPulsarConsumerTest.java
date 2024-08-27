@@ -35,12 +35,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
     providerType = ProviderType.ASYNCH,
     pactVersion = PactSpecVersion.V4)
 class PactPulsarConsumerTest {
-  private final String schemasPath =
+  private String schemasPath =
       Objects.requireNonNull(getClass().getResource("/avro/orders.avsc")).getPath();
   private final OrderService orderService = new OrderService();
 
   @Pact(consumer = "avro-plugin-consumer")
   V4Pact configureRecordWithDependantRecord(PactBuilder builder) {
+    if (System.getProperty("os.name").toLowerCase().contains("win") &&  schemasPath.startsWith("/")) {
+        schemasPath = schemasPath.substring(1);
+    };
     // tag::configuration[]
     return builder
         .usingPlugin("avro")

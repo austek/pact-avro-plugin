@@ -32,11 +32,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
     providerType = ProviderType.ASYNCH,
     providerName = "OrderTopicV1")
 class OrderV1ConsumerTest {
-  private final String schemasPath =
+  private String schemasPath =
       Objects.requireNonNull(getClass().getResource("/avro/order-v1.avsc")).getPath();
 
   @Pact(consumer = "OrderTopicConsumer")
   V4Pact configureRecordWithDependantRecord(PactBuilder builder) {
+    if (System.getProperty("os.name").toLowerCase().contains("win") &&  schemasPath.startsWith("/")) {
+        schemasPath = schemasPath.substring(1);
+    };
     var messageBody =
         Map.of(
             "message.contents",
