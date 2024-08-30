@@ -6,18 +6,8 @@
         </encoder>
     </appender>
 
-    <appender name="PLAIN_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="PLAIN_FILE" class="ch.qos.logback.core.FileAppender">
         <file>logs/plugin.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover -->
-            <fileNamePattern>logs/plugin.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <!-- or whenever the file size reaches 50MB -->
-                <maxFileSize>50MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
-            <!-- keep 30 days' worth of history -->
-            <maxHistory>30</maxHistory>
-        </rollingPolicy>
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{50}:%line - %message%n%xException{10}</pattern>
         </encoder>
