@@ -15,18 +15,35 @@ on:
     tags: [v*]
 
 env:
+  PACT_BROKER_BASE_URL: 'https://test.pactflow.io'
+  PACT_BROKER_USERNAME: dXfltyFMgNOFZAxr8io9wJ37iUpY42M
+  PACT_BROKER_PASSWORD: O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build:
     name: Build and Test
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        scala: [3.3.4-RC1]
+        os: [ubuntu-latest, macos-latest, windows-2019]
+        scala: [3.5.0]
         java: [zulu@17, zulu@20]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Ignore line ending differences in git
+        if: contains(runner.os, 'windows')
+        shell: bash
+        run: git config --global core.autocrlf false
+
+      - name: Configure pagefile for Windows
+        if: contains(runner.os, 'windows')
+        uses: al-cheb/configure-pagefile-action@v1.4
+        with:
+          minimum-size: 2GB
+          maximum-size: 8GB
+          disk-root: 'C:'
+
       - name: Checkout current branch (full)
         uses: actions/checkout@v4
         with:
@@ -52,28 +69,45 @@ jobs:
         uses: sbt/setup-sbt@v1
 
       - name: Check that workflows are up to date
+        shell: bash
         run: sbt '++ ${{ matrix.scala }}' githubWorkflowCheck
 
-      - name: Start containers
-        run: docker compose -f docker-compose.yml up -d
+      - name: Set outputs
+        id: vars
+        shell: bash
+        run: |
+          echo "sha_short=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
+          echo "git_tag=$(git describe --tags)" >> $GITHUB_OUTPUT
+
+      - name: Pactflow Setup
+        uses: pactflow/actions@main
 
       - name: Build project
+        shell: bash
         run: sbt '++ ${{ matrix.scala }}' compile scalafmtCheckAll javafmtCheckAll plugin/test
 
       - name: Test Consumer
+        shell: bash
         run: sbt '++ ${{ matrix.scala }}' consumer/test
 
-      - name: Upload Consumer Pact
-        run: ./scripts/pact-publish.sh
+      - name: Pact publish Windows
+        if: contains(runner.os, 'windows')
+        shell: bash
+        run: pact-broker.bat publish "modules/examples/consumer/target/pacts" --consumer-app-version=${{ steps.vars.outputs.git_tag }}-${{ runner.os }} --tag=${{ steps.vars.outputs.git_tag }}-${{ runner.os }} 
+
+      - name: Pact publish *nix
+        if: '!contains(runner.os, ''windows'')'
+        shell: bash
+        run: pact-broker publish "modules/examples/consumer/target/pacts" --consumer-app-version=${{ steps.vars.outputs.git_tag }}-${{ runner.os }} --tag=${{ steps.vars.outputs.git_tag }}-${{ runner.os }} 
 
       - name: Test Provider
+        env:
+          PACT_BROKER_TAG: ${{ steps.vars.outputs.git_tag }}-${{ runner.os }}
+        shell: bash
         run: sbt '++ ${{ matrix.scala }}' provider/test
 
-      - name: Stop containers
-        if: always()
-        run: docker compose -f docker-compose.yml down
-
       - name: Compress target directories
+        shell: bash
         run: tar cf targets.tar target modules/plugin/target modules/examples/provider/target modules/examples/consumer/target project/target
 
       - name: Upload target directories
@@ -89,10 +123,22 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [3.3.4-RC1]
+        scala: [3.5.0]
         java: [zulu@17]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Ignore line ending differences in git
+        if: contains(runner.os, 'windows')
+        run: git config --global core.autocrlf false
+
+      - name: Configure pagefile for Windows
+        if: contains(runner.os, 'windows')
+        uses: al-cheb/configure-pagefile-action@v1.4
+        with:
+          minimum-size: 2GB
+          maximum-size: 8GB
+          disk-root: 'C:'
+
       - name: Checkout current branch (full)
         uses: actions/checkout@v4
         with:
@@ -117,12 +163,12 @@ jobs:
       - name: Setup sbt
         uses: sbt/setup-sbt@v1
 
-      - name: Download target directories (3.3.4-RC1)
+      - name: Download target directories (3.5.0)
         uses: actions/download-artifact@v4
         with:
-          name: target-${{ matrix.os }}-3.3.4-RC1-${{ matrix.java }}
+          name: target-${{ matrix.os }}-3.5.0-${{ matrix.java }}
 
-      - name: Inflate target directories (3.3.4-RC1)
+      - name: Inflate target directories (3.5.0)
         run: |
           tar xf targets.tar
           rm targets.tar

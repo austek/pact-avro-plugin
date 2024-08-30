@@ -2,7 +2,7 @@
   {
     "type": "record",
     "name": "OrderNewEvent",
-    "namespace": "com.collibra.event.client.examples.showcase.schema",
+    "namespace": "com.github.austek.event.client.examples.showcase.schema",
     "fields": [
       {
         "name": "createdOn",
@@ -23,7 +23,7 @@
             "items": {
               "type": "record",
               "name": "OrderItem",
-              "namespace": "com.collibra.event.client.examples.showcase.domain",
+              "namespace": "com.github.austek.event.client.examples.showcase.domain",
               "fields": [
                 {
                   "name": "itemId",

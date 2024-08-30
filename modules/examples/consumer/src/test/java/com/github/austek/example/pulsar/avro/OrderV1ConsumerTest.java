@@ -17,9 +17,11 @@ import au.com.dius.pact.core.model.matchingrules.MatchingRuleCategory;
 import au.com.dius.pact.core.model.matchingrules.MatchingRuleGroup;
 import au.com.dius.pact.core.model.matchingrules.MatchingRulesImpl;
 import au.com.dius.pact.core.model.v4.MessageContents;
-import com.collibra.event.client.examples.showcase.domain.OrderItem;
-import com.collibra.event.client.examples.showcase.schema.OrderNewEvent;
+import com.github.austek.event.client.examples.showcase.domain.OrderItem;
+import com.github.austek.event.client.examples.showcase.schema.OrderNewEvent;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,8 +34,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
     providerType = ProviderType.ASYNCH,
     providerName = "OrderTopicV1")
 class OrderV1ConsumerTest {
-  private final String schemasPath =
-      Objects.requireNonNull(getClass().getResource("/avro/order-v1.avsc")).getPath();
+  private final String schemasPath;
+
+  OrderV1ConsumerTest() throws URISyntaxException {
+    schemasPath =
+        Paths.get(Objects.requireNonNull(getClass().getResource("/avro/order-v1.avsc")).toURI())
+            .toFile()
+            .getAbsolutePath();
+  }
 
   @Pact(consumer = "OrderTopicConsumer")
   V4Pact configureRecordWithDependantRecord(PactBuilder builder) {

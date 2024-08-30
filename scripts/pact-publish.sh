@@ -18,7 +18,9 @@ docker run --rm \
   --network="host" \
   pactfoundation/pact-cli \
   publish /pacts \
-  --broker-base-url=http://localhost:9292 \
-  --consumer-app-version=$LATEST_COMMIT \
-  --tag=production \
+  --broker-base-url ${PACT_BROKER_BASE_URL} \
+  --broker-username ${PACT_BROKER_USERNAME} \
+  --broker-password ${PACT_BROKER_PASSWORD} \
+  --consumer-app-version=${LATEST_COMMIT} \
+  --tag=${LATEST_COMMIT} \
   --branch=main

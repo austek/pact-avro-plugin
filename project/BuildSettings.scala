@@ -9,7 +9,7 @@ import java.util
 object BuildSettings {
   private val javaVersion = 17
   private val env: util.Map[String, String] = System.getenv()
-  val scalaV = "3.3.4-RC1" // Using version as  `Wconf:src` option is not available in released 3.3.*, 3.4.* or 3.5.* versions
+  val scalaV = "3.5.0"
 
   lazy val basicSettings: Seq[Def.Setting[?]] = Seq(
     homepage := Some(URI.create("https://github.com/austek/pact-avro-plugin").toURL),
@@ -34,10 +34,9 @@ object BuildSettings {
         Seq("-Xfatal-warnings")
     },
     scalacOptions ++= Seq(
-      "-Wconf:id=E175:silent",
       "-Wconf:src=src_managed/.*:silent"
     ),
-    Test / tpolecatExcludeOptions += ScalacOptions.warnNonUnitStatement,
+    tpolecatExcludeOptions += ScalacOptions.warnNonUnitStatement,
     initialize := {
       val _ = initialize.value
       val javaVersionFound = sys.props("java.specification.version").toDouble

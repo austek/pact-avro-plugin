@@ -42,5 +42,4 @@ class OrderConsumerController(config: ConsumerAppConfig) extends StrictLogging {
       processOrderMessages(totalMessageCount + 1, f)
     }
   }
-
 }

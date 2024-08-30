@@ -8,9 +8,9 @@ object Dependencies extends DependencyUtils {
     val avro = "1.12.0"
     val jupiterInterface = "0.13.0"
     val logback = "1.5.7"
-    val pact = "4.6.13"
-    val pactDriverCore = "0.4.2"
-    val pulsar4sVersion = "2.9.1"
+    val pact = "4.6.14"
+    val pactDriverCore = "0.5.1"
+    val pulsar4sVersion = "2.10.0"
     val scalacheck = "1.18.0"
     val scalaLogging = "3.9.5"
     val scalaTest = "3.2.19"
@@ -24,14 +24,9 @@ object Dependencies extends DependencyUtils {
   val apacheAvro: ModuleID = "org.apache.avro"           % "avro"     % Versions.avro excludeAll ExclusionRule("org.slf4j")
   val auPactMatchers: ModuleID = "au.com.dius.pact.core" % "matchers" % Versions.pact excludeAll (
     ExclusionRule("com.google.guava"),
-    ExclusionRule("io.pact.plugin.driver"),
     ExclusionRule("org.slf4j")
   )
   val logback: ModuleID = "ch.qos.logback"         % "logback-classic" % Versions.logback
-  val pactCore: ModuleID = "io.pact.plugin.driver" % "core"            % Versions.pactDriverCore excludeAll (
-    ExclusionRule("au.com.dius.pact.core"),
-    ExclusionRule("org.slf4j")
-  )
   val scalaLogging: ModuleID = "com.typesafe.scala-logging" %% "scala-logging"        % Versions.scalaLogging excludeAll ExclusionRule("org.slf4j")
   val scalaPBRuntime = "com.thesamet.scalapb"               %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
   val slf4jApi: ModuleID = "org.slf4j"                      %% "slf4j-api"            % Versions.slf4jApi
