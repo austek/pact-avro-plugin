@@ -213,17 +213,6 @@ jobs:
           tar xf targets.tar
           rm targets.tar
 
-      - name: Doc - Install node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24.x
-
-      - name: Doc - Install dependencies
-        run: npm ci
-
-      - name: Doc - build
-        run: ./scripts/docBuild.sh ${{ github.ref }}
-
       - name: Build package
         run: 'sbt universal:packageZipTarball'
 
@@ -238,8 +227,3 @@ jobs:
           file: target/artifacts/*
           file_glob: true
           tag: ${{ github.ref }}
-
-      - name: Publish docs
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: sbt publishToGitHubPages

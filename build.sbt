@@ -15,7 +15,6 @@ lazy val pactOptions: Seq[Tests.Argument] = Seq(
 
 lazy val plugin = moduleProject("plugin", "plugin")
   .enablePlugins(
-    GitHubPagesPlugin,
     JavaAppPackaging,
     // https://sbt-native-packager.readthedocs.io/en/stable/recipes/longclasspath.html#long-classpaths
     LauncherJarPlugin
@@ -26,10 +25,6 @@ lazy val plugin = moduleProject("plugin", "plugin")
     maintainer := "aliustek@gmail.com",
     publishSettings,
     testEnvSettings,
-    gitHubPagesOrgName := "austek",
-    gitHubPagesRepoName := "pact-avro-plugin",
-    gitHubPagesSiteDir := (`pact-avro-plugin` / baseDirectory).value / "build" / "site",
-    gitHubPagesAcceptedTextExtensions := Set(".css", ".html", ".js", ".svg", ".txt", ".woff", ".woff2", ".xml"),
     Compile / PB.targets := Seq(
       scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
     ),

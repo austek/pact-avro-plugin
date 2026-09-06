@@ -97,19 +97,6 @@ ThisBuild / githubWorkflowPublishTargetBranches := Seq(
 )
 
 ThisBuild / githubWorkflowPublish := Seq(
-  WorkflowStep.Use(
-    UseRef.Public("actions", "setup-node", "v7"),
-    name = Some("Doc - Install node"),
-    params = Map("node-version" -> "24.x")
-  ),
-  WorkflowStep.Run(
-    name = Some("Doc - Install dependencies"),
-    commands = List("npm ci")
-  ),
-  WorkflowStep.Run(
-    name = Some("Doc - build"),
-    commands = List("./scripts/docBuild.sh ${{ github.ref }}")
-  ),
   WorkflowStep.Sbt(
     name = Some("Build package"),
     commands = List("universal:packageZipTarball")
@@ -127,13 +114,6 @@ ThisBuild / githubWorkflowPublish := Seq(
       "file" -> "target/artifacts/*",
       "file_glob" -> "true",
       "tag" -> "${{ github.ref }}"
-    )
-  ),
-  WorkflowStep.Sbt(
-    name = Some("Publish docs"),
-    commands = List("publishToGitHubPages"),
-    env = Map(
-      "GITHUB_TOKEN" -> "${{ secrets.GITHUB_TOKEN }}"
     )
   )
 )
