@@ -1,5 +1,0 @@
-:project-name: pact-avro-plugin
-:project-display-name: Pact Avro Plugin
-:encoding: utf-8
-:lang: en
-:doc-url: https://austek.github.io/pact-avro-plugin/
