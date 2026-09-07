@@ -17,3 +17,13 @@ Pact plugin development board: https://github.com/pact-foundation/pact-plugins/p
 == License and Copyright
 
 This plugin is released under the *MIT License* and is copyright © 2021-23 Ali Ustek.
+
+'''
+
+== 💝 Support This Project
+
+If this repository saves you time and effort, please consider supporting it!
+
+* ⭐ https://github.com/ZirekHQ/pact-avro-plugin[Star on GitHub]
+* 🐦 https://twitter.com/intent/tweet?text=pact-avro-plugin%20-%20Pact%20contract%20testing%20plugin%20for%20Apache%20Avro&url=https%3A%2F%2Fgithub.com%2FZirekHQ%2Fpact-avro-plugin[Share on Twitter]
+* 💖 https://github.com/ZirekHQ[More ways to support] — Open Collective coming soon
